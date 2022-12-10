@@ -81,6 +81,8 @@
 		<h3>Output:</h3>
 	</div-->
 	<script type="text/babel" data-type="module">
+		const { useState } = React
+		
 		function Heading() {
 			return (
 				<>
@@ -88,19 +90,18 @@
 				</>
 			)
 		}
-
+		var valueF = ''
 		function UsefulButtons() {
 			const actionFunc = (argument) => {
 				if(argument == 'delete') {
 					document.querySelectorAll('input, textarea').value = ''
 				}
 				else if (argument == 'execute') {
-					alert(document.querySelectorAll('input, textarea').value)
+					alert(valueF)
 				}
 				else {
 					console.log('error')
 				}
-				//alert(argument)
 			}
 			return (
 				<>
@@ -128,6 +129,8 @@
 		function Input() {
 			let handleSubmit = (event) => {
 				event.preventDefault();
+				valueF = document.querySelectorAll('input').value
+				alert(valueF)
 			}
 			return (
 				<>
