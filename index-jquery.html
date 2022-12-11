@@ -35,50 +35,114 @@
     	button i {
     		vertical-align: middle;
     	}
+    	#alert-id {
+    		display: none;
+    	}
 	 </style>
 </head>
-<body class="w3-container w3-padding-16 w3-theme-d4">
+<body class="w3-container w3-display-container w3-padding-16 w3-theme-d4">
 	<h1 class="w3-center w3-text-theme">
 		WHEAT
 	</h1>
 
 	<div class="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="useful-btns-id">
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+		<button form="input-form-id" type="reset" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
 			<i class="material-icons-outlined">delete</i> Clear All
 		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-2-id" onclick="downloadFile()">
 			<i class="material-icons-outlined">download</i> Download
 		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-3-id">
 			<i class="material-icons-outlined">undo</i> Undo
 		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-4-id">
 			<i class="material-icons-outlined">redo</i> Redo
 		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+		<button form="input-form-id" type="submit" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-5-id">
 			<i class="material-icons-outlined">send</i> Execute
 		</button>
 	</div>
 
-	<div class="w3-panel w3-theme-l1 w3-padding-large w3-bar w3-round-large" id="input-id">
+	<div class="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="input-id">
 		<h3>Input:</h3>
-		<form>
-			<input type="text" name="FileName" placeholder="Name of this file..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile">
-			<textarea autocomplete="off" placeholder="Your HTML code..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"></textarea>
+		<form id="input-form-id">
+			<input autocomplete="off" type="text" name="FileName" placeholder="Name of this file..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile">
+			<textarea autocomplete="off" name="FileContent" placeholder="Your HTML code..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"></textarea>
 		</form>
 	</div>
 
 	<div class="w3-panel w3-theme-d1 w3-padding-large w3-bar w3-round-large" id="output-id">
 		<h3>Output:</h3>
+		<span></span>
+	</div>
+
+	<div class="w3-panel w3-display-middle w3-padding-large w3-round-large w3-theme-l5 w3-hover-theme" id="alert-id">
+		<button onclick="$(this.parentElement).hide()" class="w3-button w3-round-large w3-right"><i class="material-icons-outlined">close</i></button>
+		<h3>Alert</h3>
+		<p></p>
 	</div>
 
 	<script>
-		function formHandeler(argument) {
-			argument.preventDefault()
+		var filename = '', filecontent = ''
+		//
+		function execute(argument) {
+			$('#output-id span').empty()
+			let source = `data:text/html;charset=utf-8,${encodeURIComponent(filecontent)}`
+			$('<iframe>', {
+				class: 'w3-border w3-round-large w3-theme-l5',
+				id: 'output-iframe-id',
+				src: source
+			}).appendTo('#output-id span')
 		}
+
+		// submit action function
+		function submitHandeler(argument) {
+			argument.preventDefault()
+			filename = $('#input-form-id input').val()
+			filecontent = $('#input-form-id textarea').val()
+			execute(filecontent)
+		}
+
+		function valueHandeler(argument) {
+			console.log(argument.target.value)
+			if(argument.target.matches('#input-form-id input'))
+				filename = argument.target.value
+			else
+				filecontent = argument.target.value
+			//qw = `${filecontent}<br>${filename}`
+			//$('#output-id span').html(qw)
+		}
+
+		// download the code function
+		function downloadFile() {
+			if (filename.length >= 1 && filecontent.length >=1) {
+				$('<a/>', {
+					id: 'download-btn',
+				}).prop({'download': filename, 'href': `data:text/plain;charset=utf-8,${encodeURIComponent(filecontent)}`}).css({'display': 'none'}).appendTo('body')
+				$('#download-btn')[0].click()
+				$('#download-btn').remove()
+			}
+			else {
+				$('#alert-id').show()
+				$('#alert-id p').text('Sorry but either file name is empty or there is no file content')
+			}
+		}
+
+		//redo action function
+		function redo() {
+			//
+		}
+
+		// undo action function
+		function undo() {
+			//
+		}
+
+		// main function
 		function main() {
 
-			$('#input-id form').submit((event) => formHandeler(event))
+			$('#input-form-id').submit((event) => submitHandeler(event))
+			$('#input-form-id').keyup((event) => valueHandeler(event))
 		}
 
 		$(document).ready(()=> {
