@@ -13,10 +13,6 @@
     	html, body {
     		width: 100%; min-height: 100%;
     	}
-    	/*#useful-btns-id {
-    		width: 100%;
-    		display: flex; flex-flow: row wrap; justify-content: space-evenly; align-items: center;
-    	}*/
     	#useful-btns-id button {
     		margin-right: 7px;
     		min-width: fit-content; height: fit-content;
@@ -38,28 +34,40 @@
     	#alert-id {
     		display: none;
     	}
+    	@media screen and (max-width: 700px) {
+    		#useful-btns-id {
+    			width: 100%;
+    			white-space: nowrap;
+    			overflow-x: auto;
+    		}::-webkit-scrollbar {
+    			display: none;
+    		}
+    	}
 	 </style>
 </head>
 <body class="w3-container w3-display-container w3-padding-16 w3-theme-d4">
 	<h1 class="w3-center w3-text-theme">
-		WHEAT
+		wheat
 	</h1>
 
-	<div class="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="useful-btns-id">
-		<button form="input-form-id" type="reset" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+	<div class="w3-panel w3-theme-l3 w3-padding-large w3-round-large" id="useful-btns-id">
+		<button form="input-form-id" type="reset" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-1-id">
 			<i class="material-icons-outlined">delete</i> Clear All
 		</button>
-		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-2-id" onclick="downloadFile()">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-2-id" onclick="downloadFile()">
 			<i class="material-icons-outlined">download</i> Download
 		</button>
-		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-3-id">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-3-id" onclick="undo()">
 			<i class="material-icons-outlined">undo</i> Undo
 		</button>
-		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-4-id">
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-4-id" onclick="redo()">
 			<i class="material-icons-outlined">redo</i> Redo
 		</button>
-		<button form="input-form-id" type="submit" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-5-id">
+		<button form="input-form-id" type="submit" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-5-id">
 			<i class="material-icons-outlined">send</i> Execute
+		</button>
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onclick="about()">
+			<i class="material-icons-outlined">info</i> About
 		</button>
 	</div>
 
@@ -82,8 +90,14 @@
 		<p></p>
 	</div>
 
+	<div class="w3-panel w3-padding-large w3-theme-l4 w3-border" id="footer-id">		
+		<b>Made by</b><br>Yash Agarwal<br>
+		<b>E-mail</b>: <a href="mailto:legoyashx@hotmail.com">legoyashx@hotmail.com</a><br/>
+		<b>Website</b>: <a href="https://agarwalyash.epizy.com/">agarwalyash.epizy.com</a>
+	</div>
+
 	<script>
-		var filename = '', filecontent = ''
+		var filename = '', filecontent = '', undoArr = [], RedoArr = []
 		//
 		function execute(argument) {
 			$('#output-id span').empty()
@@ -130,12 +144,24 @@
 
 		//redo action function
 		function redo() {
-			//
+			document.dispatchEvent(new KeyboardEvent('keydown', {'key': 'y', 'ctrlKey': true}));
 		}
 
 		// undo action function
 		function undo() {
-			//
+			document.dispatchEvent(new KeyboardEvent('keydown', {'key': 'z', 'ctrlKey': true}));
+		}
+
+		//
+		function about() {
+			$('#alert-id').show()
+			let aboutMsg = `<ul>
+					<li>For now, downloading a file is only supported in text and html format (formats like .png won't work properly</li>
+					<li>Press <kbd>CTRL + Z</kbd> for undo action</li>
+					<li>Press <kbd>CTRL + Y</kbd> for redo action</li>
+					<li>In case of any suggestion, pls refer the footer section of this page</li>
+				</ul>`
+			$('#alert-id p').html(aboutMsg)
 		}
 
 		// main function

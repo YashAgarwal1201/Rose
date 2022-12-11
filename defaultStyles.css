@@ -49,6 +49,13 @@ h6 {
 	font-size: 10px;
 }
 
+kbd {
+	background-color: black;
+	color: white;
+	border-radius: 5%;
+	padding: 2px 5px;
+}
+
 .w3-theme-l5 {color:#000 !important; background-color:#fefdfa !important}
 .w3-theme-l4 {color:#000 !important; background-color:#fdf8f0 !important}
 .w3-theme-l3 {color:#000 !important; background-color:#fbf2e0 !important}
