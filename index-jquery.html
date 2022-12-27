@@ -118,13 +118,10 @@
 		}
 
 		function valueHandeler(argument) {
-			console.log(argument.target.value)
 			if(argument.target.matches('#input-form-id input'))
 				filename = argument.target.value
 			else
 				filecontent = argument.target.value
-			//qw = `${filecontent}<br>${filename}`
-			//$('#output-id span').html(qw)
 		}
 
 		// download the code function
