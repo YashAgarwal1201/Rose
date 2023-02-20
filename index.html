@@ -22,7 +22,7 @@
     	}
     	#useful-btns-id button {
     		margin-right: 7px;
-    		min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: fit-content;
+    		min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: -moz-fit-content; height: fit-content;
     	}
     	#input-id input, #input-id textarea {
     		resize: none;
@@ -54,7 +54,7 @@
 </head>
 
 <body class="w3-container w3-padding-16 w3-theme-d4">
-	<div id="root-element-id"></div>
+	<div id="root-element-id" class="w3-display-container"></div>
 
 	<script type="text/babel" data-type="module">
 		const { useState } = React
@@ -74,6 +74,9 @@
 				}
 				else if (argument == 'execute') {
 					alert(valueF)
+				}
+				else if (argument == 'about') {
+					
 				}
 				else {
 					console.log('error')
@@ -97,9 +100,9 @@
 						<button type="submit" onClick={() => actionFunc('execute')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
 							<i className="material-icons-outlined">send</i> Execute
 						</button>
-						<button form="input-form-id" className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onClick="about()">
-			<i className="material-icons-outlined">info</i> About
-		</button>
+						<button form="input-form-id" className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onClick={() => actionFunc('about')}>
+							<i className="material-icons-outlined">info</i> About
+						</button>
 					</div>
 				</>
 			)
@@ -135,6 +138,24 @@
 			)
 		}
 
+		function Alert() {
+			let aboutMsg = `<ul>
+					<li>For now, downloading a file is only supported in text and html format (formats like .png won't work properly</li>
+					<li>Press <kbd>CTRL + Z</kbd> for undo action</li>
+					<li>Press <kbd>CTRL + Y</kbd> for redo action</li>
+					<li>In case of any suggestion, pls refer the footer section of this page</li>
+				</ul>`
+			return (
+				<div className="w3-mobile w3-panel w3-display-middle w3-padding-large w3-round-large w3-theme-l5 w3-hover-theme" id="alert-id">
+					<button onClick="this.parentElement.style.display = 'none'" className="w3-button w3-round-large w3-right">
+						<i className="material-icons-outlined">close</i>
+					</button>
+					<h3>Alert</h3>
+					<p>{aboutMsg}</p>
+				</div>
+			)
+		}
+
 		function Component() {
 			return (
 				<>
@@ -142,6 +163,7 @@
 					<UsefulButtons/>
 					<Input/>
 					<Output/>
+					<Alert/>
 				</>
 			)
 		}
