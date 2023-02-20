@@ -15,7 +15,7 @@
     	}
     	#useful-btns-id button {
     		margin-right: 7px;
-    		min-width: fit-content; height: fit-content;
+    		min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: fit-content;
     	}
     	#input-id input, #input-id textarea {
     		resize: none;
@@ -137,16 +137,6 @@
 				$('#alert-id').show()
 				$('#alert-id p').text('Sorry but either file name is empty or there is no file content')
 			}
-		}
-
-		//redo action function
-		function redo() {
-			document.dispatchEvent(new KeyboardEvent('keydown', {'key': 'y', 'ctrlKey': true}));
-		}
-
-		// undo action function
-		function undo() {
-			document.dispatchEvent(new KeyboardEvent('keydown', {'key': 'z', 'ctrlKey': true}));
 		}
 
 		//

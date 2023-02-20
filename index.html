@@ -20,13 +20,9 @@
     	html, body {
     		width: 100%; min-height: 100%;
     	}
-    	/*#useful-btns-id {
-    		width: 100%;
-    		display: flex; flex-flow: row wrap; justify-content: space-evenly; align-items: center;
-    	}*/
     	#useful-btns-id button {
     		margin-right: 7px;
-    		min-width: fit-content; height: fit-content;
+    		min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: fit-content;
     	}
     	#input-id input, #input-id textarea {
     		resize: none;
@@ -42,44 +38,24 @@
     	button i {
     		vertical-align: middle;
     	}
+		#alert-id {
+			display: none;
+		}
+		@media screen and (max-width: 700px) {
+			#useful-btns-id {
+				width: 100%;
+				white-space: nowrap;
+				overflow-x: auto;
+			}::-webkit-scrollbar {
+				display: none;
+			}
+		}
     </style>
 </head>
 
 <body class="w3-container w3-padding-16 w3-theme-d4">
 	<div id="root-element-id"></div>
-	<!--h1 class="w3-center w3-text-theme">
-		WHEAT
-	</h1>
 
-	<div class="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="useful-btns-id">
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
-			<i class="material-icons-outlined">delete</i> Clear All
-		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
-			<i class="material-icons-outlined">download</i> Download
-		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
-			<i class="material-icons-outlined">undo</i> Undo
-		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
-			<i class="material-icons-outlined">redo</i> Redo
-		</button>
-		<button class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
-			<i class="material-icons-outlined">send</i> Execute
-		</button>
-	</div>
-
-	<div class="w3-panel w3-theme-l1 w3-padding-large w3-bar w3-round-large" id="input-id">
-		<h3>Input:</h3>
-		<form onsubmit="return false">
-			<input type="text" name="FileName" placeholder="Name of this file..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile">
-			<textarea autocomplete="off" placeholder="Your HTML code..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"></textarea>
-		</form>
-	</div>
-
-	<div class="w3-panel w3-theme-d1 w3-padding-large w3-bar w3-round-large" id="output-id">
-		<h3>Output:</h3>
-	</div-->
 	<script type="text/babel" data-type="module">
 		const { useState } = React
 		
@@ -112,17 +88,17 @@
 						<button onClick={() => actionFunc('download')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
 							<i className="material-icons-outlined">download</i> Download
 						</button>
-						<!--button onClick={() => actionFunc('undo')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
+						{/*<button onClick={() => actionFunc('undo')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
 							<i className="material-icons-outlined">undo</i> Undo
 						</button>
 						<button onClick={() => actionFunc('redo')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
 							<i className="material-icons-outlined">redo</i> Redo
-						</button-->
+						</button>*/}
 						<button type="submit" onClick={() => actionFunc('execute')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
 							<i className="material-icons-outlined">send</i> Execute
 						</button>
-						<button form="input-form-id" className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onclick="about()">
-			<i class="material-icons-outlined">info</i> About
+						<button form="input-form-id" className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onClick="about()">
+			<i className="material-icons-outlined">info</i> About
 		</button>
 					</div>
 				</>
