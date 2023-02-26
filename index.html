@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Wheat (vanilla js version)</title>
+	<link rel="stylesheet" type="text/css" href="defaultStyles.css"/>
+	<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script-->
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		html, body {
+			width: 100%; min-height: 100%;
+		}
+		#useful-btns-id button {
+			margin-right: 7px;
+			min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: fit-content;
+		}
+		#input-id input, #input-id textarea {
+			resize: none;
+			margin-bottom: 7px;
+		}
+		textarea {
+			min-height: 600px;
+		}
+		iframe {
+			display: inline-block; outline: none; background: none;
+			width: 100%; min-height: 0px;
+		}
+		button i {
+			vertical-align: middle;
+		}
+		#alert-id {
+			display: none;
+		}
+		@media screen and (max-width: 700px) {
+			#useful-btns-id {
+				width: 100%;
+				white-space: nowrap;
+				overflow-x: auto;
+			}::-webkit-scrollbar {
+				display: none;
+			}
+		}
+	</style>
+</head>
+<body class="w3-container w3-display-container w3-padding-16 w3-theme-d4">
+	<h1 class="w3-center w3-text-theme">
+		wheat
+	</h1>
+
+	<div class="w3-panel w3-theme-l3 w3-padding-large w3-round-large" id="useful-btns-id">
+		<button form="input-form-id" type="reset" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-1-id">
+			<i class="material-icons-outlined">delete</i> Clear All
+		</button>
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-2-id" onclick="downloadFile()">
+			<i class="material-icons-outlined">download</i> Download
+		</button>
+		<!--button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-3-id" onclick="undo()">
+			<i class="material-icons-outlined">undo</i> Undo
+		</button>
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-4-id" onclick="redo()">
+			<i class="material-icons-outlined">redo</i> Redo
+		</button-->
+		<button form="input-form-id" type="submit" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-5-id">
+			<i class="material-icons-outlined">send</i> Execute
+		</button>
+		<button form="input-form-id" class="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onclick="about()">
+			<i class="material-icons-outlined">info</i> About
+		</button>
+	</div>
+
+	<div class="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="input-id">
+		<h3>Input:</h3>
+		<form id="input-form-id">
+			<input autocomplete="off" type="text" name="FileName" placeholder="Name of this file..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile">
+			<textarea autocomplete="off" name="FileContent" placeholder="Your HTML code..." class="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"></textarea>
+		</form>
+	</div>
+
+	<div class="w3-panel w3-theme-d1 w3-padding-large w3-bar w3-round-large" id="output-id">
+		<h3>Output:</h3>
+		<span></span>
+	</div>
+
+	<div class="w3-mobile w3-panel w3-display-middle w3-padding-large w3-round-large w3-theme-l5 w3-hover-theme" id="alert-id">
+		<button onclick="this.parentElement.style.display = 'none'" class="w3-button w3-round-large w3-right"><i class="material-icons-outlined">close</i></button>
+		<h3>Alert</h3>
+		<p></p>
+	</div>
+
+	<div class="w3-panel w3-padding-large w3-theme-l4 w3-border" id="footer-id">		
+		<b>Made by</b><br>Yash Agarwal<br>
+		<b>E-mail</b>: <a href="mailto:legoyashx@hotmail.com">legoyashx@hotmail.com</a><br/>
+		<b>Website</b>: <a href="https://agarwalyash.epizy.com/">agarwalyash.epizy.com</a>
+	</div>
+
+	<script>
+		var filename = '', filecontent = ''
+		//
+		function execute(argument) {
+
+			let empty = document.querySelector('#output-id span')
+			while(empty.firstChild)
+				empty.removeChild(empty.firstChild)
+
+			let source = `data:text/html;charset=utf-8,${encodeURIComponent(filecontent)}`
+
+			let ele = document.createElement('iframe')
+			ele.setAttribute('class', 'w3-border w3-round-large w3-theme-l5')
+			ele.setAttribute('id', 'output-iframe-id')
+			ele.setAttribute('src', source)
+			document.querySelector('#output-id span').appendChild(ele)
+		}
+
+		// submit action function
+		function submitHandeler(argument) {
+			argument.preventDefault()
+			filename = document.querySelector('#input-form-id input').value
+			filecontent = document.querySelector('#input-form-id textarea').value
+			execute(filecontent)
+		}
+
+		function valueHandeler(argument) {
+			if(argument.target.matches('#input-form-id input'))
+				filename = argument.target.value
+			else
+				filecontent = argument.target.value
+		}
+
+		// download the code function
+		function downloadFile() {
+			if (filename.length >= 1 && filecontent.length >=1) {
+				
+				var link = document.createElement('a')
+				link.setAttribute('id', 'download-btn')
+				link.setAttribute('download', filename)
+				link.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(filecontent)}`)
+				link.style.display = 'none'
+				document.body.appendChild(link)
+				
+				link.click()
+				link.remove()
+			}
+			else {
+				document.getElementById('alert-id').style.display = 'block'
+				document.querySelector('#alert-id p').innerHTML = 
+					'Sorry but either file name is empty or there is no file content'
+			}
+		}
+
+		//
+		function about() {
+			document.querySelector('#alert-id').style.display = 'block'
+			let aboutMsg = `<ul>
+					<li>For now, downloading a file is only supported in text and html format (formats like .png won't work properly</li>
+					<li>Press <kbd>CTRL + Z</kbd> for undo action</li>
+					<li>Press <kbd>CTRL + Y</kbd> for redo action</li>
+					<li>In case of any suggestion, pls refer the footer section of this page</li>
+				</ul>`
+			document.querySelector('#alert-id p').innerHTML = aboutMsg
+		}
+
+		// main function
+		function main() {
+			document.getElementById('input-form-id').addEventListener('submit', (event) => submitHandeler(event))
+			document.getElementById('input-form-id').addEventListener('keyup', (event) => valueHandeler(event))
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			main()
+		})
+	</script>
+
+</body>
+</html>

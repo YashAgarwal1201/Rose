@@ -1,0 +1,186 @@
+
+<!-- Main Page -->
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Wheat (reactjs version)</title>
+	<!-- reactjs imports -->
+	<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+	<!--script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script-->
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!--script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script-->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="defaultStyles.css"/>
+    <style>
+    	* {
+    		box-sizing: border-box;
+    	}
+    	html, body {
+    		width: 100%; min-height: 100%;
+    	}
+    	#useful-btns-id button {
+    		margin-right: 7px;
+    		min-width: -moz-fit-content; min-width: -webkit-fill-available; min-width: fit-content; height: -moz-fit-content; height: fit-content;
+    	}
+    	#input-id input, #input-id textarea {
+    		resize: none;
+    		margin-bottom: 7px;
+    	}
+    	textarea {
+    		min-height: 600px;
+    	}
+    	iframe {
+    		display: inline-block; outline: none; background: none;
+    		width: 100%; min-height: 0px;
+    	}
+    	button i {
+    		vertical-align: middle;
+    	}
+		#alert-id {
+			display: none;
+		}
+		@media screen and (max-width: 700px) {
+			#useful-btns-id {
+				width: 100%;
+				white-space: nowrap;
+				overflow-x: auto;
+			}::-webkit-scrollbar {
+				display: none;
+			}
+		}
+    </style>
+</head>
+
+<body class="w3-container w3-padding-16 w3-theme-d4">
+	<div id="root-element-id" class="w3-display-container"></div>
+
+	<script type="text/babel" data-type="module">
+		const { useState } = React
+		
+		function Heading() {
+			return (
+				<>
+					<h1 className="w3-center w3-text-theme">WHEAT</h1>
+				</>
+			)
+		}
+		var valueF = ''
+		function UsefulButtons() {
+			const actionFunc = (argument) => {
+				if(argument == 'delete') {
+					document.querySelectorAll('input, textarea').value = ''
+				}
+				else if (argument == 'execute') {
+					alert(valueF)
+				}
+				else if (argument == 'about') {
+					document.getElementById('alert-id').style.display = 'block'
+				}
+				else {
+					console.log('error')
+				}
+			}
+			return (
+				<>
+					<div className="w3-panel w3-theme-l3 w3-padding-large w3-bar w3-round-large" id="useful-btns-id">
+						<button type="reset" onClick={() => actionFunc('delete')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
+							<i className="material-icons-outlined">delete</i> Clear All
+						</button>
+						<button onClick={() => actionFunc('download')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
+							<i className="material-icons-outlined">download</i> Download
+						</button>
+						{/*<button onClick={() => actionFunc('undo')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
+							<i className="material-icons-outlined">undo</i> Undo
+						</button>
+						<button onClick={() => actionFunc('redo')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id">
+							<i className="material-icons-outlined">redo</i> Redo
+						</button>*/}
+						<button type="submit" onClick={() => actionFunc('execute')} className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center w3-mobile" id="u-btn-1-id" form="input-form-id">
+							<i className="material-icons-outlined">send</i> Execute
+						</button>
+						<button form="input-form-id" className="w3-button w3-round-xxlarge w3-bar-item w3-theme-action w3-padding-large w3-center" id="u-btn-6-id" onClick={() => actionFunc('about')}>
+							<i className="material-icons-outlined">info</i> About
+						</button>
+					</div>
+				</>
+			)
+		}
+
+		function Input() {
+			let handleSubmit = (event) => {
+				event.preventDefault();
+				valueF = document.querySelectorAll('input').value
+				alert(valueF)
+			}
+			return (
+				<>
+					<div className="w3-panel w3-theme-l1 w3-padding-large w3-bar w3-round-large" id="input-id">
+						<h3>Input:</h3>
+						<form onSubmit={handleSubmit} id="input-form-id">
+							<input type="text" name="FileName" placeholder="Name of this file..." className="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"/>
+							<textarea autoComplete="off" placeholder="Your HTML code..." className="w3-input w3-theme-l5 w3-round-large w3-border w3-border-theme w3-mobile"></textarea>
+						</form>
+					</div>
+				</>
+			)
+		}
+
+		function Output() {
+			return (
+				<>
+					<div className="w3-panel w3-theme-d1 w3-padding-large w3-bar w3-round-large" id="output-id">
+						<h3>Output:</h3>
+						<iframe className="w3-border w3-border-theme w3-round-large"></iframe>
+					</div>
+				</>
+			)
+		}
+
+		function Alert() {
+			let aboutMsg = `<ul>
+					<li>For now, downloading a file is only supported in text and html format (formats like .png won't work properly</li>
+					<li>Press <kbd>CTRL + Z</kbd> for undo action</li>
+					<li>Press <kbd>CTRL + Y</kbd> for redo action</li>
+					<li>In case of any suggestion, pls refer the footer section of this page</li>
+				</ul>`
+			return (
+				<div className="w3-mobile w3-panel w3-display-middle w3-padding-large w3-round-large w3-theme-l5 w3-hover-theme" id="alert-id">
+					<button onClick="this.parentElement.style.display = 'none'" className="w3-button w3-round-large w3-right">
+						<i className="material-icons-outlined">close</i>
+					</button>
+					<h3>Alert</h3>
+					<p>{aboutMsg}</p>
+				</div>
+			)
+		}
+
+		function Footer() {
+			return (
+				<div class="w3-panel w3-padding-large w3-theme-l4 w3-border" id="footer-id">		
+					<b>Made by</b><br/>Yash Agarwal<br/>
+					<b>E-mail</b>: <a href="mailto:legoyashx@hotmail.com">legoyashx@hotmail.com</a><br/>
+					<b>Website</b>: <a href="https://agarwalyash.epizy.com/">agarwalyash.epizy.com</a>
+				</div>
+			)
+		}
+
+		function Component() {
+			return (
+				<>
+					<Heading/>
+					<UsefulButtons/>
+					<Input/>
+					<Output/>
+					<Alert/>
+					<Footer/>
+				</>
+			)
+		}
+
+		const root = ReactDOM.createRoot(document.getElementById('root-element-id'))
+		root.render(<Component/>)
+	</script>
+</body>
+</html>
