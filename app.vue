@@ -1,8 +1,7 @@
 <template>
   <div class="w-screen h-screen">
-    <!-- <NuxtRouteAnnouncer />
-    <NuxtWelcome /> -->
-
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>
