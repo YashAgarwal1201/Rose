@@ -86,14 +86,15 @@ const visibleTransactions = computed(() => {
             >$ {{ historyItem.value }}</span
           >
           <UButton
-            rounded
-            icon="pi pi-trash"
+            icon="material-symbols:delete-forever-rounded"
             @click="deleteTransaction(historyItem)"
+            class="rounded-full"
+            color="red"
           />
           <UButton
-            rounded
-            icon="pi pi-pencil"
+            icon="material-symbols:edit-rounded"
             @click="editTransaction(historyItem)"
+            class="rounded-full"
           />
         </div>
       </div>

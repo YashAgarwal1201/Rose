@@ -69,7 +69,7 @@ const addTransaction = () => {
       >{{ title }}
     </h3>
 
-    <form class="py-5 flex flex-col gap-y-3 md:gap-y-5">
+    <form class="w-full sm:w-[640px] py-5 flex flex-col gap-y-3 md:gap-y-5">
       <div class="flex flex-col gap-y-2 md:gap-y-3">
         <label class="text-lg md:text-xl">Transaction Type</label>
         <USelect
@@ -86,10 +86,22 @@ const addTransaction = () => {
           v-model="transaction.name"
           type="text"
           maxlength="150"
-          class="bg-white border-gray-500 text-base !rounded-full *:!rounded-xl"
+          class="text-base !rounded-full *:!rounded-xl"
           placeholder="Enter transaction name"
           required
         />
+      </div>
+
+      <div class="flex flex-col gap-y-3">
+        <label class="text-lg md:text-xl">Transaction Date</label>
+
+        <UPopover :popper="{ placement: 'bottom-start' }">
+          <UButton icon="i-heroicons-calendar-days-20-solid" />
+
+          <template #panel="{ close }">
+            <DatePicker v-model="date" is-required @close="close" />
+          </template>
+        </UPopover>
       </div>
 
       <div class="flex flex-col gap-y-3">
@@ -99,7 +111,7 @@ const addTransaction = () => {
           v-model.number="transaction.value"
           type="number"
           maxlength="10"
-          class="bg-white border-gray-500 text-base !rounded-full *:!rounded-xl"
+          class="text-base !rounded-full *:!rounded-xl"
           placeholder="0.00"
           :prefix="transactionType === 'Income' ? '$ +' : '$ -'"
         />
@@ -110,7 +122,7 @@ const addTransaction = () => {
           title="click to add the transaction"
           :disabled="transaction.name === '' || transaction.value === 0"
           label="Add Transaction"
-          class="w-full lg:w-[300px] py-2 text-base md:text-lg text-white rounded"
+          class="rounded-full px-7"
           @click="addTransaction"
           rounded
         />
