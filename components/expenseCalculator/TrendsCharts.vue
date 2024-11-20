@@ -3,7 +3,12 @@
     <highcharts
       :options="chartOptions"
       ref="highcharts"
-      style="background-color: black"
+      class="!bg-transparent !rounded-3xl !text-white"
+    />
+
+    <highcharts
+      :options="pieChartOptions"
+      ref="highchartsPie"
       class="!bg-transparent !rounded-3xl !text-white"
     />
   </div>
@@ -16,6 +21,26 @@ import { chart, color } from "highcharts";
 
 // Pinia store for expense calculation
 const expenseCalculatorStore = useExpenseCalculatorStore();
+
+const pieChartOptions = ref<any>({
+  chart: {
+    type: "pie",
+    backgroundColor: null,
+  },
+  title: {
+    text: "Income, Expense & Balance Overview",
+  },
+  series: [
+    {
+      name: "Amount",
+      data: [
+        { name: "Income", y: 0 },
+        { name: "Expense", y: 0 },
+        { name: "Balance", y: 0 },
+      ],
+    },
+  ],
+});
 
 // Chart options as a reactive reference
 const chartOptions = ref<any>({
@@ -58,6 +83,26 @@ const chartOptions = ref<any>({
   colors: ["yellow", "5685f2", "green"],
 });
 
+const updatePieChartData = () => {
+  const income = expenseCalculatorStore.income;
+  const expense = expenseCalculatorStore.expense;
+  const balance = expenseCalculatorStore.balance;
+
+  pieChartOptions.value = {
+    ...pieChartOptions.value,
+    series: [
+      {
+        name: "Amount",
+        data: [
+          { name: "Income", y: income },
+          { name: "Expense", y: expense },
+          { name: "Balance", y: balance },
+        ],
+      },
+    ],
+  };
+};
+
 // Update the chart's series based on transaction history
 const updateChartData = () => {
   const history = expenseCalculatorStore.history;
@@ -82,11 +127,15 @@ const updateChartData = () => {
 };
 
 // Watch for changes in the history array
-watch(expenseCalculatorStore.history, updateChartData);
+watch(expenseCalculatorStore.history, () => {
+  updateChartData();
+  updatePieChartData();
+});
 
 onMounted(() => {
   // Ensure chart data is updated when component is mounted
   updateChartData();
+  updatePieChartData();
 });
 </script>
 

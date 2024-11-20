@@ -118,7 +118,9 @@ const visibleTransactions = computed(() => {
           { key: 'id', label: 'ID' },
           { key: 'name', label: 'Name', sortable: true },
           { key: 'value', label: 'Amount', sortable: true },
+          { key: 'category', label: 'Category', sortable: true },
           { key: 'type', label: 'Type', sortable: true },
+          { key: 'date', label: 'Date', sortable: true },
         ]"
       ></UTable>
       <div
