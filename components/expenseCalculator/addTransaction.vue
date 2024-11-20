@@ -75,7 +75,7 @@ const addTransaction = () => {
         <USelect
           v-model="transactionType"
           :options="['Income', 'Expense']"
-          class="w-fit bg-white border-gray-500 text-base !rounded-full *:!rounded-xl"
+          class="w-fit border-gray-500 text-base"
         />
       </div>
 
@@ -86,13 +86,13 @@ const addTransaction = () => {
           v-model="transaction.name"
           type="text"
           maxlength="150"
-          class="text-base !rounded-full *:!rounded-xl"
+          class="text-base"
           placeholder="Enter transaction name"
           required
         />
       </div>
 
-      <div class="flex flex-col gap-y-3">
+      <!-- <div class="flex flex-col gap-y-3">
         <label class="text-lg md:text-xl">Transaction Date</label>
 
         <UPopover :popper="{ placement: 'bottom-start' }">
@@ -102,7 +102,7 @@ const addTransaction = () => {
             <DatePicker v-model="date" is-required @close="close" />
           </template>
         </UPopover>
-      </div>
+      </div> -->
 
       <div class="flex flex-col gap-y-3">
         <label class="text-lg md:text-xl">Transaction Amount</label>
@@ -111,9 +111,8 @@ const addTransaction = () => {
           v-model.number="transaction.value"
           type="number"
           maxlength="10"
-          class="text-base !rounded-full *:!rounded-xl"
+          class="text-base"
           placeholder="0.00"
-          :prefix="transactionType === 'Income' ? '$ +' : '$ -'"
         />
       </div>
 
