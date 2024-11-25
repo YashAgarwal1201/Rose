@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="expenseCalculatorStore.history.length > 0">
     <highcharts
       :options="chartOptions"
       ref="highcharts"
@@ -11,6 +11,9 @@
       ref="highchartsPie"
       class="!bg-transparent !rounded-3xl !text-white"
     />
+  </div>
+  <div v-else class="flex justify-center items-center min-h-28">
+    <p>No charts to show</p>
   </div>
 </template>
 

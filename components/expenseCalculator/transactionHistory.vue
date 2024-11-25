@@ -116,11 +116,15 @@ const visibleTransactions = computed(() => {
         }"
         :columns="[
           { key: 'id', label: 'ID' },
-          { key: 'name', label: 'Name', sortable: true },
-          { key: 'value', label: 'Amount', sortable: true },
-          { key: 'category', label: 'Category', sortable: true },
-          { key: 'type', label: 'Type', sortable: true },
-          { key: 'date', label: 'Date', sortable: true },
+          { key: 'name', label: 'Name', sortable: store.history.length > 2 },
+          { key: 'value', label: 'Amount', sortable: store.history.length > 2 },
+          {
+            key: 'category',
+            label: 'Category',
+            sortable: store.history.length > 2,
+          },
+          { key: 'type', label: 'Type', sortable: store.history.length > 2 },
+          { key: 'date', label: 'Date', sortable: store.history.length > 2 },
         ]"
       ></UTable>
       <div

@@ -41,16 +41,6 @@
       >
     </div>
 
-    <!-- <div class="w-full grid grid-cols-2 gap-x-5 lg:gap-x-7">
-      <ExpenseCalculatorAddTransaction
-        title="Add Transaction"
-      ></ExpenseCalculatorAddTransaction>
-
-      <ExpenseCalculatorTransactionHistory
-        title="History"
-      ></ExpenseCalculatorTransactionHistory>
-    </div> -->
-
     <div>
       <UTabs :items="tabs" class="w-full">
         <template #addTransaction="{ item }">
