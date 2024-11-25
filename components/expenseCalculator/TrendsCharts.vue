@@ -86,27 +86,75 @@ const chartOptions = ref<any>({
   colors: ["yellow", "5685f2", "green"],
 });
 
-const updatePieChartData = () => {
-  const income = expenseCalculatorStore.income;
-  const expense = expenseCalculatorStore.expense;
-  const balance = expenseCalculatorStore.balance;
+// const updatePieChartData = () => {
+//   const history = expenseCalculatorStore.history;
 
+//   // Group transactions by category and sum their values
+//   const categoryTotals: Record<string, number> = history.reduce(
+//     (acc, transaction) => {
+//       const category = transaction.category || "Uncategorized"; // Use a default category if none is provided
+//       acc[category] = (acc[category] || 0) + transaction.value;
+//       return acc;
+//     },
+//     {} as Record<string, number>
+//   );
+
+//   // Create data array for the pie chart
+//   const pieData = Object.entries(categoryTotals).map(([name, y]) => ({
+//     name,
+//     y,
+//   }));
+
+//   // Update pie chart options
+//   pieChartOptions.value = {
+//     ...pieChartOptions.value,
+//     series: [
+//       {
+//         name: "Amount",
+//         data: pieData,
+//       },
+//     ],
+//   };
+// };
+
+// Update the chart's series based on transaction history
+
+const updatePieChartData = () => {
+  const expenseTransactions = expenseCalculatorStore.history.filter(
+    (transaction) => transaction.type === "expense" // Use `type` to filter only expenses
+  );
+
+  // Group expenses by category and sum their values
+  const expenseTotals: Record<string, number> = expenseTransactions.reduce(
+    (acc, transaction) => {
+      const category = transaction.category || "Uncategorized"; // Handle uncategorized transactions
+      acc[category] = (acc[category] || 0) + Math.abs(transaction.value); // Use Math.abs to ensure positive values
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  // Prepare data array for the pie chart
+  const pieData = Object.entries(expenseTotals).map(([name, y]) => ({
+    name,
+    y,
+  }));
+
+  // Update the pie chart options
   pieChartOptions.value = {
     ...pieChartOptions.value,
+    title: {
+      text: "Expenses by Category", // Update the title for clarity
+    },
     series: [
       {
-        name: "Amount",
-        data: [
-          { name: "Income", y: income },
-          { name: "Expense", y: expense },
-          { name: "Balance", y: balance },
-        ],
+        name: "Expenses",
+        data: pieData,
       },
     ],
   };
 };
 
-// Update the chart's series based on transaction history
 const updateChartData = () => {
   const history = expenseCalculatorStore.history;
 

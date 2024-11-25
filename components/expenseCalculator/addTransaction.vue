@@ -88,7 +88,9 @@ const addTransaction = () => {
       >{{ title }}
     </h3>
 
-    <form class="w-full sm:w-[640px] py-5 flex flex-col gap-y-4 md:gap-y-5">
+    <form
+      class="w-full sm:w-[640px] mx-auto lg:mx-0 py-5 flex flex-col gap-y-4 md:gap-y-5"
+    >
       <div class="grid grid-cols-2 gap-x-2 md:gap-x-3">
         <div class="flex flex-col gap-y-2 md:gap-y-3">
           <label class="text-base md:text-lg">Transaction Type</label>
