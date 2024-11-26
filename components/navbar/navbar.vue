@@ -16,12 +16,18 @@
   <div class="w-full h-full px-3 flex md:hidden justify-between items-center">
     <h3 class="text-lg sm:text-xl">heading</h3>
 
-    <UButton icon="material-symbols:menu-rounded" class="rounded-full" />
+    <UButton
+      icon="material-symbols:menu-rounded"
+      class="rounded-full"
+      @click="openSideMenu"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 const buttonStyles = "p-3 bg-transparent rounded-full *:text-lg";
+
+const { isSideMenuVisible, toggleSideMenu, openSideMenu } = useSideMenu();
 </script>
 
 <style scoped></style>
