@@ -7,17 +7,14 @@
 
     <TransactionsHistoryModal />
 
-    <USlideover :visible="isSideMenuVisible">
-      <div>sd</div>
-    </USlideover>
+    <SideMenu />
   </div>
 </template>
 
 <script setup lang="ts">
 import TransactionsHistoryModal from "~/components/expenseCalculator/TransactionsHistoryModal.vue";
 import Navbar from "~/components/navbar/navbar.vue";
-
-const { isSideMenuVisible, toggleSideMenu, closeSideMenu } = useSideMenu();
+import SideMenu from "~/components/sideMenu/SideMenu.vue";
 </script>
 
 <style lang="css">

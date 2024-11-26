@@ -1,14 +1,14 @@
 import { ref } from "vue";
 
 export function useSideMenu() {
-  const isSideMenuVisible = ref(false);
+  const isSideMenuVisible = ref<boolean>(false);
 
   const toggleSideMenu = () => {
     isSideMenuVisible.value = !isSideMenuVisible.value;
   };
 
   const openSideMenu = () => {
-    console.log("i am clicked");
+    // console.log(isSideMenuVisible.value);
     isSideMenuVisible.value = true;
   };
 

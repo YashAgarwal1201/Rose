@@ -27,7 +27,7 @@
 <script setup lang="ts">
 const buttonStyles = "p-3 bg-transparent rounded-full *:text-lg";
 
-const { isSideMenuVisible, toggleSideMenu, openSideMenu } = useSideMenu();
+const { openSideMenu } = useSideMenu();
 </script>
 
 <style scoped></style>
