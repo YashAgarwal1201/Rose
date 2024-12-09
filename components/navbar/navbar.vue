@@ -19,7 +19,7 @@
     <UButton
       icon="material-symbols:menu-rounded"
       class="rounded-full"
-      @click="openSideMenu"
+      @click="headerStore.showSideMenu = true"
     />
   </div>
 </template>
@@ -28,6 +28,8 @@
 const buttonStyles = "p-3 bg-transparent rounded-full *:text-lg";
 
 const { openSideMenu } = useSideMenu();
+
+const headerStore = useHeaderStore();
 </script>
 
 <style scoped></style>
