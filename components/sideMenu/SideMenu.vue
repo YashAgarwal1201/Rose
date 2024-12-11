@@ -13,7 +13,8 @@
           <UButton
             icon="material-symbols:close-rounded"
             @click="headerStore.showSideMenu = false"
-            class="self-end bg-transparent"
+            class="self-end bg-transparent rounded-full"
+            variant="outline"
           />
         </div>
         <div class="w-full px-5 pb-5">
@@ -22,19 +23,28 @@
               ><UIcon name="material-symbols:house-rounded"></UIcon
               ><span>Home</span></RouterLink
             >
-            <UDivider class="w-full mx-2 my-1 p-0 h-[1.5px]" />
+            <!-- <UDivider class="w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
             <RouterLink to="/expense-calculator" :class="buttonStyles"
               ><UIcon name="material-symbols:calculate-rounded"></UIcon
               ><span>Expense Calculator</span></RouterLink
             >
-            <UDivider class="w-full mx-2 my-1 p-0 h-[1.5px]" />
+            <!-- <UDivider class="w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
             <RouterLink to="/to-do-list" :class="buttonStyles"
               ><UIcon
                 name="material-symbols:format-list-bulleted-add-rounded"
               ></UIcon
               ><span>To Do List</span></RouterLink
+            >
+            <!-- <UDivider class="max-w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
+            <UButton @click="" :class="buttonStyles" class="text-white"
+              ><UIcon name="material-symbols:chat-bubble-rounded"></UIcon
+              ><span>Give Feedback</span></UButton
             >
           </div>
         </div>
@@ -45,7 +55,7 @@
 
 <script setup lang="ts">
 const buttonStyles =
-  "px-2 py-4 bg-transparent flex items-center gap-x-3 rounded-xl *:text-lg";
+  "px-2 py-4 !bg-transparent !text-white flex items-center gap-x-3 rounded-xl *:text-lg";
 // const { isSideMenuVisible, closeSideMenu } = useSideMenu();
 
 const headerStore = useHeaderStore();

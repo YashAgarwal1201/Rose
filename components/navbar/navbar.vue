@@ -14,7 +14,7 @@
   </div>
 
   <div class="w-full h-full px-3 flex md:hidden justify-between items-center">
-    <h3 class="text-lg sm:text-xl">heading</h3>
+    <h3 class="text-lg sm:text-xl">{{ headerStore.headerTitle }}</h3>
 
     <UButton
       icon="material-symbols:menu-rounded"
