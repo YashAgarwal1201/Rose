@@ -6,7 +6,10 @@ export type Transaction = {
   name: string;
   value: number;
   type: string;
+  category: string;
+  date: Date;
 };
+
 export const useExpenseCalculatorStore = defineStore("expenses", () => {
   const history = ref<Transaction[]>([]);
   const editingTransaction = ref<Transaction | null>(null);

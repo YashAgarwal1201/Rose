@@ -17,4 +17,7 @@ export default defineNuxtConfig({
   },
 
   modules: ["@nuxt/ui", "@pinia/nuxt"],
+  plugins: [
+    { src: "~/plugins/highcharts-vue.ts", mode: "client" }, // Only include on the client
+  ],
 });

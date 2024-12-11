@@ -12,14 +12,15 @@
   "dependencies": {
     "@nuxt/ui": "^2.19.2",
     "@pinia/nuxt": "^0.7.0",
+    "highcharts": "^11.4.8",
+    "highcharts-vue": "^2.0.1",
     "nuxt": "^3.14.159",
     "pinia": "^2.2.6",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "^4.5.0"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
   "devDependencies": {
-    "@nuxtjs/pwa": "^3.3.5",
     "@vite-pwa/nuxt": "^0.10.6"
   }
 }
