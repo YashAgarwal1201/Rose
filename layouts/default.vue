@@ -8,6 +8,8 @@
     <TransactionsHistoryModal />
 
     <SideMenu />
+
+    <FeedbackDialog />
   </div>
 </template>
 

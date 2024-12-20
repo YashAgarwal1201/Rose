@@ -42,7 +42,10 @@
             <!-- <UDivider class="max-w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-            <UButton @click="" :class="buttonStyles" class="text-white"
+            <UButton
+              @click="feedbackBtnHandle"
+              :class="buttonStyles"
+              class="text-white shadow-none"
               ><UIcon name="material-symbols:chat-bubble-rounded"></UIcon
               ><span>Give Feedback</span></UButton
             >
@@ -59,6 +62,11 @@ const buttonStyles =
 // const { isSideMenuVisible, closeSideMenu } = useSideMenu();
 
 const headerStore = useHeaderStore();
+
+const feedbackBtnHandle = () => {
+  headerStore.showFeedback = true;
+  headerStore.showSideMenu = false;
+};
 </script>
 
 <style scoped></style>
