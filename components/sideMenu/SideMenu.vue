@@ -42,6 +42,13 @@
             <!-- <UDivider class="max-w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
+            <div :class="buttonStyles">
+              <UIcon name="material-symbols:dark-mode-rounded"></UIcon
+              ><span>Dark Mode?</span>
+              <UToggle v-model="darkMode" class="ml-auto" />
+            </div>
+
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
             <UButton
               @click="feedbackBtnHandle"
               :class="buttonStyles"
@@ -57,11 +64,13 @@
 </template>
 
 <script setup lang="ts">
-const buttonStyles =
-  "px-2 py-4 !bg-transparent !text-white flex items-center gap-x-3 rounded-xl *:text-lg";
-// const { isSideMenuVisible, closeSideMenu } = useSideMenu();
+const darkMode = ref(true);
 
 const headerStore = useHeaderStore();
+
+const buttonStyles =
+  "px-2 py-4 !bg-transparent !text-white flex items-center gap-x-3 rounded-xl *:text-lg font-normal";
+// const { isSideMenuVisible, closeSideMenu } = useSideMenu();
 
 const feedbackBtnHandle = () => {
   headerStore.showFeedback = true;
