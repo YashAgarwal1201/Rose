@@ -16,6 +16,7 @@
     "highcharts-vue": "^2.0.1",
     "nuxt": "^3.14.159",
     "pinia": "^2.2.6",
+    "uuid": "^11.0.5",
     "vue": "latest",
     "vue-router": "^4.5.0"
   },
