@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full flex justify-center items-center py-2">
     <div class="w-full h-full flex flex-row">
-      <div class="w-[250px] h-full mr-auto"><ToDoListOfTodos /></div>
+      <div class="w-[250px] h-full"><ToDoListOfTodos /></div>
       <div class="w-fit h-full mx-auto flex">
         <div class="flex w-full sm:w-[600px] h-full rounded-lg">
           <ToDoListContainer />

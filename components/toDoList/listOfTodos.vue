@@ -1,77 +1,122 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
-    <UButton class="text-white shadow-none" title="To do list info"
-      ><UIcon name="material-symbols:edit-document-rounded" size="20px"></UIcon
-      ><span>New ToDo List</span></UButton
+    <UButton class="text-white shadow-none" title="To do list info">
+      <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+      <span>New ToDo List</span>
+    </UButton>
+
+    <UAccordion
+      :items="[
+        {
+          label: 'Last 7 days',
+          content:
+            recentListsWeek.length > 0
+              ? recentListsWeek.map((list) => ({
+                  id: list.id,
+                  title: list.title,
+                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+                }))
+              : 'No lists in the last 7 days',
+        },
+        {
+          label: 'Last 30 days',
+          content:
+            recentListsMonth.length > 0
+              ? recentListsMonth.map((list) => ({
+                  id: list.id,
+                  title: list.title,
+                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+                }))
+              : 'No lists in the last 30 days',
+        },
+        {
+          label: 'Older lists',
+          content:
+            olderLists.length > 0
+              ? olderLists.map((list) => ({
+                  id: list.id,
+                  title: list.title,
+                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+                }))
+              : 'No older lists',
+        },
+      ]"
     >
-
-    <div class="flex flex-col gap-y-3">
-      <span class="px-4 py-1 bg-rose-400 rounded">Last 7 days</span>
-
-      <div v-if="recentListsWeek.length > 0">
-        <span v-for="list in recentListsWeek">{{ list.title }}</span>
-      </div>
-      <div v-else>
-        <span>No List to show</span>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-y-3">
-      <span class="px-4 py-1 bg-rose-400 rounded">Last 30 days</span>
-
-      <div v-if="recentListsMonth.length > 0">
-        <span v-for="list in recentListsMonth">{{ list.title }}</span>
-      </div>
-      <div v-else>
-        <span>No List to show</span>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-y-3">
-      <span class="px-4 py-1 bg-rose-400 rounded">before 30 days</span>
-
-      <div v-if="recentListsYear.length > 0">
-        <span v-for="list in recentListsYear">{{ list.title }}</span>
-      </div>
-      <div v-else>
-        <span>No List to show</span>
-      </div>
-    </div>
+      <template #item="{ item }">
+        <div class="p-3">
+          <div v-if="typeof item.content === 'string'">
+            {{ item.content }}
+          </div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="list in item.content"
+              :key="list.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToList(list.id)"
+            >
+              <span>{{ list.title }}</span>
+              <span class="text-sm text-gray-500">{{ list.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UAccordion>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 const todoStore = useTodoStore();
 
+// Navigation function
+const navigateToList = (listId: string) => {
+  router.push(`/to-do-list/${listId}`);
+};
+
+// Helper function to create date objects for filtering
+const getDateBefore = (days: number) => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - days);
+  return date;
+};
+
+// Lists from last 7 days
 const recentListsWeek = computed(() => {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
+  const sevenDaysAgo = getDateBefore(7);
   return todoStore.activeLists.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate >= sevenDaysAgo;
   });
 });
 
+// Lists from last 30 days (excluding last 7 days)
 const recentListsMonth = computed(() => {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const thirtyDaysAgo = getDateBefore(30);
+  const sevenDaysAgo = getDateBefore(7);
 
   return todoStore.activeLists.filter((list) => {
     const listDate = new Date(list.timestamp);
-    return listDate >= sevenDaysAgo;
+    return listDate >= thirtyDaysAgo && listDate < sevenDaysAgo;
   });
 });
 
-const recentListsYear = computed(() => {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+// Lists older than 30 days
+const olderLists = computed(() => {
+  const thirtyDaysAgo = getDateBefore(30);
 
   return todoStore.activeLists.filter((list) => {
     const listDate = new Date(list.timestamp);
-    return listDate >= sevenDaysAgo;
+    return listDate < thirtyDaysAgo;
   });
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.u-accordion-item {
+  margin-bottom: 0.5rem;
+}
+</style>
