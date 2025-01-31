@@ -108,56 +108,72 @@ const deleteTodoItem = (listId: string, itemId: string) => {
     <!-- List Title Input -->
     <UInput
       v-model="newListTitle"
-      placeholder="Enter Title..."
+      :value="props.currentList ? props.currentList.title : ''"
+      :placeholder="
+        props.currentList ? props.currentList.title : 'Enter Title...'
+      "
       @keyup.enter="createNewTodoList"
     />
 
     <!-- Display Lists -->
-    <div v-for="list in todoStore.listOfTodos" :key="list.id" class="mt-4">
-      <h3 class="font-semibold mb-2">{{ list.title }}</h3>
+    <!-- <div v-for="list in todoStore.listOfTodos" :key="list.id" class="mt-4"> -->
+    <!-- <h3 class="font-semibold mb-2">{{ list.title }}</h3> -->
 
-      <!-- Todo Items -->
-      <div class="space-y-2">
-        <div
-          v-for="(item, index) in list.list"
-          :key="item.id"
-          class="flex items-center space-x-2"
+    <!-- Todo Items -->
+    <div class="space-y-2">
+      <div
+        v-for="(item, index) in currentList?.list || []"
+        :key="item.id"
+        class="flex items-center space-x-2"
+      >
+        <UCheckbox
+          v-model="item.isDone"
+          title="Mark to-do item as done"
+          @change="toggleTodoItem(item.id, $event)"
+        />
+        <UInput
+          ref="inputRefs"
+          v-model="item.text"
+          placeholder="Enter todo item..."
+          @keyup.enter="
+            props.currentList?.id &&
+              handleEnterKey(index, props.currentList.id, item.id)
+          "
+          @blur="
+            props.currentList?.id &&
+              updateTodoItem(props.currentList.id, item.id, item.text)
+          "
+          class="w-full"
+        />
+        <UButton
+          class="text-white shadow-none"
+          title="Delete to do item"
+          @click="deleteTodoItem(item.id)"
         >
-          <UCheckbox
-            v-model="item.isDone"
-            title="Mark to-do item as done"
-            @change="toggleTodoItem(list.id, item.id, item.isDone)"
-          />
-          <UInput
-            ref="inputRefs"
-            v-model="item.text"
-            placeholder="Enter todo item..."
-            @keyup.enter="handleEnterKey(index, list.id, item.id)"
-            @blur="updateTodoItem(list.id, item.id, item.text)"
-            class="w-full"
-          />
-          <UButton
-            class="text-white shadow-none"
-            title="Delete to do item"
-            @click="deleteTodoItem(list.id, item.id)"
-          >
-            <UIcon name="material-symbols:backspace-rounded" size="20px" />
-          </UButton>
-        </div>
+          <UIcon name="material-symbols:backspace-rounded" size="20px" />
+        </UButton>
       </div>
     </div>
+    <!-- </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
+import type { TodoList } from "~/types/typesAndInterfaces";
 
 // Store
 const todoStore = useTodoStore();
 
 // Refs
-const newListTitle = ref("");
+
 const inputRefs = ref<HTMLElement[]>([]);
+
+const props = defineProps<{
+  currentList: TodoList | undefined;
+}>();
+
+const newListTitle = ref(props.currentList ? props.currentList.title : "");
 
 // Methods
 const createNewTodoList = () => {
@@ -184,15 +200,29 @@ const updateTodoItem = (listId: string, itemId: string, text: string) => {
   }
 };
 
-const toggleTodoItem = (listId: string, itemId: string, isDone: boolean) => {
-  todoStore.updateTodoItemInList(listId, itemId, { isDone });
+// const toggleTodoItem = (listId: string, itemId: string, isDone: boolean) => {
+//   todoStore.updateTodoItemInList(listId, itemId, { isDone });
+// };
+
+// const deleteTodoItem = (listId: string, itemId: string) => {
+//   const list = todoStore.listOfTodos.find((l) => l.id === listId);
+//   // Prevent deleting the last item
+//   if (list && list.list.length > 1) {
+//     todoStore.deleteTodoItemFromList(listId, itemId);
+//   }
+// };
+
+const toggleTodoItem = (itemId: string, isDone: boolean) => {
+  if (!props.currentList) return;
+  todoStore.updateTodoItemInList(props.currentList.id, itemId, { isDone });
 };
 
-const deleteTodoItem = (listId: string, itemId: string) => {
-  const list = todoStore.listOfTodos.find((l) => l.id === listId);
+const deleteTodoItem = (itemId: string) => {
+  if (!props.currentList) return;
+
   // Prevent deleting the last item
-  if (list && list.list.length > 1) {
-    todoStore.deleteTodoItemFromList(listId, itemId);
+  if (props.currentList?.list.length > 1) {
+    todoStore.deleteTodoItemFromList(props.currentList.id, itemId);
   }
 };
 

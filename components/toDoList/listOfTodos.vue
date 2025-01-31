@@ -1,6 +1,10 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
-    <UButton class="text-white shadow-none" title="To do list info">
+    <UButton
+      class="text-white shadow-none"
+      title="To do list info"
+      @click="navigateToNewList"
+    >
       <UIcon name="material-symbols:edit-document-rounded" size="20px" />
       <span>New ToDo List</span>
     </UButton>
@@ -67,6 +71,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();
 const todoStore = useTodoStore();
@@ -74,6 +79,12 @@ const todoStore = useTodoStore();
 // Navigation function
 const navigateToList = (listId: string) => {
   router.push(`/to-do-list/${listId}`);
+};
+
+// Navigation function for new list
+const navigateToNewList = () => {
+  const newListId = uuidv4(); // Generate a new UUID
+  router.push(`/to-do-list/${newListId}`);
 };
 
 // Helper function to create date objects for filtering
