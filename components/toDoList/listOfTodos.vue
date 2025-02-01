@@ -98,7 +98,7 @@ const getDateBefore = (days: number) => {
 // Lists from last 7 days
 const recentListsWeek = computed(() => {
   const sevenDaysAgo = getDateBefore(7);
-  return todoStore.activeLists.filter((list) => {
+  return todoStore.listOfTodos?.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate >= sevenDaysAgo;
   });
@@ -109,7 +109,7 @@ const recentListsMonth = computed(() => {
   const thirtyDaysAgo = getDateBefore(30);
   const sevenDaysAgo = getDateBefore(7);
 
-  return todoStore.activeLists.filter((list) => {
+  return todoStore.listOfTodos?.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate >= thirtyDaysAgo && listDate < sevenDaysAgo;
   });
@@ -119,7 +119,7 @@ const recentListsMonth = computed(() => {
 const olderLists = computed(() => {
   const thirtyDaysAgo = getDateBefore(30);
 
-  return todoStore.activeLists.filter((list) => {
+  return todoStore.listOfTodos?.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate < thirtyDaysAgo;
   });

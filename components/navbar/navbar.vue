@@ -29,13 +29,13 @@
           size="20px"
         ></UIcon
       ></RouterLink>
-      <RouterLink
+      <!-- <RouterLink
         to="/docs-generator"
         :class="
           route.fullPath === '/docs-generator' ? selectedButton : buttonStyles
         "
         ><UIcon name="material-symbols:docs-rounded" size="20px"></UIcon
-      ></RouterLink>
+      ></RouterLink> -->
     </div>
 
     <div

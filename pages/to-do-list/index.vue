@@ -4,7 +4,7 @@
       class="w-full lg:w-[1024px] h-full py-4 flex flex-col gap-y-5 md:gap-y-7"
     >
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl lg:text-3xl">Notes</h1>
+        <h1 class="text-2xl lg:text-3xl font-heading">Notes</h1>
         <UButton
           class="text-white shadow-none"
           title="To do list"
@@ -15,25 +15,37 @@
         </UButton>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div
+        v-if="todoStore?.listOfTodos?.length > 0"
+        class="w-full h-[calc(100%-40px)] grid grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto"
+      >
         <div
           v-for="(listItem, index) in todoStore.listOfTodos"
           :key="index"
-          class="flex flex-row gap-x-3 p-2 md:p-3 rounded-md shadow-md bg-rose-800 cursor-pointer"
-          @click="navigateToList(listItem.id)"
+          class="h-fit flex flex-row gap-x-3 p-2 md:p-3 rounded-md shadow-md bg-rose-800"
         >
           <div class="mt-1">
             <UCheckbox :value="listItem.isDone" />
           </div>
           <div>
-            <h3 class="text-base sm:text-lg 2xl:text-xl">
+            <h3
+              class="text-base sm:text-lg 2xl:text-xl underline cursor-pointer"
+              @click="navigateToList(listItem.id)"
+            >
               {{ listItem.title }}
             </h3>
-            <span class="text-xs sm:text-sm text-rose-100">{{
+            <span class="text-xs sm:text-sm text-rose-200">{{
               formatTimestamp(listItem.timestamp)
             }}</span>
           </div>
         </div>
+      </div>
+
+      <div
+        v-else
+        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center"
+      >
+        <p>No To Do List is present</p>
       </div>
     </div>
   </div>

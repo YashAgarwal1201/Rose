@@ -40,11 +40,11 @@
               ><span>To Do List</span></RouterLink
             >
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+            <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
             <RouterLink to="/docs-generator" :class="buttonStyles"
               ><UIcon name="material-symbols:docs-rounded"></UIcon
-              ><span>Docs Generator</span></RouterLink
+              ><span>Docs Generator</span></RouterLink -->
             >
 
             <!-- <UDivider class="max-w-full mx-2 my-1 p-0 h-[1.5px]" /> -->

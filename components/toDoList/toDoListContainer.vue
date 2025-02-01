@@ -105,19 +105,24 @@ const deleteTodoItem = (listId: string, itemId: string) => {
 
 <template>
   <div class="w-full h-full flex flex-col gap-y-3 p-2">
-    <!-- List Title Input -->
-    <UInput
-      v-model="newListTitle"
-      :value="props.currentList ? props.currentList.title : ''"
-      :placeholder="
-        props.currentList ? props.currentList.title : 'Enter Title...'
-      "
-      @keyup.enter="createNewTodoList"
-    />
-
-    <!-- Display Lists -->
-    <!-- <div v-for="list in todoStore.listOfTodos" :key="list.id" class="mt-4"> -->
-    <!-- <h3 class="font-semibold mb-2">{{ list.title }}</h3> -->
+    <div class="w-full flex gap-x-3">
+      <UInput
+        class="w-full"
+        v-model="newListTitle"
+        :value="props.currentList ? props.currentList.title : ''"
+        :placeholder="
+          props.currentList ? props.currentList.title : 'Enter Title...'
+        "
+        @keyup.enter="createNewTodoList"
+      />
+      <UButton
+        class="text-white shadow-none"
+        title="Delete to do item"
+        @click="createNewTodoList"
+      >
+        <UIcon name="material-symbols:add-2-rounded" size="20px"
+      /></UButton>
+    </div>
 
     <!-- Todo Items -->
     <div class="space-y-2">
@@ -164,7 +169,8 @@ import type { TodoList } from "~/types/typesAndInterfaces";
 
 // Store
 const todoStore = useTodoStore();
-
+const router = useRouter();
+const route = useRoute();
 // Refs
 
 const inputRefs = ref<HTMLElement[]>([]);
@@ -174,16 +180,21 @@ const props = defineProps<{
 }>();
 
 const newListTitle = ref(props.currentList ? props.currentList.title : "");
+const listId = computed(() => route.params.id as string);
 
 // Methods
 const createNewTodoList = () => {
   if (newListTitle.value.trim() !== "") {
     // Create new list
-    const newList = todoStore.addTodoList(newListTitle.value);
+    const newList = todoStore.addTodoList(
+      route.params.id as string,
+      newListTitle.value
+    );
 
     // Automatically add first empty item to the new list
     if (newList) {
       todoStore.addTodoItemToList(newList.id, "");
+      // router.push(`/to-do-list/${newList.id}`);
     }
   }
 };
@@ -199,18 +210,6 @@ const updateTodoItem = (listId: string, itemId: string, text: string) => {
     todoStore.updateTodoItemInList(listId, itemId, { text });
   }
 };
-
-// const toggleTodoItem = (listId: string, itemId: string, isDone: boolean) => {
-//   todoStore.updateTodoItemInList(listId, itemId, { isDone });
-// };
-
-// const deleteTodoItem = (listId: string, itemId: string) => {
-//   const list = todoStore.listOfTodos.find((l) => l.id === listId);
-//   // Prevent deleting the last item
-//   if (list && list.list.length > 1) {
-//     todoStore.deleteTodoItemFromList(listId, itemId);
-//   }
-// };
 
 const toggleTodoItem = (itemId: string, isDone: boolean) => {
   if (!props.currentList) return;
