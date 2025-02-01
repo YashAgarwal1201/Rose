@@ -18,7 +18,7 @@
           />
         </div>
         <div class="w-full px-5 pb-5">
-          <div class="w-full flex flex-col rounded-3xl bg-slate-500 p-4">
+          <div class="w-full flex flex-col rounded-3xl bg-rose-900 p-4">
             <RouterLink to="/" :class="buttonStyles"
               ><UIcon name="material-symbols:house-rounded"></UIcon
               ><span>Home</span></RouterLink
@@ -39,6 +39,14 @@
               ></UIcon
               ><span>To Do List</span></RouterLink
             >
+
+            <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
+            <RouterLink to="/docs-generator" :class="buttonStyles"
+              ><UIcon name="material-symbols:docs-rounded"></UIcon
+              ><span>Docs Generator</span></RouterLink -->
+            >
+
             <!-- <UDivider class="max-w-full mx-2 my-1 p-0 h-[1.5px]" /> -->
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
