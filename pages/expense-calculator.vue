@@ -1,6 +1,8 @@
 <template>
   <div class="w-full h-full p-2 md:p-4 flex flex-col gap-y-10 lg:gap-y-14">
-    <h1 class="hidden md:block text-3xl md:text-4xl">Expense Calculator</h1>
+    <h1 class="hidden md:block text-3xl md:text-4xl font-heading">
+      Expense Calculator
+    </h1>
 
     <div
       class="flex flex-col lg:flex-row items-center justify-between gap-y-10"
@@ -24,17 +26,17 @@
       </div>
 
       <UCard
-        class="w-[97%] sm:w-[400px] bg-yellow-900 rounded-3xl mx-0 lg:mx-auto"
+        class="w-[97%] sm:w-[400px] bg-rose-900 text-rose-50 rounded-3xl mx-0 lg:mx-auto"
         ><div class="w-full flex justify-center rounded-3xl">
           <div class="w-1/2 flex flex-col items-center">
-            <span class="text-xl md:text-2xl">Income</span>
+            <span class="text-xl md:text-2xl font-heading">Income</span>
             <span class="text-lg md:text-xl">$ {{ store.income }}</span>
           </div>
 
-          <UDivider orientation="vertical" class="text-gray-500" />
+          <UDivider orientation="vertical" class="text-rose-100" />
 
           <div class="w-1/2 flex flex-col items-center">
-            <span class="text-xl md:text-2xl">Expense</span>
+            <span class="text-xl md:text-2xl font-heading">Expense</span>
             <span class="text-lg md:text-xl">$ {{ store.expense }}</span>
           </div>
         </div></UCard
@@ -43,9 +45,24 @@
 
     <div>
       <UTabs :items="tabs" class="w-full">
-        <template #addTransaction="{ item }">
+        <template #default="{ item, index, selected }">
+          <span
+            class="truncate"
+            :class="[selected && 'text-primary-500 dark:text-primary-400']"
+            >{{ item.label }}</span
+          >
+        </template>
+        <template #icon="{ item, selected }">
+          <UIcon
+            :name="item.icon"
+            class="w-4 h-4 flex-shrink-0 me-2"
+            :class="[selected && 'text-primary-500 dark:text-primary-400']"
+          />
+        </template>
+        <template #addTransaction="{ item, selected }">
           <ExpenseCalculatorAddTransaction
             title=""
+            :selected="selected"
           ></ExpenseCalculatorAddTransaction>
         </template>
 

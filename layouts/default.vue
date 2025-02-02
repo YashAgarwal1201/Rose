@@ -17,6 +17,12 @@
 import TransactionsHistoryModal from "~/components/expenseCalculator/TransactionsHistoryModal.vue";
 import Navbar from "~/components/navbar/navbar.vue";
 import SideMenu from "~/components/sideMenu/SideMenu.vue";
+
+const route = useRoute();
+
+useHead({
+  meta: [{ property: "og:title", content: `Rose - ${route.meta.title}` }],
+});
 </script>
 
 <style lang="css">
