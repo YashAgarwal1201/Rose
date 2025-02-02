@@ -1,5 +1,7 @@
 <template>
-  <div class="w-full h-full flex flex-col justify-start items-center p-2">
+  <div
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center p-2"
+  >
     <div class="w-full h-[200px]">
       <HomepageDateAndTime />
     </div>
@@ -37,7 +39,7 @@
       >
         <p class="italic text-xs md:text-sm">You have no todo list to show</p>
         <UButton
-          class="text-white shadow-none rounded-full"
+          class="text-white shadow-none rounded-full px-4 py-2"
           title="To do list"
           @click="navigateToNewList"
         >
@@ -75,11 +77,11 @@
       >
         <p class="italic text-xs md:text-sm">You have no transaction to show</p>
         <UButton
-          class="text-white shadow-none rounded-full"
+          class="text-white shadow-none rounded-full px-4 py-2"
           title="To do list"
           to="/expense-calculator"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <UIcon name="material-symbols:receipt-rounded" size="20px" />
           <span>Add Transaction</span>
         </UButton>
       </div>
@@ -95,11 +97,11 @@
             You have no transaction to show
           </p>
           <UButton
-            class="text-white shadow-none rounded-full"
+            class="text-white shadow-none rounded-full px-4 py-2"
             title="To do list"
             to="/expense-calculator"
           >
-            <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+            <UIcon name="material-symbols:receipt-rounded" size="20px" />
             <span>Add Transaction</span>
           </UButton>
         </div>
@@ -141,7 +143,7 @@
               You have no todo list to show
             </p>
             <UButton
-              class="text-white shadow-none rounded-full"
+              class="text-white shadow-none rounded-full px-4 py-2"
               title="To do list"
               @click="navigateToNewList"
             >
@@ -164,6 +166,10 @@ import { v4 as uuidv4 } from "uuid";
 const router = useRouter();
 const todoStore = useTodoStore();
 const transactionStore = useExpenseCalculatorStore();
+
+definePageMeta({
+  title: "Project Rose - Home Page",
+});
 
 // Format timestamp
 const formatTimestamp = (timestamp: string | number | Date) => {

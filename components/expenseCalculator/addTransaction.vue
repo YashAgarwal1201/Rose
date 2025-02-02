@@ -6,6 +6,7 @@ const store = useExpenseCalculatorStore();
 
 const props = defineProps<{
   title: string;
+  selected: any;
 }>();
 
 // Define the transaction object including name, value, type, category, and date
@@ -84,7 +85,11 @@ const addTransaction = () => {
       v-if="title"
       class="font-medium text-xl md:text-2xl pb-2 border-b sm:border-b-2 flex items-center"
     >
-      <UIcon name="material-symbols:add-2-rounded" class="mr-3"></UIcon
+      <UIcon
+        name="material-symbols:add-2-rounded"
+        class="mr-3 text-rose-400"
+        :class="[selected && 'text-rose-500 dark:text-rose-400']"
+      ></UIcon
       >{{ title }}
     </h3>
 
@@ -150,6 +155,7 @@ const addTransaction = () => {
 
       <div class="w-full flex justify-center mt-5 md:mt-8">
         <UButton
+          icon="material-symbols:receipt-rounded"
           title="click to add the transaction"
           :disabled="
             transaction.name === '' ||
@@ -158,7 +164,7 @@ const addTransaction = () => {
             transaction.date === ''
           "
           label="Add Transaction"
-          class="rounded-full px-7"
+          class="rounded-full px-4 py-2"
           @click="addTransaction"
           rounded
         />

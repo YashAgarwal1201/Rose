@@ -11,6 +11,15 @@ export default defineNuxtConfig({
   app: {
     pageTransition: { name: "page", mode: "out-in" },
     layoutTransition: { name: "slide", mode: "out-in" },
+    head: {
+      title: "Project Rose",
+      charset: "utf-8",
+      viewport: "width=device-width, initial-scale=1",
+      link: [
+        { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
+        { rel: "apple-touch-icon", href: "/logo.svg" },
+      ],
+    },
   },
 
   ui: {
@@ -75,7 +84,7 @@ export default defineNuxtConfig({
   fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
   pwa: {
-    // registerType: "autoUpdate",
+    registerType: "autoUpdate",
     manifest: {
       name: "Project Rose",
       short_name: "Rose",
@@ -85,16 +94,23 @@ export default defineNuxtConfig({
       display: "standalone",
       icons: [
         {
-          src: "/icon-192x192.png",
-          sizes: "192x192",
-          type: "image/png",
-        },
-        {
-          src: "/icon-512x512.png",
-          sizes: "512x512",
-          type: "image/png",
+          src: "/logo.svg",
+          sizes: "any",
+          type: "image/svg+xml",
         },
       ],
+    },
+    // workbox: {
+    //   navigateFallback: "/",
+    //   globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    // },
+    client: {
+      installPrompt: true,
+      // Prompt PWA install on supported browsers
+    },
+    devOptions: {
+      enabled: true,
+      type: "module",
     },
   },
 });

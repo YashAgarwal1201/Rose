@@ -58,7 +58,6 @@
 const headerStore = useHeaderStore();
 const route = useRoute();
 
-console.log(route.fullPath);
 const buttonStyles =
   "w-full aspect-square flex justify-center items-center rounded-md bg-transparent *:text-lg pointer-events-auto";
 const selectedButton =

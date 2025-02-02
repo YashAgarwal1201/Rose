@@ -2,6 +2,7 @@
   <div class="w-full h-full p-3 flex">
     <div class="aspect-square flex justify-center items-center">
       <img :src="icon" alt="time icon" class="w-12 h-12" />
+      <!-- <img :src="`/logo.svg`" alt="" /> -->
     </div>
 
     <div class="flex flex-col justify-center ml-4">
@@ -47,11 +48,11 @@ const updateDateTime = () => {
 
   const hours = now.getHours();
   if (hours >= 5 && hours < 12) {
-    icon.value = "/path/to/morning-icon.svg"; // Morning icon
+    icon.value = "/assets/icons/sunrise.svg"; // Morning icon
   } else if (hours >= 12 && hours < 17) {
     icon.value = "/path/to/afternoon-icon.svg"; // Afternoon icon
   } else if (hours >= 17 && hours < 20) {
-    icon.value = "/path/to/evening-icon.svg"; // Evening icon
+    icon.value = "/assets/icons/sunset.svg"; // Evening icon
   } else {
     icon.value = "/path/to/night-icon.svg"; // Night icon
   }
