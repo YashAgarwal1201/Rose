@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center p-2"
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 p-2"
   >
     <div class="w-full h-[200px]">
       <HomepageDateAndTime />

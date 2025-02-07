@@ -4,5 +4,7 @@
       <NuxtPwaManifest />
       <NuxtPage />
     </NuxtLayout>
+
+    <UNotifications />
   </div>
 </template>

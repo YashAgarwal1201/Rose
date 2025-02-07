@@ -8,10 +8,16 @@
         </div>
 
         <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
-          <UButton class="text-white shadow-none" title="To do list info"
+          <UButton
+            class="text-white shadow-none"
+            title="To do list info"
+            @click="toast.add({ title: 'Hello world!' })"
             ><UIcon name="material-symbols:info-rounded" size="20px"></UIcon
           ></UButton>
-          <UButton class="text-white shadow-none" title="Mark all items as done"
+          <UButton
+            class="text-white shadow-none"
+            title="Mark all items as done"
+            @click="toast.add({ title: 'Hello world!' })"
             ><UIcon name="material-symbols:done-all-rounded" size="20px"></UIcon
           ></UButton>
           <UButton class="text-white shadow-none" title="Delete to do list"
@@ -32,6 +38,8 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const toast = useToast();
+</script>
 
 <style scoped></style>
