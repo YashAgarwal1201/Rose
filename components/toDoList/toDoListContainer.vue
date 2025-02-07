@@ -107,7 +107,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
   <div class="w-full h-full flex flex-col gap-y-3 p-2">
     <div class="w-full flex gap-x-3">
       <UInput
-        class="w-full"
+        class="w-full h-10 *:h-10"
         v-model="newListTitle"
         :value="props.currentList ? props.currentList.title : ''"
         :placeholder="
@@ -116,7 +116,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
         @keyup.enter="createNewTodoList"
       />
       <UButton
-        class="text-white shadow-none"
+        class="text-white w-10 h-10 shadow-none rounded-2xl"
         title="Delete to do item"
         @click="createNewTodoList"
       >
@@ -129,7 +129,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
       <div
         v-for="(item, index) in currentList?.list || []"
         :key="item.id"
-        class="flex items-center space-x-2"
+        class="flex items-center space-x-3"
       >
         <UCheckbox
           v-model="item.isDone"
@@ -148,10 +148,10 @@ const deleteTodoItem = (listId: string, itemId: string) => {
             props.currentList?.id &&
               updateTodoItem(props.currentList.id, item.id, item.text)
           "
-          class="w-full"
+          class="w-full h-10 *:h-10"
         />
         <UButton
-          class="text-white shadow-none"
+          class="text-white w-10 h-10 shadow-none rounded-2xl"
           title="Delete to do item"
           @click="deleteTodoItem(item.id)"
         >
@@ -173,7 +173,7 @@ const router = useRouter();
 const route = useRoute();
 // Refs
 
-const inputRefs = ref<HTMLElement[]>([]);
+const inputRefs = ref<(HTMLInputElement | null)[]>([]);
 
 const props = defineProps<{
   currentList: TodoList | undefined;
@@ -242,10 +242,14 @@ const handleEnterKey = async (
     await nextTick();
 
     // Focus the new input
-    const allInputs = inputRefs.value.flat();
-    const nextInput = allInputs[allInputs.length - 1];
-    if (nextInput && "focus" in nextInput) {
-      (nextInput as HTMLElement).focus();
+    const allInputs = inputRefs.value.filter((input) => input !== null);
+    console.log("All Inputs", allInputs);
+    const nextInput = allInputs[allInputs.length];
+
+    console.log(nextInput?.firstChild);
+    if (nextInput) {
+      nextInput.focus();
+      console.log("Focused");
     }
   }
 };

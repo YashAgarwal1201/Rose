@@ -47,7 +47,7 @@
 
       <UButton
         icon="material-symbols:menu-rounded"
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-md bg-transparent *:text-lg pointer-events-auto"
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
       />
     </div>
@@ -59,9 +59,9 @@ const headerStore = useHeaderStore();
 const route = useRoute();
 
 const buttonStyles =
-  "w-full aspect-square flex justify-center items-center rounded-md bg-transparent *:text-lg pointer-events-auto";
+  "w-full aspect-square flex justify-center items-center rounded-2xl bg-transparent *:text-lg pointer-events-auto";
 const selectedButton =
-  "w-full aspect-square flex justify-center items-center rounded-md bg-rose-500 *:text-lg pointer-events-none";
+  "w-full aspect-square flex justify-center items-center rounded-3xl bg-rose-500 *:text-lg pointer-events-none";
 </script>
 
 <style scoped>
