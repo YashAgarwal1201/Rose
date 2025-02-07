@@ -26,6 +26,18 @@ useHead({
 </script>
 
 <style lang="css">
+@media (hover: hover) and (pointer: fine) {
+  .p-button:hover,
+  a:hover,
+  .feedback-form .form-section:hover,
+  .p-accordion .p-accordion-tab .p-accordion-header:hover,
+  .custom-panel-header:hover {
+    color: var(--primary-color);
+    background-color: var(--color3);
+    border-color: var(--color3);
+  }
+}
+
 .page-enter-active,
 .page-leave-active {
   transition: all 0.4s;

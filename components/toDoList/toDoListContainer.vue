@@ -173,7 +173,7 @@ const router = useRouter();
 const route = useRoute();
 // Refs
 
-const inputRefs = ref<HTMLElement[]>([]);
+const inputRefs = ref<(HTMLInputElement | null)[]>([]);
 
 const props = defineProps<{
   currentList: TodoList | undefined;
@@ -242,10 +242,14 @@ const handleEnterKey = async (
     await nextTick();
 
     // Focus the new input
-    const allInputs = inputRefs.value.flat();
-    const nextInput = allInputs[allInputs.length - 1];
-    if (nextInput && "focus" in nextInput) {
-      (nextInput as HTMLElement).focus();
+    const allInputs = inputRefs.value.filter((input) => input !== null);
+    console.log("All Inputs", allInputs);
+    const nextInput = allInputs[allInputs.length];
+
+    console.log(nextInput?.firstChild);
+    if (nextInput) {
+      nextInput.focus();
+      console.log("Focused");
     }
   }
 };
