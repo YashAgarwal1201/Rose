@@ -10,6 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.30.8",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/list": "^2.0.6",
+    "@editorjs/paragraph": "^2.11.7",
     "@nuxt/fonts": "^0.10.3",
     "@nuxt/ui": "^2.19.2",
     "@pinia/nuxt": "^0.7.0",

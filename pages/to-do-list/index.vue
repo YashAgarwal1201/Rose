@@ -6,6 +6,7 @@
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Notes</h1>
         <UButton
+          v-if="todoStore?.listOfTodos?.length > 0"
           class="text-white shadow-none"
           title="To do list"
           @click="navigateToNewList"
@@ -43,9 +44,17 @@
 
       <div
         v-else
-        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center"
+        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center gap-y-3"
       >
-        <p>No To Do List is present</p>
+        <p class="text-base lg:text-lg">No To Do List is present</p>
+        <UButton
+          class="text-white shadow-none rounded-full px-4 py-2"
+          title="To do list"
+          @click="navigateToNewList"
+        >
+          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <span>New ToDo List</span>
+        </UButton>
       </div>
     </div>
   </div>

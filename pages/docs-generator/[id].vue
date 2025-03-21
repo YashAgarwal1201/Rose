@@ -1,13 +1,13 @@
 <template>
   <div class="w-full h-full flex justify-center items-center py-2">
     <div class="w-full h-full flex flex-row">
-      <div class="w-[250px] h-full"><ToDoListOfTodos /></div>
+      <div class="w-[250px] h-full"><LisOfDocuments /></div>
       <div class="w-fit h-full mx-auto flex">
         <div class="flex w-full sm:w-[600px] h-full rounded-lg">
-          <ToDoListContainer :current-list="currentList" />
+          <DocumentContainer :current-list="currentList" />
         </div>
 
-        <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
+        <!-- <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
           <UButton
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="To do list info"
@@ -38,13 +38,15 @@
               size="20px"
             ></UIcon
           ></UButton>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import DocumentContainer from "~/components/docsGenerator/documentContainer.vue";
+import LisOfDocuments from "~/components/docsGenerator/lisOfDocuments.vue";
 import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
 
 const toast = useToast();
