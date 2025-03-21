@@ -1,63 +1,102 @@
 <template>
-  <div class="w-full h-full flex justify-center">
-    <div
-      class="w-full lg:w-[1024px] h-full py-4 flex flex-col gap-y-5 md:gap-y-7"
-    >
-      <div class="flex items-center justify-between">
-        <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
-        <UButton
-          class="text-white shadow-none flex items-center gap-x-2"
-          title="To do list"
-        >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
-          <span>New Document</span>
-        </UButton>
-      </div>
+  <div class="w-full h-full flex justify-center items-center py-2">
+    <div class="w-full h-full flex flex-row">
+      <div class="w-[250px] h-full"><LisOfDocuments /></div>
+      <div class="w-fit h-full mx-auto flex">
+        <div class="flex w-full sm:w-[600px] h-full rounded-lg">
+          <DocumentContainer :current-list="currentList" />
+        </div>
 
-      <div class="editor-container">
-        <div
-          id="editorjs"
-          class="w-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"
-        ></div>
+        <!-- <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
+          <UButton
+            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            title="To do list info"
+            @click="toast.add({ title: FEATURE_COMING_SOON })"
+            ><UIcon name="material-symbols:info-rounded" size="20px"></UIcon
+          ></UButton>
+          <UButton
+            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            title="Mark all items as done"
+            @click="toast.add({ title: FEATURE_COMING_SOON })"
+            ><UIcon name="material-symbols:done-all-rounded" size="20px"></UIcon
+          ></UButton>
+          <UButton
+            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            title="Delete to do list"
+            @click="deleteList"
+            ><UIcon
+              name="material-symbols:delete-forever-rounded"
+              size="20px"
+            ></UIcon
+          ></UButton>
+          <UButton
+            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            title="Download to do list"
+            @click="downloadList"
+            ><UIcon
+              name="material-symbols:download-2-rounded"
+              size="20px"
+            ></UIcon
+          ></UButton>
+        </div> -->
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, onBeforeUnmount } from "vue";
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
-import Paragraph from "@editorjs/paragraph";
+import DocumentContainer from "~/components/docsGenerator/documentContainer.vue";
+import LisOfDocuments from "~/components/docsGenerator/lisOfDocuments.vue";
+import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
 
-const editorRef = ref<EditorJS | null>(null);
+const toast = useToast();
 
-onMounted(() => {
-  editorRef.value = new EditorJS({
-    holder: "editorjs",
-    placeholder: "Start writing here...",
-    autofocus: true,
-    tools: {
-      header: Header,
-      paragraph: Paragraph,
-      list: List,
-    },
-    onChange: async () => {
-      const content = await editorRef.value?.save();
-      console.log("Editor Content:", content);
-    },
+const route = useRoute();
+const router = useRouter();
+const todoStore = useTodoStore();
+
+const listId = computed(() => route.params.id as string);
+
+const currentList = computed(() =>
+  todoStore.listOfTodos.find((list) => list.id === listId.value)
+);
+
+const deleteList = () => {
+  if (!currentList.value) {
+    router.push("/to-do-list");
+    toast.add({
+      title: "No list found to delete, navigating to `To Do List home page`",
+      timeout: 700,
+    });
+    return;
+  }
+
+  todoStore.deleteTodoList(currentList.value.id);
+  router.push("/to-do-list");
+  // showDeleteModal.value = false;
+};
+
+const downloadList = () => {
+  if (!currentList.value) return;
+
+  const listData = {
+    title: currentList.value.title,
+    items: currentList.value.list,
+    created: currentList.value.timestamp,
+  };
+
+  const blob = new Blob([JSON.stringify(listData, null, 2)], {
+    type: "application/json",
   });
-});
-
-onBeforeUnmount(() => {
-  editorRef.value?.destroy();
-});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${currentList.value.title || "todo-list"}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 </script>
 
-<style scoped>
-.editor-container {
-  width: 100%;
-  min-height: 300px;
-}
-</style>
+<style scoped></style>
