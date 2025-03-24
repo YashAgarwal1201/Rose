@@ -1,4 +1,7 @@
 export default defineAppConfig({
+  layout: {
+    transition: "slide",
+  },
   ui: {
     primary: "rose",
     gray: "zinc",
