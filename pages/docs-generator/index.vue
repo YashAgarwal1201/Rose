@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { v4 as uuidv4 } from "uuid";
+
+const router = useRouter();
 
 const documentStore = useDocumentStore();
+
 const newDocTitle = ref("");
 const newFolderName = ref("");
 const selectedFolder = ref("All");
@@ -9,6 +13,16 @@ const selectedFolder = ref("All");
 onMounted(() => {
   documentStore.loadDocuments();
 });
+
+const navigateToDocument = (documentId: string) => {
+  router.push(`/docs-generator/${documentId}`);
+};
+
+// Navigation function for new list
+const navigateToNewDocument = () => {
+  const documentId = uuidv4(); // Generate a new UUID
+  router.push(`/docs-generator/${documentId}`);
+};
 
 const createNewDocument = () => {
   if (newDocTitle.value.trim()) {
@@ -40,6 +54,7 @@ const deleteDocument = (id: string) => {
           v-if="documentStore?.documents?.length > 0"
           class="text-white shadow-none"
           title="Create a new document"
+          @click="navigateToNewDocument"
         >
           <UIcon name="material-symbols:edit-document-rounded" size="20px" />
           <span>New Document</span>
@@ -102,6 +117,7 @@ const deleteDocument = (id: string) => {
           v-for="doc in documentStore.getDocumentsByFolder(selectedFolder)"
           :key="doc.id"
           class="w-36"
+          @click="() => navigateToDocument(doc.id)"
           ><span>{{ doc.title }}</span></UButton
         >
       </div>
@@ -134,6 +150,7 @@ const deleteDocument = (id: string) => {
         <UButton
           class="text-white shadow-none rounded-full px-4 py-2"
           title="Create a new document"
+          @click="navigateToNewDocument"
         >
           <UIcon name="material-symbols:edit-document-rounded" size="20px" />
           <span>New document</span>

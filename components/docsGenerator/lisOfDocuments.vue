@@ -3,10 +3,10 @@
     <UButton
       class="text-white shadow-none"
       title="To do list info"
-      @click="navigateToNewList"
+      @click="navigateToNewDocument"
     >
       <UIcon name="material-symbols:edit-document-rounded" size="20px" />
-      <span>New ToDo List</span>
+      <span>New Document</span>
     </UButton>
 
     <UAccordion
@@ -15,10 +15,10 @@
           label: 'Last 7 days',
           content:
             recentListsWeek.length > 0
-              ? recentListsWeek.map((list) => ({
-                  id: list.id,
-                  title: list.title,
-                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+              ? recentListsWeek.map((document) => ({
+                  id: document.id,
+                  title: document.title,
+                  timestamp: new Date(document.timestamp).toLocaleDateString(),
                 }))
               : 'No lists in the last 7 days',
         },
@@ -26,23 +26,23 @@
           label: 'Last 30 days',
           content:
             recentListsMonth.length > 0
-              ? recentListsMonth.map((list) => ({
-                  id: list.id,
-                  title: list.title,
-                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+              ? recentListsMonth.map((document) => ({
+                  id: document.id,
+                  title: document.title,
+                  timestamp: new Date(document.timestamp).toLocaleDateString(),
                 }))
               : 'No lists in the last 30 days',
         },
         {
-          label: 'Older lists',
+          label: 'Older documents',
           content:
             olderLists.length > 0
-              ? olderLists.map((list) => ({
-                  id: list.id,
-                  title: list.title,
-                  timestamp: new Date(list.timestamp).toLocaleDateString(),
+              ? olderLists.map((document) => ({
+                  id: document.id,
+                  title: document.title,
+                  timestamp: new Date(document.timestamp).toLocaleDateString(),
                 }))
-              : 'No older lists',
+              : 'No older documents',
         },
       ]"
     >
@@ -53,13 +53,15 @@
           </div>
           <div v-else class="flex flex-col gap-y-2">
             <div
-              v-for="list in item.content"
-              :key="list.id"
+              v-for="document in item.content"
+              :key="document.id"
               class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-              @click="navigateToList(list.id)"
+              @click="navigateToDocument(document.id)"
             >
-              <span>{{ list.title }}</span>
-              <span class="text-sm text-gray-500">{{ list.timestamp }}</span>
+              <span>{{ document.title }}</span>
+              <span class="text-sm text-gray-500">{{
+                document.timestamp
+              }}</span>
             </div>
           </div>
         </div>
@@ -74,17 +76,17 @@ import { useRouter } from "vue-router";
 import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();
-const todoStore = useTodoStore();
+const documentStore = useDocumentStore();
 
 // Navigation function
-const navigateToList = (listId: string) => {
-  router.push(`/to-do-list/${listId}`);
+const navigateToDocument = (documentId: string) => {
+  router.push(`/docs-generator/${documentId}`);
 };
 
 // Navigation function for new list
-const navigateToNewList = () => {
-  const newListId = uuidv4(); // Generate a new UUID
-  router.push(`/to-do-list/${newListId}`);
+const navigateToNewDocument = () => {
+  const newDocumentId = uuidv4(); // Generate a new UUID
+  router.push(`/docs-generator/${newDocumentId}`);
 };
 
 // Helper function to create date objects for filtering
@@ -98,8 +100,8 @@ const getDateBefore = (days: number) => {
 // Lists from last 7 days
 const recentListsWeek = computed(() => {
   const sevenDaysAgo = getDateBefore(7);
-  return todoStore.listOfTodos?.filter((list) => {
-    const listDate = new Date(list.timestamp);
+  return documentStore.documents?.filter((document) => {
+    const listDate = new Date(document.timestamp);
     return listDate >= sevenDaysAgo;
   });
 });
@@ -109,8 +111,8 @@ const recentListsMonth = computed(() => {
   const thirtyDaysAgo = getDateBefore(30);
   const sevenDaysAgo = getDateBefore(7);
 
-  return todoStore.listOfTodos?.filter((list) => {
-    const listDate = new Date(list.timestamp);
+  return documentStore.documents?.filter((document) => {
+    const listDate = new Date(document.timestamp);
     return listDate >= thirtyDaysAgo && listDate < sevenDaysAgo;
   });
 });
@@ -119,8 +121,8 @@ const recentListsMonth = computed(() => {
 const olderLists = computed(() => {
   const thirtyDaysAgo = getDateBefore(30);
 
-  return todoStore.listOfTodos?.filter((list) => {
-    const listDate = new Date(list.timestamp);
+  return documentStore.documents?.filter((document) => {
+    const listDate = new Date(document.timestamp);
     return listDate < thirtyDaysAgo;
   });
 });
