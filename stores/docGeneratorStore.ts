@@ -1,18 +1,23 @@
 import { defineStore } from "pinia";
+import type {
+  Document,
+  Folder,
+  ListOfDocuments,
+} from "~/types/typesAndInterfaces";
 
-export interface Document {
-  id: string;
-  title: string;
-  content: string;
-  folder: string; // Folder/category name
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface Document {
+//   id: string;
+//   title: string;
+//   content: string;
+//   folder: string; // Folder/category name
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export const useDocumentStore = defineStore("documentStore", {
   state: () => ({
-    documents: [] as Document[],
-    folders: [] as string[],
+    documents: [] as ListOfDocuments,
+    folders: [] as Folder[],
   }),
 
   getters: {
@@ -42,8 +47,12 @@ export const useDocumentStore = defineStore("documentStore", {
         title,
         content: "",
         folder,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        timestamp: new Date(),
+        lastUpdatedTimestamp: new Date(),
+        isArchived: false,
+        isStarred: false,
+        createdBy: "Elsa",
+        lastModifiedBy: "Elsa",
       };
       this.documents.push(newDoc);
       this.saveDocuments();
@@ -53,7 +62,7 @@ export const useDocumentStore = defineStore("documentStore", {
       const doc = this.documents.find((d) => d.id === id);
       if (doc) {
         doc.content = content;
-        doc.updatedAt = new Date().toISOString();
+        doc.lastUpdatedTimestamp = new Date();
         this.saveDocuments();
       }
     },
@@ -64,8 +73,15 @@ export const useDocumentStore = defineStore("documentStore", {
     },
 
     createFolder(folderName: string) {
-      if (!this.folders.includes(folderName)) {
-        this.folders.push(folderName);
+      if (!this.folders.some((folder) => folder.name === folderName)) {
+        const newFolder: Folder = {
+          id: crypto.randomUUID(),
+          name: folderName,
+          documents: [],
+          timestamp: new Date(),
+          lastUpdatedTimestamp: new Date(),
+        };
+        this.folders.push(newFolder);
         this.saveDocuments();
       }
     },
@@ -74,7 +90,9 @@ export const useDocumentStore = defineStore("documentStore", {
       this.documents = this.documents.map((doc) =>
         doc.folder === folderName ? { ...doc, folder: "Uncategorized" } : doc
       );
-      this.folders = this.folders.filter((folder) => folder !== folderName);
+      this.folders = this.folders.filter(
+        (folder) => folder.name !== folderName
+      );
       this.saveDocuments();
     },
   },

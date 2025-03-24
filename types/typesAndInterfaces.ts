@@ -15,3 +15,26 @@ export interface TodoList {
 }
 
 export type ListOfTodos = TodoList[];
+
+export type Folder = {
+  id: string;
+  name: string;
+  documents: Document[];
+  timestamp: Date;
+  lastUpdatedTimestamp: Date;
+};
+
+export interface Document {
+  id: string;
+  timestamp: Date;
+  lastUpdatedTimestamp: Date;
+  title: string;
+  content: string;
+  folder: string;
+  createdBy: string;
+  lastModifiedBy: string;
+  isStarred: boolean;
+  isArchived: boolean;
+}
+
+export type ListOfDocuments = Document[];
