@@ -53,7 +53,11 @@
             <div :class="buttonStyles">
               <UIcon name="material-symbols:dark-mode-rounded"></UIcon
               ><span>Dark Mode?</span>
-              <UToggle v-model="darkMode" class="ml-auto" />
+              <UToggle
+                v-model="darkMode"
+                class="ml-auto"
+                @change="toggleDarkMode"
+              />
             </div>
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
@@ -83,6 +87,22 @@ const buttonStyles =
 const feedbackBtnHandle = () => {
   headerStore.showFeedback = true;
   headerStore.showSideMenu = false;
+};
+
+const toggleDarkMode = () => {
+  // Get the current theme by checking the 'dark-theme' class on the html element
+  const currentTheme = document.documentElement.classList.contains("dark")
+    ? "dark"
+    : "light";
+
+  // Toggle the theme on the 'html' element
+  if (currentTheme === "light") {
+    document.documentElement.classList.remove("light");
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+  }
 };
 </script>
 
