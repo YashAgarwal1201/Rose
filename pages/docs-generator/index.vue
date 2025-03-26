@@ -1,53 +1,6 @@
-<script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { v4 as uuidv4 } from "uuid";
-
-const router = useRouter();
-
-const documentStore = useDocumentStore();
-
-const newDocTitle = ref("");
-const newFolderName = ref("");
-const selectedFolder = ref("All");
-
-onMounted(() => {
-  documentStore.loadDocuments();
-});
-
-const navigateToDocument = (documentId: string) => {
-  router.push(`/docs-generator/${documentId}`);
-};
-
-// Navigation function for new list
-const navigateToNewDocument = () => {
-  const documentId = uuidv4(); // Generate a new UUID
-  router.push(`/docs-generator/${documentId}`);
-};
-
-const createNewDocument = () => {
-  if (newDocTitle.value.trim()) {
-    documentStore.createDocument(newDocTitle.value, selectedFolder.value);
-    newDocTitle.value = "";
-  }
-};
-
-const createNewFolder = () => {
-  if (newFolderName.value.trim()) {
-    documentStore.createFolder(newFolderName.value);
-    newFolderName.value = "";
-  }
-};
-
-const deleteDocument = (id: string) => {
-  documentStore.deleteDocument(id);
-};
-</script>
-
 <template>
   <div class="w-full h-full flex justify-center">
-    <div
-      class="w-full lg:w-[1024px] h-full py-4 flex flex-col gap-y-5 md:gap-y-7"
-    >
+    <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
         <UButton
@@ -143,9 +96,14 @@ const deleteDocument = (id: string) => {
 
       <div
         v-else
-        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center gap-y-3"
+        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center"
       >
-        <p class="text-base lg:text-lg">No documents found</p>
+        <img
+          :src="NotFoundImage"
+          class="max-w-80 select-none pointer-events-none"
+        />
+        <!-- <NotFoundImage /> -->
+        <p class="text-base lg:text-lg mb-3">No documents found</p>
 
         <UButton
           class="text-white shadow-none rounded-full px-4 py-2"
@@ -159,3 +117,49 @@ const deleteDocument = (id: string) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { v4 as uuidv4 } from "uuid";
+import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
+
+const router = useRouter();
+
+const documentStore = useDocumentStore();
+
+const newDocTitle = ref("");
+const newFolderName = ref("");
+const selectedFolder = ref("All");
+
+onMounted(() => {
+  documentStore.loadDocuments();
+});
+
+const navigateToDocument = (documentId: string) => {
+  router.push(`/docs-generator/${documentId}`);
+};
+
+// Navigation function for new list
+const navigateToNewDocument = () => {
+  const documentId = uuidv4(); // Generate a new UUID
+  router.push(`/docs-generator/${documentId}`);
+};
+
+const createNewDocument = () => {
+  if (newDocTitle.value.trim()) {
+    documentStore.createDocument(newDocTitle.value, selectedFolder.value);
+    newDocTitle.value = "";
+  }
+};
+
+const createNewFolder = () => {
+  if (newFolderName.value.trim()) {
+    documentStore.createFolder(newFolderName.value);
+    newFolderName.value = "";
+  }
+};
+
+const deleteDocument = (id: string) => {
+  documentStore.deleteDocument(id);
+};
+</script>

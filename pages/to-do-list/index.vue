@@ -1,8 +1,6 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <div
-      class="w-full lg:w-[1024px] h-full py-4 flex flex-col gap-y-5 md:gap-y-7"
-    >
+    <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Notes</h1>
         <UButton
