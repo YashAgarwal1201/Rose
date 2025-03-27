@@ -6,7 +6,7 @@
       <HomepageDateAndTime />
     </div>
 
-    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+    <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
       <h2 class="font-heading text-xl md:text-2xl">Recent ToDos</h2>
       <div
         v-if="recentListsWeek.length > 0"
@@ -85,7 +85,7 @@
           <span>Add Transaction</span>
         </UButton>
       </div>
-    </div>
+    </div> -->
 
     <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7">
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>

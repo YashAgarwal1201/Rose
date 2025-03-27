@@ -17,25 +17,23 @@
             ? selectedButton
             : buttonStyles
         "
-        ><UIcon name="material-symbols:calculate-rounded" size="20px"></UIcon
-      ></RouterLink>
+        ><Calculator :size="16" />
+      </RouterLink>
       <RouterLink
         to="/to-do-list"
         :class="
           route.fullPath === '/to-do-list' ? selectedButton : buttonStyles
         "
-        ><UIcon
-          name="material-symbols:format-list-bulleted-add-rounded"
-          size="20px"
-        ></UIcon
-      ></RouterLink>
+      >
+        <ListTodo :size="16" />
+      </RouterLink>
       <RouterLink
         to="/docs-generator"
         :class="
           route.fullPath === '/docs-generator' ? selectedButton : buttonStyles
         "
-        ><UIcon name="material-symbols:docs-rounded" size="20px"></UIcon
-      ></RouterLink>
+        ><FileText :size="16"
+      /></RouterLink>
     </div>
 
     <div
@@ -46,15 +44,17 @@
       </h3>
 
       <UButton
-        icon="material-symbols:menu-rounded"
         class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
-      />
+        ><Menu :size="16"
+      /></UButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Calculator, ListTodo, FileText, Menu } from "lucide-vue-next";
+
 const headerStore = useHeaderStore();
 const route = useRoute();
 

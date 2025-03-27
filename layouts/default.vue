@@ -25,6 +25,8 @@ const route = useRoute();
 useHead({
   meta: [{ property: "og:title", content: `Rose - ${route.meta.title}` }],
 });
+
+defineOptions({ ssr: false });
 </script>
 
 <style lang="css">

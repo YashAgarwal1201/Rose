@@ -132,7 +132,7 @@ const deleteDocument = (id: string) => {
       <option value="All">All Documents</option>
       <option
         v-for="folder in documentStore.folders"
-        :key="folder"
+        :key="folder.id"
         :value="folder"
       >
         {{ folder }}
