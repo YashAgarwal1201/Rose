@@ -50,7 +50,7 @@ const updateDateTime = () => {
   if (hours >= 5 && hours < 12) {
     icon.value = "/sunrise.svg"; // Morning icon
   } else if (hours >= 12 && hours < 17) {
-    icon.value = "/ll.svg"; // Afternoon icon
+    icon.value = "/sunrise.svg"; // Afternoon icon
   } else if (hours >= 17 && hours < 20) {
     icon.value = "/sunset.svg"; // Evening icon
   } else {

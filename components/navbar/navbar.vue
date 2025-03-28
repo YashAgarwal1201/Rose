@@ -55,6 +55,8 @@
 <script setup lang="ts">
 import { Calculator, ListTodo, FileText, Menu } from "lucide-vue-next";
 
+defineOptions({ ssr: false });
+
 const headerStore = useHeaderStore();
 const route = useRoute();
 
