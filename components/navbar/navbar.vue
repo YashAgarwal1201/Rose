@@ -8,30 +8,30 @@
       <RouterLink
         to="/"
         :class="route.fullPath === '/' ? selectedButton : buttonStyles"
-        ><UIcon name="material-symbols:house-rounded" size="20px"></UIcon
-      ></RouterLink>
+        ><Home :size="16" />
+      </RouterLink>
       <RouterLink
         to="/expense-calculator"
-        :class="
+        :class="[
           route.fullPath === '/expense-calculator'
             ? selectedButton
-            : buttonStyles
-        "
+            : buttonStyles,
+        ]"
         ><Calculator :size="16" />
       </RouterLink>
       <RouterLink
         to="/to-do-list"
-        :class="
-          route.fullPath === '/to-do-list' ? selectedButton : buttonStyles
-        "
+        :class="[
+          route.fullPath === '/to-do-list' ? selectedButton : buttonStyles,
+        ]"
       >
         <ListTodo :size="16" />
       </RouterLink>
       <RouterLink
         to="/docs-generator"
-        :class="
-          route.fullPath === '/docs-generator' ? selectedButton : buttonStyles
-        "
+        :class="[
+          route.fullPath === '/docs-generator' ? selectedButton : buttonStyles,
+        ]"
         ><FileText :size="16"
       /></RouterLink>
     </div>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { Calculator, ListTodo, FileText, Menu } from "lucide-vue-next";
+import { Calculator, ListTodo, FileText, Menu, Home } from "lucide-vue-next";
 
 defineOptions({ ssr: false });
 

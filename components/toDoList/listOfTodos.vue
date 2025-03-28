@@ -5,7 +5,7 @@
       title="To do list info"
       @click="navigateToNewList"
     >
-      <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+      <FileEdit :size="16" />
       <span>New ToDo List</span>
     </UButton>
 
@@ -72,6 +72,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { v4 as uuidv4 } from "uuid";
+import { FileEdit } from "lucide-vue-next";
 
 const router = useRouter();
 const todoStore = useTodoStore();

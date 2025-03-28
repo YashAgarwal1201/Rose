@@ -9,7 +9,7 @@
           class="text-white shadow-none flex items-center gap-x-2"
           title="To do list"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New Document</span>
         </UButton>
       </div>
@@ -30,6 +30,7 @@ import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
 import Paragraph from "@editorjs/paragraph";
+import { FileEdit } from "lucide-vue-next";
 
 const editorRef = ref<EditorJS | null>(null);
 

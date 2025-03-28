@@ -9,7 +9,7 @@
           title="To do list"
           @click="navigateToNewList"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New ToDo List</span>
         </UButton>
       </div>
@@ -50,7 +50,7 @@
           title="To do list"
           @click="navigateToNewList"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New ToDo List</span>
         </UButton>
       </div>
@@ -59,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { FileEdit } from "lucide-vue-next";
 import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();
