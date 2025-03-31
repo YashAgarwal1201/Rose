@@ -7,11 +7,12 @@
     >
       <RouterLink
         to="/"
-        :class="route.fullPath === '/' ? selectedButton : buttonStyles"
+        :class="[route.fullPath === '/' ? selectedButton : buttonStyles]"
         ><Home :size="16" />
       </RouterLink>
       <RouterLink
         to="/expense-calculator"
+        v-if="route.fullPath"
         :class="[
           route.fullPath === '/expense-calculator'
             ? selectedButton
@@ -21,6 +22,7 @@
       </RouterLink>
       <RouterLink
         to="/to-do-list"
+        v-if="route.fullPath"
         :class="[
           route.fullPath === '/to-do-list' ? selectedButton : buttonStyles,
         ]"
@@ -29,6 +31,7 @@
       </RouterLink>
       <RouterLink
         to="/docs-generator"
+        v-if="route.fullPath"
         :class="[
           route.fullPath === '/docs-generator' ? selectedButton : buttonStyles,
         ]"
@@ -61,7 +64,7 @@ const headerStore = useHeaderStore();
 const route = useRoute();
 
 const buttonStyles =
-  "w-full aspect-square flex justify-center items-center rounded-2xl bg-transparent *:text-lg pointer-events-auto";
+  "w-full aspect-square flex justify-center items-center rounded-3xl bg-transparent *:text-lg pointer-events-auto";
 const selectedButton =
   "w-full aspect-square flex justify-center items-center rounded-3xl bg-rose-500 *:text-lg pointer-events-none";
 </script>
