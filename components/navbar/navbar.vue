@@ -3,35 +3,40 @@
     class="w-full h-full p-1 flex flex-row md:flex-col justify-between items-center"
   >
     <div
+      v-if="route.fullPath"
       class="w-full hidden md:flex flex-row md:flex-col justify-start items-center"
     >
       <RouterLink
         to="/"
-        :class="route.fullPath === '/' ? selectedButton : buttonStyles"
-        ><UIcon name="material-symbols:house-rounded" size="20px"></UIcon
-      ></RouterLink>
+        v-if="route.fullPath"
+        :class="[route.fullPath === '/' ? selectedButton : buttonStyles]"
+        ><Home :size="16" />
+      </RouterLink>
       <RouterLink
         to="/expense-calculator"
-        :class="
+        v-if="route.fullPath"
+        :class="[
           route.fullPath === '/expense-calculator'
             ? selectedButton
-            : buttonStyles
-        "
+            : buttonStyles,
+        ]"
         ><Calculator :size="16" />
       </RouterLink>
       <RouterLink
         to="/to-do-list"
-        :class="
-          route.fullPath === '/to-do-list' ? selectedButton : buttonStyles
-        "
+        v-if="route.fullPath"
+        :class="[
+          route.fullPath === '/to-do-list' ? selectedButton : buttonStyles,
+        ]"
       >
         <ListTodo :size="16" />
       </RouterLink>
       <RouterLink
         to="/docs-generator"
-        :class="
-          route.fullPath === '/docs-generator' ? selectedButton : buttonStyles
-        "
+        v-if="route.fullPath"
+        :class="[
+          route.fullPath === '/docs-generator' ? selectedButton : buttonStyles,
+        ]"
         ><FileText :size="16"
       /></RouterLink>
     </div>
@@ -44,7 +49,7 @@
       </h3>
 
       <UButton
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent *:text-lg pointer-events-auto"
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent dark:bg-transparent text-black dark:text-white *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
         ><Menu :size="16"
       /></UButton>
@@ -53,13 +58,17 @@
 </template>
 
 <script setup lang="ts">
-import { Calculator, ListTodo, FileText, Menu } from "lucide-vue-next";
+import { Calculator, ListTodo, FileText, Menu, Home } from "lucide-vue-next";
 
+// defineOptions({ ssr: false });
+defineNuxtComponent({
+  ssr: false,
+});
 const headerStore = useHeaderStore();
 const route = useRoute();
 
 const buttonStyles =
-  "w-full aspect-square flex justify-center items-center rounded-2xl bg-transparent *:text-lg pointer-events-auto";
+  "w-full aspect-square flex justify-center items-center rounded-3xl bg-transparent *:text-lg pointer-events-auto";
 const selectedButton =
   "w-full aspect-square flex justify-center items-center rounded-3xl bg-rose-500 *:text-lg pointer-events-none";
 </script>

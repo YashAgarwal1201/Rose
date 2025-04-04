@@ -12,32 +12,26 @@
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="To do list info"
             @click="toast.add({ title: FEATURE_COMING_SOON })"
-            ><UIcon name="material-symbols:info-rounded" size="20px"></UIcon
-          ></UButton>
+            ><Info :size="16" /> ></UButton
+          >
           <UButton
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="Mark all items as done"
             @click="toast.add({ title: FEATURE_COMING_SOON })"
-            ><UIcon name="material-symbols:done-all-rounded" size="20px"></UIcon
-          ></UButton>
+            ><CheckCircle :size="16" />
+          </UButton>
           <UButton
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="Delete to do list"
             @click="deleteList"
-            ><UIcon
-              name="material-symbols:delete-forever-rounded"
-              size="20px"
-            ></UIcon
-          ></UButton>
+            ><Trash :size="16" />
+          </UButton>
           <UButton
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="Download to do list"
             @click="downloadList"
-            ><UIcon
-              name="material-symbols:download-2-rounded"
-              size="20px"
-            ></UIcon
-          ></UButton>
+            ><Download :size="16" />
+          </UButton>
         </div>
       </div>
     </div>
@@ -45,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { CheckCircle, Download, Info, Trash } from "lucide-vue-next";
 import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
 
 const toast = useToast();

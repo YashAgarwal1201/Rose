@@ -4,6 +4,7 @@ import {
   useExpenseCalculatorStore,
   type Transaction,
 } from "@/stores/expenseCalculatorStore";
+import { History } from "lucide-vue-next";
 
 const store = useExpenseCalculatorStore();
 const value = ref("All");
@@ -63,8 +64,7 @@ const visibleTransactions = computed(() => {
       v-if="title"
       class="font-medium text-xl md:text-2xl pb-2 border-b sm:border-b-2 flex items-center"
     >
-      <UIcon name="material-symbols:history-2-rounded" class="mr-3"></UIcon
-      >{{ title }}
+      <History :size="16" class="mr-3" />{{ title }}
     </h3>
 
     <!-- <div

@@ -6,18 +6,18 @@
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
         <UButton
-          class="text-white shadow-none flex items-center gap-x-2"
+          class="text-white shadow-none flex justify-center items-center gap-x-2 px-4 rounded-full"
           title="To do list"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New Document</span>
         </UButton>
       </div>
 
-      <div class="editor-container">
+      <div class="editor-container w-full h-full">
         <div
           id="editorjs"
-          class="w-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"
+          class="w-full h-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"
         ></div>
       </div>
     </div>
@@ -30,6 +30,7 @@ import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
 import Paragraph from "@editorjs/paragraph";
+import { FileEdit } from "lucide-vue-next";
 
 const editorRef = ref<EditorJS | null>(null);
 

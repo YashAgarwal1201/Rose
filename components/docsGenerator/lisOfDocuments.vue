@@ -1,11 +1,11 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
     <UButton
-      class="text-white shadow-none"
+      class="text-white shadow-none px-4 rounded-full justify-center flex items-center gap-x-2"
       title="To do list info"
       @click="navigateToNewDocument"
     >
-      <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+      <FileEdit :size="16" />
       <span>New Document</span>
     </UButton>
 
@@ -74,6 +74,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { v4 as uuidv4 } from "uuid";
+import { FileEdit } from "lucide-vue-next";
 
 const router = useRouter();
 const documentStore = useDocumentStore();

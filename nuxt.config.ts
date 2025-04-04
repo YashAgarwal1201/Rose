@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
   },
 
+  ssr: false, // Disable server-side rendering (hack)
   app: {
     pageTransition: { name: "page", mode: "out-in" },
     layoutTransition: { name: "slide", mode: "out-in" },

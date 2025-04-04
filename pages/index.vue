@@ -6,87 +6,6 @@
       <HomepageDateAndTime />
     </div>
 
-    <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
-      <h2 class="font-heading text-xl md:text-2xl">Recent ToDos</h2>
-      <div
-        v-if="recentListsWeek.length > 0"
-        class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
-      >
-        <div
-          v-for="(listItem, index) in recentListsWeek"
-          :key="index"
-          class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-800"
-        >
-          <div class="mt-1">
-            <UCheckbox :value="false" />
-          </div>
-          <div>
-            <h3
-              class="text-base sm:text-lg 2xl:text-xl font-heading cursor-pointer underline text-rose-50"
-              @click="navigateToList(listItem.id)"
-            >
-              {{ listItem.title }}
-            </h3>
-            <span class="text-xs sm:text-sm text-rose-200">{{
-              formatTimestamp(listItem.timestamp)
-            }}</span>
-          </div>
-        </div>
-      </div>
-      <div
-        v-else
-        class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
-      >
-        <p class="italic text-xs md:text-sm">You have no todo list to show</p>
-        <UButton
-          class="text-white shadow-none rounded-full px-4 py-2"
-          title="To do list"
-          @click="navigateToNewList"
-        >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
-          <span>New ToDo List</span>
-        </UButton>
-      </div>
-    </div>
-
-    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7">
-      <h2 class="font-heading text-xl md:text-2xl">Recent Transactions</h2>
-      <div
-        v-if="transactionStore?.history?.length > 0"
-        class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
-      >
-        <div
-          v-for="transaction in transactionStore.history"
-          class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-800 cursor-pointer scrollbar-hide"
-        >
-          <div>
-            <h3
-              class="text-base sm:text-lg 2xl:text-xl font-heading text-rose-50"
-            >
-              {{ transaction.name }}
-            </h3>
-            <span class="text-xs sm:text-sm text-rose-100">{{
-              formatTimestamp(transaction?.date)
-            }}</span>
-          </div>
-        </div>
-      </div>
-      <div
-        v-else
-        class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
-      >
-        <p class="italic text-xs md:text-sm">You have no transaction to show</p>
-        <UButton
-          class="text-white shadow-none rounded-full px-4 py-2"
-          title="To do list"
-          to="/expense-calculator"
-        >
-          <UIcon name="material-symbols:receipt-rounded" size="20px" />
-          <span>Add Transaction</span>
-        </UButton>
-      </div>
-    </div> -->
-
     <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7">
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
       <div class="w-full flex flex-col gap-y-2 sm:gap-y-3">
@@ -101,7 +20,7 @@
             title="To do list"
             to="/expense-calculator"
           >
-            <UIcon name="material-symbols:receipt-rounded" size="20px" />
+            <Receipt :size="16" />
             <span>Add Transaction</span>
           </UButton>
         </div>
@@ -147,10 +66,54 @@
               title="To do list"
               @click="navigateToNewList"
             >
-              <UIcon
-                name="material-symbols:edit-document-rounded"
-                size="20px"
-              />
+              <FileEdit :size="16" />
+              <span>New ToDo List</span>
+            </UButton>
+          </div>
+        </div>
+
+        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+          <h3 class="font-heading text-lg md:text-xl">
+            Documents added this month
+          </h3>
+          <div
+            v-if="recentListsInCurrentMonth.length > 0"
+            class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
+          >
+            <div
+              v-for="(listItem, index) in recentListsInCurrentMonth"
+              :key="index"
+              class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-900"
+            >
+              <div class="mt-1">
+                <UCheckbox :value="false" />
+              </div>
+              <div>
+                <h3
+                  class="text-base sm:text-lg 2xl:text-xl font-heading cursor-pointer underline text-rose-50"
+                  @click="navigateToList(listItem.id)"
+                >
+                  {{ listItem.title }}
+                </h3>
+                <span class="text-xs sm:text-sm text-rose-200">{{
+                  formatTimestamp(listItem.timestamp)
+                }}</span>
+              </div>
+            </div>
+          </div>
+          <div
+            v-else
+            class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
+          >
+            <p class="italic text-xs md:text-sm">
+              You have no todo list to show
+            </p>
+            <UButton
+              class="text-white shadow-none rounded-full px-4 py-2"
+              title="To do list"
+              @click="navigateToNewList"
+            >
+              <FileEdit :size="16" />
               <span>New ToDo List</span>
             </UButton>
           </div>
@@ -161,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import { FileEdit, Receipt } from "lucide-vue-next";
 import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();

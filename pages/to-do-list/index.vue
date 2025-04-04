@@ -2,14 +2,14 @@
   <div class="w-full h-full flex justify-center">
     <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl lg:text-3xl font-heading">Notes</h1>
+        <h1 class="text-2xl lg:text-3xl font-heading">To Do</h1>
         <UButton
           v-if="todoStore?.listOfTodos?.length > 0"
           class="text-white shadow-none"
           title="To do list"
           @click="navigateToNewList"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New ToDo List</span>
         </UButton>
       </div>
@@ -42,15 +42,19 @@
 
       <div
         v-else
-        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center gap-y-3"
+        class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center"
       >
-        <p class="text-base lg:text-lg">No To Do List is present</p>
+        <img
+          :src="NotFoundImage"
+          class="max-w-80 select-none pointer-events-none"
+        />
+        <p class="text-base lg:text-lg mb-3">No To Do List is present</p>
         <UButton
           class="text-white shadow-none rounded-full px-4 py-2"
           title="To do list"
           @click="navigateToNewList"
         >
-          <UIcon name="material-symbols:edit-document-rounded" size="20px" />
+          <FileEdit :size="16" />
           <span>New ToDo List</span>
         </UButton>
       </div>
@@ -59,6 +63,8 @@
 </template>
 
 <script setup lang="ts">
+import { FileEdit } from "lucide-vue-next";
+import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
 import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();
