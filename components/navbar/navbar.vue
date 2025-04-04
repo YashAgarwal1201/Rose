@@ -3,10 +3,12 @@
     class="w-full h-full p-1 flex flex-row md:flex-col justify-between items-center"
   >
     <div
+      v-if="route.fullPath"
       class="w-full hidden md:flex flex-row md:flex-col justify-start items-center"
     >
       <RouterLink
         to="/"
+        v-if="route.fullPath"
         :class="[route.fullPath === '/' ? selectedButton : buttonStyles]"
         ><Home :size="16" />
       </RouterLink>
@@ -58,8 +60,10 @@
 <script setup lang="ts">
 import { Calculator, ListTodo, FileText, Menu, Home } from "lucide-vue-next";
 
-defineOptions({ ssr: false });
-
+// defineOptions({ ssr: false });
+defineNuxtComponent({
+  ssr: false,
+});
 const headerStore = useHeaderStore();
 const route = useRoute();
 
