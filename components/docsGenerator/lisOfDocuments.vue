@@ -1,7 +1,7 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
     <UButton
-      class="text-white shadow-none"
+      class="text-white shadow-none px-4 rounded-full justify-center flex items-center gap-x-2"
       title="To do list info"
       @click="navigateToNewDocument"
     >

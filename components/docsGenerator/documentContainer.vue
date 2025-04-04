@@ -6,7 +6,7 @@
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
         <UButton
-          class="text-white shadow-none flex items-center gap-x-2"
+          class="text-white shadow-none flex justify-center items-center gap-x-2 px-4 rounded-full"
           title="To do list"
         >
           <FileEdit :size="16" />
@@ -14,7 +14,7 @@
         </UButton>
       </div>
 
-      <div class="editor-container">
+      <div class="editor-container w-full h-full">
         <div
           id="editorjs"
           class="w-full h-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"

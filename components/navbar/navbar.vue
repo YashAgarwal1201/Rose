@@ -47,7 +47,7 @@
       </h3>
 
       <UButton
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent *:text-lg pointer-events-auto"
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent dark:bg-transparent text-black dark:text-white *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
         ><Menu :size="16"
       /></UButton>
