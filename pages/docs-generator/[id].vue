@@ -3,7 +3,7 @@
     <div class="w-full h-full flex flex-row">
       <div class="w-[250px] h-full"><LisOfDocuments /></div>
       <div class="w-fit h-full mx-auto flex">
-        <div class="flex w-full sm:w-[600px] h-full rounded-lg">
+        <div class="flex w-full max-w-7xl h-full rounded-lg">
           <DocumentContainer :current-list="currentList" />
         </div>
 

@@ -17,7 +17,7 @@
       <div class="editor-container">
         <div
           id="editorjs"
-          class="w-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"
+          class="w-full h-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"
         ></div>
       </div>
     </div>
