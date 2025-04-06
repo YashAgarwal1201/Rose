@@ -2,7 +2,7 @@
   <div class="p-4 w-full h-full flex flex-col gap-y-4">
     <!-- Toolbar -->
     <div class="flex-shrink-0 flex items-center gap-4">
-      <label>
+      <!-- <label>
         Pen Color:
         <input type="color" v-model="penColor" />
       </label>
@@ -10,9 +10,48 @@
       <label>
         Background:
         <input type="color" v-model="bgColor" />
-      </label>
+      </label> -->
 
-      <input type="file" accept="image/*" @change="onImageUpload" />
+      <!-- Pen Color -->
+      <!-- <div class="flex flex-col items-start gap-1">
+        <span class="text-sm text-gray-600">Pen Color</span>
+        <UColorPicker
+          v-model="penColor"
+          :modes="['hex', 'rgb', 'hsl']"
+          format="hex"
+          alpha
+        />
+      </div> -->
+
+      <!-- Background Color -->
+      <!-- <div class="flex flex-col items-start gap-1">
+        <span class="text-sm text-gray-600">Background</span>
+        <UColorPicker
+          v-model="bgColor"
+          :modes="['hex', 'rgb', 'hsl']"
+          format="hex"
+          alpha
+        />
+      </div> -->
+
+      <UPopover>
+        <UButton label="Choose color" variant="outline">
+          <template #leading>
+            <span
+              :style="[{ backgroundColor: penColor }]"
+              class="size-3 rounded-full"
+            />
+          </template>
+        </UButton>
+
+        <template #content>
+          <UColorPicker v-model="penColor" class="p-2" />
+        </template>
+      </UPopover>
+
+      <!-- <input type="file" accept="image/*" @change="onImageUpload" /> -->
+
+      <UInput type="file" @change="onImageUpload" accept="image/*" />
 
       <UButton
         class="ml-auto rounded-full flex items-center justify-center px-4 py-2"
