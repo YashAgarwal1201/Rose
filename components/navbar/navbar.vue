@@ -39,6 +39,15 @@
         ]"
         ><FileText :size="16"
       /></RouterLink>
+
+      <RouterLink
+        to="/sketch-notes"
+        v-if="route.fullPath"
+        :class="[
+          route.fullPath === '/sketch-notes' ? selectedButton : buttonStyles,
+        ]"
+        ><Signature :size="16"
+      /></RouterLink>
     </div>
 
     <div
@@ -58,7 +67,14 @@
 </template>
 
 <script setup lang="ts">
-import { Calculator, ListTodo, FileText, Menu, Home } from "lucide-vue-next";
+import {
+  Calculator,
+  ListTodo,
+  FileText,
+  Menu,
+  Home,
+  Signature,
+} from "lucide-vue-next";
 
 // defineOptions({ ssr: false });
 defineNuxtComponent({
