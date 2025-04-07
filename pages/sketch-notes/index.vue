@@ -2,7 +2,7 @@
   <div class="p-4 w-full h-full flex flex-col gap-y-4">
     <!-- Toolbar -->
     <div class="flex-shrink-0 flex items-center gap-4">
-      <!-- <label>
+      <label>
         Pen Color:
         <input type="color" v-model="penColor" />
       </label>
@@ -10,7 +10,7 @@
       <label>
         Background:
         <input type="color" v-model="bgColor" />
-      </label> -->
+      </label>
 
       <!-- Pen Color -->
       <!-- <div class="flex flex-col items-start gap-1">
@@ -52,6 +52,18 @@
       <!-- <input type="file" accept="image/*" @change="onImageUpload" /> -->
 
       <UInput type="file" @change="onImageUpload" accept="image/*" />
+      <UButton
+        class="rounded-full px-4 py-2"
+        variant="outline"
+        @click="toggleEdit"
+      >
+        <span v-if="isEditable" class="flex items-center justify-center gap-x-2"
+          ><Lock :size="16" /> <span>Lock</span></span
+        >
+        <span v-else class="flex items-center justify-center gap-x-2"
+          ><Pencil :size="16" /> <span>Edit</span></span
+        >
+      </UButton>
 
       <UButton
         class="ml-auto rounded-full flex items-center justify-center px-4 py-2"
@@ -79,11 +91,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import SignaturePad from "signature_pad";
-import { Download, Trash } from "lucide-vue-next";
+import { Download, Lock, Pencil, Trash } from "lucide-vue-next";
 
-const canvas = ref<HTMLCanvasElement | null>(null);
 let signaturePad: SignaturePad | null = null;
 
+const canvas = ref<HTMLCanvasElement | null>(null);
+const isEditable = ref(false);
 const penColor = ref<string>("#000000");
 const bgColor = ref<string>("#ffffff");
 
@@ -93,8 +106,9 @@ onMounted(() => {
   if (canvas.value) {
     signaturePad = new SignaturePad(canvas.value, {
       penColor: penColor.value,
+      backgroundColor: bgColor.value,
     });
-
+    signaturePad.off();
     // Manually fill background since SignaturePad's backgroundColor doesn't auto-fill
     fillBackground(bgColor.value);
   }
@@ -207,6 +221,18 @@ const resizeCanvas = () => {
   canvasEl.width = canvasEl.offsetWidth * ratio;
   canvasEl.height = canvasEl.offsetHeight * ratio;
   canvasEl.getContext("2d")?.scale(ratio, ratio);
+};
+
+const toggleEdit = () => {
+  isEditable.value = !isEditable.value;
+
+  if (signaturePad && canvas.value) {
+    if (isEditable.value) {
+      signaturePad.on(); // enable drawing
+    } else {
+      signaturePad.off(); // disable drawing
+    }
+  }
 };
 </script>
 
