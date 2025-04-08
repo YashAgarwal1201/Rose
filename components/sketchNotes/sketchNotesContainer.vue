@@ -51,7 +51,12 @@
 
       <!-- <input type="file" accept="image/*" @change="onImageUpload" /> -->
 
-      <UInput type="file" @change="onImageUpload" accept="image/*" />
+      <UInput
+        type="file"
+        @change="onImageUpload"
+        accept="image/*"
+        class="rounded-full *:rounded-full *:px-4 *:py-2"
+      />
       <UButton
         class="rounded-full px-4 py-2"
         variant="outline"
