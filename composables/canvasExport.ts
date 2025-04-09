@@ -10,11 +10,13 @@ export function useCanvasExport() {
 
   // Available export formats
   const exportFormats = [
-    { label: "PNG Image", icon: Image, value: "png" },
-    { label: "JPEG Image", icon: Image, value: "jpeg" },
-    { label: "WebP Image", icon: "i-heroicons-photo", value: "webp" },
-    { label: "SVG Vector", icon: "i-heroicons-document", value: "svg" },
-    { label: "PDF Document", icon: "i-heroicons-document-text", value: "pdf" },
+    [
+      { label: "PNG Image", icon: "i-lucide-image", value: "png" },
+      { label: "JPEG Image", icon: "i-lucide-file-image", value: "jpeg" },
+      { label: "WebP Image", icon: "i-lucide-file-type-2", value: "webp" },
+      { label: "SVG Vector", icon: "i-lucide-file-text", value: "svg" },
+      { label: "PDF Document", icon: "i-lucide-file-down", value: "pdf" },
+    ],
   ];
 
   // Generate a timestamped filename

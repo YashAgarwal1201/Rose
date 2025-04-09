@@ -34,18 +34,63 @@
         />
       </div> -->
 
+      <!-- Pen Color Picker -->
       <UPopover>
-        <UButton label="Choose color" variant="outline">
+        <UButton
+          variant="outline"
+          size="sm"
+          class="rounded-full px-3 py-2"
+          label="Pen"
+        >
           <template #leading>
-            <span
-              :style="[{ backgroundColor: penColor }]"
-              class="size-3 rounded-full"
+            <div
+              class="w-4 h-4 rounded-full border"
+              :style="{ backgroundColor: penColor }"
             />
           </template>
         </UButton>
-
         <template #content>
-          <UColorPicker v-model="penColor" class="p-2" />
+          <div class="p-2">
+            <div class="text-xs font-medium mb-1 text-gray-500">Pen Color</div>
+            <UColorPicker
+              v-model="penColor"
+              format="hex"
+              :modes="['hex', 'rgb', 'hsl']"
+              alpha
+              class="w-64"
+            />
+          </div>
+        </template>
+      </UPopover>
+
+      <!-- Background Color Picker -->
+      <UPopover>
+        <UButton
+          variant="outline"
+          size="sm"
+          class="rounded-full px-3 py-2"
+          label="Background"
+        >
+          <template #leading>
+            <div
+              class="w-4 h-4 rounded-full border"
+              :style="{ backgroundColor: bgColor }"
+            />
+          </template>
+        </UButton>
+        <template #content>
+          <div class="p-2">
+            <div class="text-xs font-medium mb-1 text-gray-500">
+              Background Color
+            </div>
+            <UColorPicker
+              v-model="bgColor"
+              format="hex"
+              :modes="['hex', 'rgb', 'hsl']"
+              alpha
+              class="w-64"
+            />
+          </div>
         </template>
       </UPopover>
 
@@ -78,12 +123,35 @@
         <Trash :size="16" /> <span>Clear</span>
       </UButton>
 
-      <UButton
+      <!-- <UButton
         class="rounded-full flex items-center justify-center px-4 py-2"
         @click="exportImage"
       >
         <Download :size="16" /> <span>Export</span>
-      </UButton>
+      </UButton> -->
+
+      <UDropdown :items="exportFormats" :popper="{ placement: 'bottom-end' }">
+        <UButton
+          class="rounded-full flex items-center justify-center px-4 py-2"
+          :loading="isExporting"
+        >
+          <Download :size="16" />
+          <span>Export</span>
+        </UButton>
+
+        <template #item="{ item }">
+          <div
+            class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+            @click="handleExport(item.value)"
+          >
+            <component
+              :is="item.icon"
+              class="w-4 h-4 text-gray-500 dark:text-gray-400"
+            />
+            <span>{{ item.label }}</span>
+          </div>
+        </template>
+      </UDropdown>
     </div>
 
     <!-- Canvas -->
@@ -104,6 +172,17 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const isEditable = ref(false);
 const penColor = ref<string>("#000000");
 const bgColor = ref<string>("#ffffff");
+
+const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
+
+const handleExport = async (format: string) => {
+  if (!canvas.value) return;
+  try {
+    await exportCanvas(format, canvas.value, bgColor.value);
+  } catch (error) {
+    alert("Export failed: " + (error as Error).message);
+  }
+};
 
 onMounted(() => {
   resizeCanvas();
