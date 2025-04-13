@@ -11,18 +11,17 @@ const value = ref("All");
 const options = ref(["All", "Incomes", "Expenses"]);
 const page = ref(1);
 const pageCount = 5;
+const first = ref(0);
+const rows = ref(5);
 
-const rows = computed(() => {
+const tableData = computed(() => {
   return store.history.slice(
     (page.value - 1) * pageCount,
     page.value * pageCount
   );
 });
 
-// const emit = defineEmits(["delete-transaction", "edit-transaction"]);
-
 const props = defineProps<{
-  // history: { name: string; value: number; id: string }[];
   title: string;
 }>();
 
@@ -41,14 +40,11 @@ const filteredHistory = computed(() => {
 });
 
 const deleteTransaction = (transactionVal: Transaction) => {
-  // emit("delete-transaction", transactionVal);
-
   store.handleDeleteTransaction(transactionVal);
 };
 
 const editTransaction = (transactionVal: Transaction) => {
   console.log(transactionVal);
-  // emit("edit-transaction", transactionVal);
   store.handleEditTransaction(transactionVal);
 };
 
@@ -56,6 +52,23 @@ const visibleTransactions = computed(() => {
   const filtered = filteredHistory.value;
   return filtered.slice(0, 5); // Show only the first 5 transactions
 });
+
+const onPage = (event: any) => {
+  first.value = event.first;
+  rows.value = event.rows;
+  page.value = Math.floor(event.first / event.rows) + 1;
+};
+
+const totalRecords = computed(() => store.history.length);
+
+const columns = [
+  { field: "id", header: "ID" },
+  { field: "name", header: "Name", sortable: true },
+  { field: "value", header: "Amount", sortable: true },
+  { field: "category", header: "Category", sortable: true },
+  { field: "type", header: "Type", sortable: true },
+  { field: "date", header: "Date", sortable: true },
+];
 </script>
 
 <template>
@@ -67,83 +80,69 @@ const visibleTransactions = computed(() => {
       <History :size="16" class="mr-3" />{{ title }}
     </h3>
 
-    <!-- <div
-      v-if="store.history.length > 0"
-      class="w-full flex justify-end py-2 md:py-3"
-    >
-      <USelect
-        :disabled="store.history.length < 1"
-        v-model="value"
-        :options="options"
-      />
-    </div> -->
-
     <div
       v-if="visibleTransactions.length >= 0"
       class="flex flex-col gap-y-2 py-4"
     >
-      <!-- <div
-        v-for="(historyItem, index) in visibleTransactions"
-        :key="index"
-        class="p-3 flex justify-between items-center text-base md:text-lg text-black rounded-xl shadow-md border-r-4"
-        :class="historyItem.value > 0 ? green : red"
+      <DataTable
+        :value="tableData"
+        :paginator="totalRecords > 5"
+        :rows="5"
+        :rowsPerPageOptions="[5, 10, 20]"
+        v-model:first="first"
+        :totalRecords="totalRecords"
+        @page="onPage"
+        :empty-message="'No transaction history to show'"
+        class="p-datatable-sm"
+        stripedRows
+        responsiveLayout="scroll"
       >
-        <span class="font-medium">{{ historyItem.name }}</span>
-        <div class="flex items-center gap-x-2">
-          <span
-            :class="historyItem.value > 0 ? 'text-green-800' : 'text-red-800'"
-            >$ {{ historyItem.value }}</span
-          >
-          <Button
-            icon="material-symbols:delete-forever-rounded"
-            @click="deleteTransaction(historyItem)"
-            class="rounded-full"
-            color="red"
-          />
-          <Button
-            icon="material-symbols:edit-rounded"
-            @click="editTransaction(historyItem)"
-            class="rounded-full"
-          />
-        </div>
-      </div> -->
+        <Column
+          v-for="col of columns"
+          :key="col.field"
+          :field="col.field"
+          :header="col.header"
+          :sortable="col.sortable"
+        >
+          <template #body="{ data, field }" v-if="field === 'value'">
+            <span :class="data.value > 0 ? 'text-green-600' : 'text-red-600'">
+              $ {{ data.value }}
+            </span>
+          </template>
+        </Column>
+        <Column :exportable="false" style="min-width: 8rem">
+          <template #body="{ data }">
+            <Button
+              icon="pi pi-pencil"
+              rounded
+              outlined
+              severity="info"
+              class="mr-2"
+              @click="editTransaction(data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              rounded
+              outlined
+              severity="danger"
+              @click="deleteTransaction(data)"
+            />
+          </template>
+        </Column>
+      </DataTable>
 
-      <UTable
-        :rows="rows"
-        :empty-state="{
-          icon: 'i-heroicons-circle-stack-20-solid',
-          label: 'No items.',
-        }"
-        :columns="[
-          { key: 'id', label: 'ID' },
-          { key: 'name', label: 'Name', sortable: store.history.length > 2 },
-          { key: 'value', label: 'Amount', sortable: store.history.length > 2 },
-          {
-            key: 'category',
-            label: 'Category',
-            sortable: store.history.length > 2,
-          },
-          { key: 'type', label: 'Type', sortable: store.history.length > 2 },
-          { key: 'date', label: 'Date', sortable: store.history.length > 2 },
-        ]"
-      ></UTable>
       <div
         class="flex justify-between items-center px-3 py-3.5 border-t border-gray-200 dark:border-gray-700"
+        v-if="store.history?.length > 5"
       >
         <div>
           <Button
-            v-if="store.history?.length > 5"
             label="Show more"
             rounded
-            icon="material-symbols:format-list-bulleted-rounded"
+            icon="pi pi-list"
             @click="store.showTransactionsHistoryDialog = true"
           />
         </div>
-        <UPagination
-          v-model="page"
-          :page-count="pageCount"
-          :total="store.history.length"
-        />
       </div>
     </div>
     <div v-else class="flex flex-col gap-y-2 py-4">
