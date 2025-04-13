@@ -8,30 +8,30 @@
         </div>
 
         <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
-          <UButton
+          <Button
             class="text-white shadow-none"
             title="To do list info"
             @click="toast.add({ title: 'Hello world!' })"
             ><UIcon name="material-symbols:info-rounded" size="20px"></UIcon
-          ></UButton>
-          <UButton
+          ></Button>
+          <Button
             class="text-white shadow-none"
             title="Mark all items as done"
             @click="toast.add({ title: 'Hello world!' })"
             ><UIcon name="material-symbols:done-all-rounded" size="20px"></UIcon
-          ></UButton>
-          <UButton class="text-white shadow-none" title="Delete to do list"
+          ></Button>
+          <Button class="text-white shadow-none" title="Delete to do list"
             ><UIcon
               name="material-symbols:delete-forever-rounded"
               size="20px"
             ></UIcon
-          ></UButton>
-          <UButton class="text-white shadow-none" title="Download to do list"
+          ></Button>
+          <Button class="text-white shadow-none" title="Download to do list"
             ><UIcon
               name="material-symbols:download-2-rounded"
               size="20px"
             ></UIcon
-          ></UButton>
+          ></Button>
         </div>
       </div>
     </div>

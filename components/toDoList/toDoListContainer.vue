@@ -6,13 +6,13 @@
         placeholder="Enter Title..."
         @keyup.enter="createNewTodoList"
       />
-      <UButton
+      <Button
         :disabled="!newListTitle.trim()"
         @click="createNewTodoList"
         class="text-white shadow-none"
       >
         <UIcon name="material-symbols:add" size="20px" />
-      </UButton>
+      </Button>
     </div>
 
     <div class="space-y-2">
@@ -33,9 +33,9 @@
           @keyup.enter="addTodoItem(list.id)"
           class="w-full"
         />
-        <UButton class="text-white shadow-none" title="Delete to do item" @click="deleteTodoItem(list.id, item.id)"
+        <Button class="text-white shadow-none" title="Delete to do item" @click="deleteTodoItem(list.id, item.id)"
           ><UIcon name="material-symbols:backspace-rounded" size="20px"></UIcon
-        ></UButton>
+        ></Button>
       </div>
     </div>
   </div>
@@ -115,13 +115,13 @@ const deleteTodoItem = (listId: string, itemId: string) => {
         "
         @keyup.enter="createNewTodoList"
       />
-      <UButton
+      <Button
         class="text-white w-10 h-10 shadow-none rounded-2xl"
         title="Delete to do item"
         @click="createNewTodoList"
       >
-        <UIcon name="material-symbols:add-2-rounded" size="20px"
-      /></UButton>
+        <Plus :size="16" />
+      </Button>
     </div>
 
     <!-- Todo Items -->
@@ -150,13 +150,13 @@ const deleteTodoItem = (listId: string, itemId: string) => {
           "
           class="w-full h-10 *:h-10"
         />
-        <UButton
+        <Button
           class="text-white w-10 h-10 shadow-none rounded-2xl"
           title="Delete to do item"
           @click="deleteTodoItem(item.id)"
         >
           <UIcon name="material-symbols:backspace-rounded" size="20px" />
-        </UButton>
+        </Button>
       </div>
     </div>
     <!-- </div> -->
@@ -164,6 +164,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
 </template>
 
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next";
 import { ref, nextTick } from "vue";
 import type { TodoList } from "~/types/typesAndInterfaces";
 
@@ -301,7 +302,7 @@ onBeforeUnmount(() => {
               @blur="updateTodoItem(list.id, item.id, item.text)"
               class="w-full"
             />
-            <UButton
+            <Button
               class="text-white shadow-none"
               title="Delete to-do item"
               @click="deleteTodoItem(list.id, item.id)"
@@ -310,17 +311,17 @@ onBeforeUnmount(() => {
                 name="material-symbols:backspace-rounded"
                 size="20px"
               ></UIcon>
-            </UButton>
+            </Button>
           </div>
 
-          <UButton class="text-blue-500" @click="addTodoItem(list.id)">
+          <Button class="text-blue-500" @click="addTodoItem(list.id)">
             + Add Item
-          </UButton>
+          </Button>
         </div>
 
-        <UButton class="text-red-500 mt-2" @click="deleteTodoList(list.id)">
+        <Button class="text-red-500 mt-2" @click="deleteTodoList(list.id)">
           Delete List
-        </UButton>
+        </Button>
       </div>
     </div>
   </div>

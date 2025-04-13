@@ -9,7 +9,7 @@
         <template #header>
           <div class="flex justify-between items-center">
             <h3 class="text-base md:text-lg">Transactions History</h3>
-            <UButton
+            <Button
               type="button"
               @click="
                 expenseCalculatorStore.showTransactionsHistoryDialog = false

@@ -5,13 +5,13 @@
     >
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
-        <UButton
+        <Button
           class="text-white shadow-none flex justify-center items-center gap-x-2 px-4 rounded-full"
           title="To do list"
         >
           <FileEdit :size="16" />
           <span>New Document</span>
-        </UButton>
+        </Button>
       </div>
 
       <div class="editor-container w-full h-full">

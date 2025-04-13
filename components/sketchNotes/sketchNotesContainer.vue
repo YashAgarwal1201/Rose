@@ -1,157 +1,76 @@
 <template>
   <div class="px-4 py-2 w-full h-full flex flex-col gap-y-4">
     <!-- Toolbar -->
-    <div class="flex-shrink-0 flex items-center gap-4">
-      <label>
-        Pen Color:
-        <input type="color" v-model="penColor" />
-      </label>
-
-      <label>
-        Background:
-        <input type="color" v-model="bgColor" />
-      </label>
-
+    <div
+      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-4 flex-wrap overflow-x-auto"
+    >
       <!-- Pen Color -->
-      <!-- <div class="flex flex-col items-start gap-1">
-        <span class="text-sm text-gray-600">Pen Color</span>
-        <UColorPicker
-          v-model="penColor"
-          :modes="['hex', 'rgb', 'hsl']"
-          format="hex"
-          alpha
-        />
-      </div> -->
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">Pen:</span>
+        <ColorPicker v-model="penColor" format="hex" />
+      </div>
 
       <!-- Background Color -->
-      <!-- <div class="flex flex-col items-start gap-1">
-        <span class="text-sm text-gray-600">Background</span>
-        <UColorPicker
-          v-model="bgColor"
-          :modes="['hex', 'rgb', 'hsl']"
-          format="hex"
-          alpha
-        />
-      </div> -->
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">Background:</span>
+        <ColorPicker v-model="bgColor" format="hex" />
+      </div>
 
-      <!-- Pen Color Picker -->
-      <UPopover>
-        <UButton
-          variant="outline"
-          size="sm"
-          class="rounded-full px-3 py-2"
-          label="Pen"
-        >
-          <template #leading>
-            <div
-              class="w-4 h-4 rounded-full border"
-              :style="{ backgroundColor: penColor }"
-            />
-          </template>
-        </UButton>
-        <template #content>
-          <div class="p-2">
-            <div class="text-xs font-medium mb-1 text-gray-500">Pen Color</div>
-            <UColorPicker
-              v-model="penColor"
-              format="hex"
-              :modes="['hex', 'rgb', 'hsl']"
-              alpha
-              class="w-64"
-            />
-          </div>
-        </template>
-      </UPopover>
-
-      <!-- Background Color Picker -->
-      <UPopover>
-        <UButton
-          variant="outline"
-          size="sm"
-          class="rounded-full px-3 py-2"
-          label="Background"
-        >
-          <template #leading>
-            <div
-              class="w-4 h-4 rounded-full border"
-              :style="{ backgroundColor: bgColor }"
-            />
-          </template>
-        </UButton>
-        <template #content>
-          <div class="p-2">
-            <div class="text-xs font-medium mb-1 text-gray-500">
-              Background Color
-            </div>
-            <UColorPicker
-              v-model="bgColor"
-              format="hex"
-              :modes="['hex', 'rgb', 'hsl']"
-              alpha
-              class="w-64"
-            />
-          </div>
-        </template>
-      </UPopover>
-
-      <!-- <input type="file" accept="image/*" @change="onImageUpload" /> -->
-
-      <UInput
+      <!-- Image Upload -->
+      <input
         type="file"
         @change="onImageUpload"
         accept="image/*"
-        class="rounded-full *:rounded-full *:px-4 *:py-2"
+        class="rounded-full border px-3 py-2 text-sm"
       />
-      <UButton
-        class="rounded-full px-4 py-2"
-        variant="outline"
+      <!-- <FileUpload
+        mode="basic"
+        name="file"
+        accept="image/*"
+        :auto="true"
+        chooseLabel="Upload Image"
+        class="rounded-full"
+        @select="onImageUpload"
+      /> -->
+
+      <!-- Edit Toggle -->
+      <Button
+        class="ml-auto rounded-full px-4 py-2 flex items-center gap-x-2"
         @click="toggleEdit"
       >
-        <span v-if="isEditable" class="flex items-center justify-center gap-x-2"
-          ><Lock :size="16" /> <span>Lock</span></span
-        >
-        <span v-else class="flex items-center justify-center gap-x-2"
-          ><Pencil :size="16" /> <span>Edit</span></span
-        >
-      </UButton>
+        <component :is="isEditable ? Lock : Pencil" :size="16" />
+        <span>{{ isEditable ? "Lock" : "Edit" }}</span>
+      </Button>
 
-      <UButton
-        class="ml-auto rounded-full flex items-center justify-center px-4 py-2"
-        variant="outline"
+      <!-- Clear Canvas -->
+      <Button
+        class="rounded-full px-4 py-2 flex items-center gap-x-2"
         @click="clear"
       >
-        <Trash :size="16" /> <span>Clear</span>
-      </UButton>
+        <Trash :size="16" />
+        <span>Clear</span>
+      </Button>
 
-      <!-- <UButton
-        class="rounded-full flex items-center justify-center px-4 py-2"
-        @click="exportImage"
+      <!-- Export Options -->
+      <Select
+        :options="exportFormats"
+        optionLabel="label"
+        optionValue="value"
+        class="rounded-full h-full"
+        @change="(e: any) => handleExport(e.value)"
+        placeholder="Export"
       >
-        <Download :size="16" /> <span>Export</span>
-      </UButton> -->
-
-      <UDropdown :items="exportFormats" :popper="{ placement: 'bottom-end' }">
-        <UButton
-          class="rounded-full flex items-center justify-center px-4 py-2"
-          :loading="isExporting"
-        >
-          <Download :size="16" />
-          <span>Export</span>
-        </UButton>
-
-        <template #item="{ item }">
-          <div
-            class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-            @click="handleExport(item.value)"
+        <template #value="slotProps">
+          <Button
+            class="rounded-full h-full flex items-center gap-x-2"
+            :loading="isExporting"
+            severity="secondary"
           >
-            <component
-              :is="item.icon"
-              class="w-4 h-4 text-gray-500 dark:text-gray-400"
-            />
-            <span>{{ item.label }}</span>
-          </div>
+            <Download :size="16" />
+            <span>{{ slotProps.value ? slotProps.value : "Export" }}</span>
+          </Button>
         </template>
-      </UDropdown>
+      </Select>
     </div>
 
     <!-- Canvas -->
@@ -165,6 +84,10 @@
 import { onMounted, ref, watch } from "vue";
 import SignaturePad from "signature_pad";
 import { Download, Lock, Pencil, Trash } from "lucide-vue-next";
+import ColorPicker from "primevue/colorpicker";
+import Button from "primevue/button";
+import Select from "primevue/select";
+import FileUpload from "primevue/fileupload";
 
 let signaturePad: SignaturePad | null = null;
 

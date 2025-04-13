@@ -94,13 +94,13 @@ const visibleTransactions = computed(() => {
             :class="historyItem.value > 0 ? 'text-green-800' : 'text-red-800'"
             >$ {{ historyItem.value }}</span
           >
-          <UButton
+          <Button
             icon="material-symbols:delete-forever-rounded"
             @click="deleteTransaction(historyItem)"
             class="rounded-full"
             color="red"
           />
-          <UButton
+          <Button
             icon="material-symbols:edit-rounded"
             @click="editTransaction(historyItem)"
             class="rounded-full"
@@ -131,7 +131,7 @@ const visibleTransactions = computed(() => {
         class="flex justify-between items-center px-3 py-3.5 border-t border-gray-200 dark:border-gray-700"
       >
         <div>
-          <UButton
+          <Button
             v-if="store.history?.length > 5"
             label="Show more"
             rounded

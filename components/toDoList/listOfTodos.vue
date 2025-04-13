@@ -1,13 +1,13 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
-    <UButton
+    <Button
       class="text-white shadow-none"
       title="To do list info"
       @click="navigateToNewList"
     >
       <FileEdit :size="16" />
       <span>New ToDo List</span>
-    </UButton>
+    </Button>
 
     <UAccordion
       :items="[
