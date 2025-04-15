@@ -11,7 +11,8 @@
 
     <Accordion :multiple="true">
       <!-- Last 7 Days -->
-      <AccordionTab header="Last 7 days">
+      <AccordionPanel>
+        <template #header>Last 7 days</template>
         <div v-if="recentListsWeek.length === 0">
           No lists in the last 7 days
         </div>
@@ -28,10 +29,11 @@
             </span>
           </div>
         </div>
-      </AccordionTab>
+      </AccordionPanel>
 
       <!-- Last 30 Days -->
-      <AccordionTab header="Last 30 days">
+      <AccordionPanel>
+        <template #header>Last 30 days</template>
         <div v-if="recentListsMonth.length === 0">
           No lists in the last 30 days
         </div>
@@ -48,10 +50,11 @@
             </span>
           </div>
         </div>
-      </AccordionTab>
+      </AccordionPanel>
 
       <!-- Older Lists -->
-      <AccordionTab header="Older lists">
+      <AccordionPanel>
+        <template #header>Older lists</template>
         <div v-if="olderLists.length === 0">No older lists</div>
         <div v-else class="flex flex-col gap-y-2">
           <div
@@ -66,7 +69,7 @@
             </span>
           </div>
         </div>
-      </AccordionTab>
+      </AccordionPanel>
     </Accordion>
   </div>
 </template>
@@ -78,7 +81,8 @@ import { v4 as uuidv4 } from "uuid";
 import { FileEdit } from "lucide-vue-next";
 import Button from "primevue/button";
 import Accordion from "primevue/accordion";
-import AccordionTab from "primevue/accordiontab";
+import AccordionPanel from "primevue/accordionpanel";
+import { useTodoStore } from "@/stores/todoStore"; // Make sure this import is correct
 
 const router = useRouter();
 const todoStore = useTodoStore();
@@ -129,4 +133,18 @@ const olderLists = computed(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Add styles for better accordion appearance if needed */
+:deep(.p-accordion-panel) {
+  margin-bottom: 0.5rem;
+}
+
+:deep(.p-accordion-header) {
+  border-radius: 6px;
+}
+
+:deep(.p-accordion-content) {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+</style>

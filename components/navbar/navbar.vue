@@ -58,7 +58,7 @@
       </h3>
 
       <Button
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center border-none !bg-transparent rounded-full md:!rounded-3xl *:text-lg pointer-events-auto"
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center !border-none !bg-transparent rounded-full md:!rounded-3xl *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
         severity="secondary"
         ><Menu :size="16"

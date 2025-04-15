@@ -106,7 +106,7 @@
         <p class="text-base lg:text-lg mb-3">No documents found</p>
 
         <Button
-          class="text-white shadow-none rounded-full px-4 py-2"
+          class="text-white shadow-none !rounded-xl px-4 py-2"
           title="Create a new document"
           @click="navigateToNewDocument"
         >
@@ -123,6 +123,7 @@ import { onMounted, ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
 import { FileEdit } from "lucide-vue-next";
+import Button from "primevue/button";
 
 const router = useRouter();
 

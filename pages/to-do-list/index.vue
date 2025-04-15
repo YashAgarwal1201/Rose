@@ -5,7 +5,7 @@
         <h1 class="text-2xl lg:text-3xl font-heading">To Do</h1>
         <Button
           v-if="todoStore?.listOfTodos?.length > 0"
-          class="text-white shadow-none"
+          class="text-white shadow-none !rounded-xl"
           title="To do list"
           @click="navigateToNewList"
         >
@@ -50,7 +50,7 @@
         />
         <p class="text-base lg:text-lg mb-3">No To Do List is present</p>
         <Button
-          class="text-white shadow-none rounded-full px-4 py-2"
+          class="text-white shadow-none !rounded-xl px-4 py-2"
           title="To do list"
           @click="navigateToNewList"
         >
@@ -66,6 +66,7 @@
 import { FileEdit } from "lucide-vue-next";
 import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
 import { v4 as uuidv4 } from "uuid";
+import Button from "primevue/button";
 
 const router = useRouter();
 const todoStore = useTodoStore();

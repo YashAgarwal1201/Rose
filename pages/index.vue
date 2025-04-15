@@ -16,7 +16,7 @@
             You have no transaction to show
           </p>
           <Button
-            class="text-white shadow-none rounded-full px-4 py-2"
+            class="text-white shadow-none !rounded-xl px-4 py-2"
             title="To do list"
             to="/expense-calculator"
           >
@@ -109,8 +109,8 @@
               You have no todo list to show
             </p>
             <Button
-              class="text-white shadow-none rounded-full px-4 py-2"
-              title="To do list"
+              class="text-white shadow-none !rounded-xl px-4 py-2"
+              title="Sketch Notes"
               @click="navigateToNewList"
             >
               <FileEdit :size="16" />

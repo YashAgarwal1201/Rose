@@ -1,8 +1,10 @@
 <template>
-  <div class="px-4 py-2 w-full h-full flex flex-col gap-y-4">
+  <div
+    class="px-4 py-2 w-full h-full flex flex-col gap-y-4 md:gap-y-5 2xl:gap-y-6"
+  >
     <!-- Toolbar -->
     <div
-      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-4 flex-wrap overflow-x-auto"
+      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-2 md:gap-3 2xl:gap-4 flex-wrap overflow-x-auto"
     >
       <!-- Pen Color -->
       <div class="flex items-center gap-2">
@@ -35,7 +37,7 @@
 
       <!-- Edit Toggle -->
       <Button
-        class="ml-auto rounded-full px-4 py-2 flex items-center gap-x-2"
+        class="ml-auto !rounded-xl px-4 py-2 flex items-center gap-x-2"
         @click="toggleEdit"
       >
         <component :is="isEditable ? Lock : Pencil" :size="16" />
@@ -44,7 +46,7 @@
 
       <!-- Clear Canvas -->
       <Button
-        class="rounded-full px-4 py-2 flex items-center gap-x-2"
+        class="!rounded-xl px-4 py-2 flex items-center gap-x-2"
         @click="clear"
       >
         <Trash :size="16" />
@@ -56,7 +58,7 @@
         :options="exportFormats"
         optionLabel="label"
         optionValue="value"
-        class="rounded-full h-full"
+        class="!rounded-xl h-full"
         @change="(e: any) => handleExport(e.value)"
         placeholder="Export"
       >
