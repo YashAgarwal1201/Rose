@@ -5,13 +5,13 @@
     >
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
-        <UButton
+        <Button
           class="text-white shadow-none flex items-center gap-x-2"
           title="To do list"
         >
           <UIcon name="material-symbols:edit-document-rounded" size="20px" />
           <span>New Document</span>
-        </UButton>
+        </Button>
       </div>
 
       <div class="editor-container">

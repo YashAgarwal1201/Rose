@@ -15,14 +15,14 @@
           <p class="italic text-xs md:text-sm">
             You have no transaction to show
           </p>
-          <UButton
-            class="text-white shadow-none rounded-full px-4 py-2"
+          <Button
+            class="text-white shadow-none !rounded-xl px-4 py-2"
             title="To do list"
             to="/expense-calculator"
           >
             <Receipt :size="16" />
             <span>Add Transaction</span>
-          </UButton>
+          </Button>
         </div>
 
         <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
@@ -61,14 +61,14 @@
             <p class="italic text-xs md:text-sm">
               You have no todo list to show
             </p>
-            <UButton
+            <Button
               class="text-white shadow-none rounded-full px-4 py-2"
               title="To do list"
               @click="navigateToNewList"
             >
               <FileEdit :size="16" />
               <span>New ToDo List</span>
-            </UButton>
+            </Button>
           </div>
         </div>
 
@@ -108,14 +108,14 @@
             <p class="italic text-xs md:text-sm">
               You have no todo list to show
             </p>
-            <UButton
-              class="text-white shadow-none rounded-full px-4 py-2"
-              title="To do list"
+            <Button
+              class="text-white shadow-none !rounded-xl px-4 py-2"
+              title="Sketch Notes"
               @click="navigateToNewList"
             >
               <FileEdit :size="16" />
               <span>New ToDo List</span>
-            </UButton>
+            </Button>
           </div>
         </div>
       </div>

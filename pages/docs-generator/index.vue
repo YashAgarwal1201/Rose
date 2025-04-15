@@ -3,7 +3,7 @@
     <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
-        <UButton
+        <Button
           v-if="documentStore?.documents?.length > 0"
           class="text-white shadow-none"
           title="Create a new document"
@@ -11,7 +11,7 @@
         >
           <FileEdit :size="16" />
           <span>New Document</span>
-        </UButton>
+        </Button>
       </div>
 
       <!-- Create New Document -->
@@ -58,20 +58,20 @@
 
       <div class="flex flex-row gap-x-3">
         <!-- TODO: context menu on these button, new ui for these buttons -->
-        <UButton
+        <Button
           v-for="folder in documentStore.folders"
           :key="folder.id"
           class="w-36"
           @click="selectedFolder = folder.id"
-          ><span>{{ folder.name }}</span></UButton
+          ><span>{{ folder.name }}</span></Button
         >
 
-        <UButton
+        <Button
           v-for="doc in documentStore.getDocumentsByFolder(selectedFolder)"
           :key="doc.id"
           class="w-36"
           @click="() => navigateToDocument(doc.id)"
-          ><span>{{ doc.title }}</span></UButton
+          ><span>{{ doc.title }}</span></Button
         >
       </div>
 
@@ -105,14 +105,14 @@
         <!-- <NotFoundImage /> -->
         <p class="text-base lg:text-lg mb-3">No documents found</p>
 
-        <UButton
-          class="text-white shadow-none rounded-full px-4 py-2"
+        <Button
+          class="text-white shadow-none !rounded-xl px-4 py-2"
           title="Create a new document"
           @click="navigateToNewDocument"
         >
           <FileEdit :size="16" />
           <span>New document</span>
-        </UButton>
+        </Button>
       </div>
     </div>
   </div>
@@ -123,6 +123,7 @@ import { onMounted, ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
 import { FileEdit } from "lucide-vue-next";
+import Button from "primevue/button";
 
 const router = useRouter();
 

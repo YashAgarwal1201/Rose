@@ -57,11 +57,12 @@
         {{ headerStore.headerTitle }}
       </h3>
 
-      <UButton
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center rounded-full md:rounded-3xl bg-transparent dark:bg-transparent text-black dark:text-white *:text-lg pointer-events-auto"
+      <Button
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center !border-none !bg-transparent rounded-full md:!rounded-3xl *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
+        severity="secondary"
         ><Menu :size="16"
-      /></UButton>
+      /></Button>
     </div>
   </div>
 </template>

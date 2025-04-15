@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useExpenseCalculatorStore } from "@/stores/expenseCalculatorStore";
+import { Plus } from "lucide-vue-next";
 import { ref, defineProps, watch } from "vue";
 
 const store = useExpenseCalculatorStore();
@@ -85,12 +86,12 @@ const addTransaction = () => {
       v-if="title"
       class="font-medium text-xl md:text-2xl pb-2 border-b sm:border-b-2 flex items-center"
     >
-      <UIcon
-        name="material-symbols:add-2-rounded"
+      <Plus
+        :size="16"
         class="mr-3 text-rose-400"
         :class="[selected && 'text-rose-500 dark:text-rose-400']"
-      ></UIcon
-      >{{ title }}
+      />
+      {{ title }}
     </h3>
 
     <form
@@ -154,7 +155,7 @@ const addTransaction = () => {
       </div>
 
       <div class="w-full flex justify-center mt-5 md:mt-8">
-        <UButton
+        <Button
           icon="material-symbols:receipt-rounded"
           title="click to add the transaction"
           :disabled="

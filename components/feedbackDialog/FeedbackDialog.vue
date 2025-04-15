@@ -1,28 +1,40 @@
 <template>
   <div>
-    <USlideover
-      :model-value="headerStore.showFeedback"
-      :appear="true"
-      side="right"
-      ><div class="flex flex-col">
+    <Drawer
+      v-model:visible="headerStore.showFeedback"
+      position="right"
+      :modal="true"
+      :dismissable="true"
+      class="w-full max-w-[768px] h-full rounded-none md:rounded-l-3xl"
+    >
+      <div class="flex flex-col h-full">
+        <!-- Header -->
         <div class="flex justify-between items-start p-5">
           <h2 class="font-heading text-xl sm:text-2xl lg:text-3xl text-color5">
             Have some suggestions?
           </h2>
-          <UButton
-            icon="material-symbols:close-rounded"
+          <Button
+            icon="pi pi-times"
             @click="closeFeedbackDialogHandle"
-            class="self-end bg-transparent rounded-full"
-            variant="outline"
+            class="p-button-rounded p-button-text"
           />
         </div>
-        <div class="w-full px-5 pb-5"></div>
+
+        <!-- Content -->
+        <div class="w-full px-5 pb-5">
+          <!-- Your content goes here -->
+        </div>
       </div>
-    </USlideover>
+    </Drawer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useHeaderStore } from "@/stores/headerStore";
+
+import Button from "primevue/button";
+import Drawer from "primevue/drawer";
+
 const headerStore = useHeaderStore();
 
 const closeFeedbackDialogHandle = () => {
