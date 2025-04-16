@@ -5,7 +5,7 @@
       position="right"
       :modal="true"
       :dismissable="true"
-      class="w-full max-w-[768px] h-full rounded-none md:rounded-l-3xl"
+      class="!w-full !max-w-[768px] h-full rounded-none md:rounded-l-3xl"
     >
       <div class="flex flex-col h-full">
         <!-- Header -->

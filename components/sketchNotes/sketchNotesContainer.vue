@@ -19,21 +19,16 @@
       </div>
 
       <!-- Image Upload -->
-      <input
-        type="file"
-        @change="onImageUpload"
-        accept="image/*"
-        class="rounded-full border px-3 py-2 text-sm"
-      />
-      <!-- <FileUpload
+
+      <FileUpload
         mode="basic"
         name="file"
         accept="image/*"
-        :auto="true"
+        :customUpload="true"
         chooseLabel="Upload Image"
-        class="rounded-full"
+        class="p-button-rounded"
         @select="onImageUpload"
-      /> -->
+      />
 
       <!-- Edit Toggle -->
       <Button
@@ -204,9 +199,10 @@ const exportImage = () => {
 };
 
 // Handle image upload and draw it on canvas
-const onImageUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target?.files?.[0];
+const onImageUpload = (event: any) => {
+  const file = event.files[0];
+
+  console.log(file);
   if (!file || !canvas.value) return;
 
   const reader = new FileReader();
