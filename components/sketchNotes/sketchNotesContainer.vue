@@ -6,29 +6,39 @@
     <div
       class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-2 md:gap-3 2xl:gap-4 flex-wrap overflow-x-auto"
     >
-      <Button
-        type="button"
-        
-        @click="toggle"
-      ><Pen :size="20" /></Button>
-      <Popover ref="op">
-        <div class="flex flex-col gap-4 w-[25rem] bg-white">
-          <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">Pen:</span>
-        <ColorPicker v-model="penColor" format="hex" />
-      </div>
-        </div>
-        </Popover
-      >
-
       <!-- Pen Color -->
-      
+      <Button type="button" @click="togglePenPopover"
+        ><Pen :size="20"
+      /></Button>
+      <Popover ref="penPopover">
+        <div class="flex flex-col gap-4 w-[25rem] bg-transparent">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Pen color:</span>
+            <ColorPicker
+              v-model="penColor"
+              format="hex"
+              class="border rounded-lg"
+            />
+          </div>
+        </div>
+      </Popover>
 
       <!-- Background Color -->
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">Background:</span>
-        <ColorPicker v-model="bgColor" format="hex" />
-      </div>
+      <Button type="button" @click="toggleBgPopover"
+        ><PaintBucket :size="20"
+      /></Button>
+      <Popover ref="bgPopover">
+        <div class="flex flex-col gap-4 w-[25rem] bg-transparent">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Background color:</span>
+            <ColorPicker
+              v-model="bgColor"
+              format="hex"
+              class="border rounded-lg"
+            />
+          </div>
+        </div>
+      </Popover>
 
       <!-- Image Upload -->
 
@@ -92,11 +102,20 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import SignaturePad from "signature_pad";
-import { Download, Lock, Pen, Pencil, Trash } from "lucide-vue-next";
+import {
+  Download,
+  File,
+  Lock,
+  PaintBucket,
+  Pen,
+  Pencil,
+  Trash,
+} from "lucide-vue-next";
 import ColorPicker from "primevue/colorpicker";
 import Button from "primevue/button";
 import Select from "primevue/select";
 import FileUpload from "primevue/fileupload";
+import Popover from "primevue/popover";
 
 let signaturePad: SignaturePad | null = null;
 
@@ -104,7 +123,8 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const isEditable = ref(false);
 const penColor = ref<string>("#000000");
 const bgColor = ref<string>("#ffffff");
-const op = ref();
+const penPopover = ref();
+const bgPopover = ref();
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 
@@ -251,6 +271,14 @@ const toggleEdit = () => {
       signaturePad.off(); // disable drawing
     }
   }
+};
+
+const togglePenPopover = (event: any) => {
+  penPopover.value.toggle(event);
+};
+
+const toggleBgPopover = (event: any) => {
+  bgPopover.value.toggle(event);
 };
 </script>
 
