@@ -21,6 +21,24 @@
             />
           </div>
         </div>
+
+        <div class="flex flex-col gap-2 p-2 w-48 bg-transparent">
+          <span class="text-sm font-medium">Pen width:</span>
+          <div class="flex justify-between gap-2">
+            <Button
+              v-for="width in [1, 2, 4, 6, 10]"
+              :key="width"
+              class="p-2 min-w-10"
+              :class="{ 'bg-blue-200': penWidth === width }"
+              @click="setPenWidth(width)"
+            >
+              <div
+                class="rounded-full bg-black"
+                :style="{ width: width + 'px', height: width + 'px' }"
+              ></div>
+            </Button>
+          </div>
+        </div>
       </Popover>
 
       <!-- Background Color -->
@@ -39,6 +57,25 @@
           </div>
         </div>
       </Popover>
+
+      <!-- Undo/Redo Buttons -->
+      <Button
+        type="button"
+        @click="undo"
+        :disabled="!canUndo"
+        :class="{ 'opacity-50 cursor-not-allowed': !canUndo }"
+      >
+        <Undo :size="20" />
+      </Button>
+
+      <Button
+        type="button"
+        @click="redo"
+        :disabled="!canRedo"
+        :class="{ 'opacity-50 cursor-not-allowed': !canRedo }"
+      >
+        <Redo :size="20" />
+      </Button>
 
       <!-- Image Upload -->
 
@@ -94,7 +131,7 @@
 
     <!-- Canvas -->
     <div class="max-w-full max-h-full flex-grow rounded-3xl relative">
-      <canvas ref="canvas" class="w-full h-full rounded-3xl"></canvas>
+      <canvas ref="canvas" class="w-full h-full rounded-3xl border"></canvas>
     </div>
   </div>
 </template>
@@ -125,6 +162,14 @@ const penColor = ref<string>("#000000");
 const bgColor = ref<string>("#ffffff");
 const penPopover = ref();
 const bgPopover = ref();
+const penWidth = ref<number>(2);
+// const penWidthPopover = ref();
+
+// Undo/Redo history state
+const history = ref<any[]>([]);
+const historyIndex = ref(-1);
+const canUndo = ref(false);
+const canRedo = ref(false);
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 
@@ -137,6 +182,16 @@ const handleExport = async (format: string) => {
   }
 };
 
+// Update pen width
+const setPenWidth = (width: number) => {
+  penWidth.value = width;
+  if (signaturePad) {
+    signaturePad.minWidth = width;
+    signaturePad.maxWidth = width;
+  }
+  penPopover.value.hide();
+};
+
 onMounted(() => {
   resizeCanvas();
 
@@ -144,10 +199,22 @@ onMounted(() => {
     signaturePad = new SignaturePad(canvas.value, {
       penColor: penColor.value,
       backgroundColor: bgColor.value,
+      minWidth: penWidth?.value ?? 0,
+      maxWidth: penWidth?.value,
     });
     signaturePad.off();
     // Manually fill background since SignaturePad's backgroundColor doesn't auto-fill
     fillBackground(bgColor.value);
+
+    // Save initial state
+    saveState();
+
+    // Add event listener for signature end
+    if (signaturePad) {
+      signaturePad.addEventListener("endStroke", () => {
+        saveState();
+      });
+    }
   }
 });
 
@@ -188,6 +255,9 @@ watch(bgColor, (newColor) => {
     // Step 6: Re-apply SignaturePad strokes (must be after drawImage)
     signaturePad?.clear(); // only clears internal strokes
     signaturePad?.fromData(strokeData);
+
+    // Save state after background change
+    saveState();
   };
 
   img.src = imgDataUrl;
@@ -248,6 +318,9 @@ const onImageUpload = (event: any) => {
     img.src = reader.result as string;
   };
   reader.readAsDataURL(file);
+
+  // Save state after image upload
+  saveState();
 };
 
 // Resize canvas to handle device pixel ratio
@@ -279,6 +352,88 @@ const togglePenPopover = (event: any) => {
 
 const toggleBgPopover = (event: any) => {
   bgPopover.value.toggle(event);
+};
+
+// Undo/Redo functions
+const saveState = () => {
+  if (!canvas.value || !signaturePad) return;
+
+  // Get the current canvas image
+  const imageData = canvas.value.toDataURL();
+  // Get SignaturePad data
+  const strokeData = signaturePad.toData();
+
+  // If we're in the middle of the history, remove everything after current index
+  if (historyIndex.value < history.value.length - 1) {
+    history.value = history.value.slice(0, historyIndex.value + 1);
+  }
+
+  // Add new state to history
+  history.value.push({
+    image: imageData,
+    strokes: strokeData,
+  });
+
+  // Update index to point to latest state
+  historyIndex.value = history.value.length - 1;
+
+  // Update undo/redo availability
+  updateUndoRedoState();
+};
+
+const updateUndoRedoState = () => {
+  canUndo.value = historyIndex.value > 0;
+  canRedo.value = historyIndex.value < history.value.length - 1;
+};
+
+const undo = () => {
+  if (!canUndo.value || !canvas.value || !signaturePad) return;
+
+  // Decrease history index
+  historyIndex.value -= 1;
+
+  // Apply the state at the new index
+  applyState(history.value[historyIndex.value]);
+
+  // Update undo/redo availability
+  updateUndoRedoState();
+};
+
+const redo = () => {
+  if (!canRedo.value || !canvas.value || !signaturePad) return;
+
+  // Increase history index
+  historyIndex.value += 1;
+
+  // Apply the state at the new index
+  applyState(history.value[historyIndex.value]);
+
+  // Update undo/redo availability
+  updateUndoRedoState();
+};
+
+const applyState = (state: any) => {
+  if (!canvas.value || !signaturePad) return;
+
+  const ctx = canvas.value.getContext("2d");
+  if (!ctx) return;
+
+  // Load the image
+  const img = new Image();
+  img.onload = () => {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.value!.width, canvas.value!.height);
+
+    // Draw the saved image
+    ctx.drawImage(img, 0, 0);
+
+    // Restore SignaturePad data
+    signaturePad!.clear();
+    if (state.strokes.length > 0) {
+      signaturePad!.fromData(state.strokes);
+    }
+  };
+  img.src = state.image;
 };
 </script>
 
