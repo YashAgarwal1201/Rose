@@ -4,10 +4,13 @@
   >
     <!-- Toolbar -->
     <div
-      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-2 md:gap-3 2xl:gap-4 flex-wrap overflow-x-auto"
+      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-1 flex-wrap overflow-x-auto"
     >
       <!-- Pen Color -->
-      <Button type="button" @click="togglePenPopover"
+      <Button
+        type="button"
+        class="h-full !rounded-xl bg-transparent"
+        @click="togglePenPopover"
         ><Pen :size="20"
       /></Button>
       <Popover ref="penPopover">
@@ -41,8 +44,13 @@
         </div>
       </Popover>
 
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+
       <!-- Background Color -->
-      <Button type="button" @click="toggleBgPopover"
+      <Button
+        type="button"
+        class="h-full !rounded-xl bg-transparent"
+        @click="toggleBgPopover"
         ><PaintBucket :size="20"
       /></Button>
       <Popover ref="bgPopover">
@@ -58,9 +66,12 @@
         </div>
       </Popover>
 
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+
       <!-- Undo/Redo Buttons -->
       <Button
         type="button"
+        class="h-full !rounded-xl bg-transparent"
         @click="undo"
         :disabled="!canUndo"
         :class="{ 'opacity-50 cursor-not-allowed': !canUndo }"
@@ -68,8 +79,11 @@
         <Undo :size="20" />
       </Button>
 
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+
       <Button
         type="button"
+        class="h-full !rounded-xl bg-transparent"
         @click="redo"
         :disabled="!canRedo"
         :class="{ 'opacity-50 cursor-not-allowed': !canRedo }"
@@ -77,6 +91,7 @@
         <Redo :size="20" />
       </Button>
 
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
       <!-- Image Upload -->
 
       <FileUpload
@@ -85,7 +100,7 @@
         accept="image/*"
         :customUpload="true"
         chooseLabel="Upload Image"
-        class="p-button-rounded"
+        class="!rounded-xl"
         @select="onImageUpload"
       />
 
@@ -98,6 +113,8 @@
         <span>{{ isEditable ? "Lock" : "Edit" }}</span>
       </Button>
 
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+
       <!-- Clear Canvas -->
       <Button
         class="!rounded-xl px-4 py-2 flex items-center gap-x-2"
@@ -106,6 +123,8 @@
         <Trash :size="16" />
         <span>Clear</span>
       </Button>
+
+      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
 
       <!-- Export Options -->
       <Select
@@ -146,7 +165,9 @@ import {
   PaintBucket,
   Pen,
   Pencil,
+  Redo,
   Trash,
+  Undo,
 } from "lucide-vue-next";
 import ColorPicker from "primevue/colorpicker";
 import Button from "primevue/button";
