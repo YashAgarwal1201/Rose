@@ -12,7 +12,7 @@
         :class="[route.fullPath === '/' ? selectedButton : buttonStyles]"
         ><Home :size="16" />
       </RouterLink>
-      <RouterLink
+      <!-- <RouterLink
         to="/expense-calculator"
         v-if="route.fullPath"
         :class="[
@@ -21,7 +21,7 @@
             : buttonStyles,
         ]"
         ><Calculator :size="16" />
-      </RouterLink>
+      </RouterLink> -->
       <RouterLink
         to="/to-do-list"
         v-if="route.fullPath"

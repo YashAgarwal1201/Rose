@@ -6,11 +6,23 @@
     <div
       class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-2 md:gap-3 2xl:gap-4 flex-wrap overflow-x-auto"
     >
-      <!-- Pen Color -->
-      <div class="flex items-center gap-2">
+      <Button
+        type="button"
+        
+        @click="toggle"
+      ><Pen :size="20" /></Button>
+      <Popover ref="op">
+        <div class="flex flex-col gap-4 w-[25rem] bg-white">
+          <div class="flex items-center gap-2">
         <span class="text-sm text-gray-600">Pen:</span>
         <ColorPicker v-model="penColor" format="hex" />
       </div>
+        </div>
+        </Popover
+      >
+
+      <!-- Pen Color -->
+      
 
       <!-- Background Color -->
       <div class="flex items-center gap-2">
@@ -80,7 +92,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import SignaturePad from "signature_pad";
-import { Download, Lock, Pencil, Trash } from "lucide-vue-next";
+import { Download, Lock, Pen, Pencil, Trash } from "lucide-vue-next";
 import ColorPicker from "primevue/colorpicker";
 import Button from "primevue/button";
 import Select from "primevue/select";
@@ -92,6 +104,7 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const isEditable = ref(false);
 const penColor = ref<string>("#000000");
 const bgColor = ref<string>("#ffffff");
+const op = ref();
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 

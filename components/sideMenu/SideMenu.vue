@@ -29,10 +29,10 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-            <RouterLink to="/expense-calculator" :class="buttonStyles">
+            <!-- <RouterLink to="/expense-calculator" :class="buttonStyles">
               <Calculator :size="16" />
               <span>Expense Calculator</span>
-            </RouterLink>
+            </RouterLink> -->
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
