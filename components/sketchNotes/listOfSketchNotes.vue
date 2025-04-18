@@ -9,14 +9,15 @@
       <span class="ml-2">New Sketch Note</span>
     </Button>
 
-    <Accordion
-      :multiple="true"
-      class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3"
-    >
+    <Accordion class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3">
       <!-- Last 7 Days -->
       <AccordionPanel :value="0" class="!border-none !bg-transparent">
-        <AccordionHeader class="!bg-transparent">Last 7 days</AccordionHeader>
-        <AccordionContent class="!bg-transparent"
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Last 7 days
+          </h3></AccordionHeader
+        >
+        <AccordionContent class="!bg-transparent !rounded-b-2xl"
           ><div v-if="recentListsWeek.length === 0" class="text-sm">
             No lists in the last 7 days
           </div>
@@ -42,7 +43,9 @@
       <!-- Last 30 Days -->
       <AccordionPanel :value="1" class="!border-none">
         <AccordionHeader class="!bg-transparent !rounded-2xl"
-          >Last 30 days</AccordionHeader
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Last 30 days
+          </h3></AccordionHeader
         >
         <AccordionContent class="!bg-transparent"
           ><div v-if="recentListsMonth.length === 0" class="text-sm">
@@ -69,8 +72,10 @@
       ></div>
       <!-- Older Lists -->
       <AccordionPanel :value="2" class="!border-none">
-        <AccordionHeader class="!bg-transparent"
-          >Older Sketch Notes</AccordionHeader
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Older Sketch Notes
+          </h3></AccordionHeader
         >
         <AccordionContent class="!bg-transparent"
           ><div v-if="olderLists.length === 0" class="text-sm">
@@ -154,7 +159,7 @@ const olderLists = computed(() => {
 });
 </script>
 
-<style lang="css" scoped>
+<style lang="css">
 /* Add styles for better accordion appearance if needed */
 :deep(.p-accordion-panel) {
   margin-bottom: 0.5rem;

@@ -1,8 +1,18 @@
 <template>
-  <div class="px-4 py-2 w-full h-full flex flex-col gap-y-3">
+  <div class="px-4 py-3 w-full h-full flex flex-col gap-y-3">
+    <!-- Title Input -->
+    <div class="w-full flex-shrink-0">
+      <InputText
+        v-model="title"
+        type="text"
+        placeholder="Enter a title..."
+        class="w-full !rounded-xl text-xl md:text-2xl text-slate-800 dark:text-slate-200 bg-transparent border-b-2 border-rose-300 dark:border-rose-700 focus:outline-none focus:border-rose-500 px-3 py-2"
+      />
+    </div>
+
     <!-- Toolbar -->
     <div
-      class="p-2 rounded-xl bg-rose-200 dark:bg-rose-950 flex-shrink-0 flex items-center gap-1 flex-wrap overflow-x-auto"
+      class="p-2 rounded-xl bg-rose-400 dark:bg-rose-950 flex-shrink-0 flex items-center gap-1 flex-wrap overflow-x-auto"
     >
       <!-- Pen Color -->
       <Button
@@ -233,6 +243,7 @@ const penPopover = ref();
 const bgPopover = ref();
 const penWidth = ref<number>(2);
 // const penWidthPopover = ref();
+const title = ref("");
 
 // Undo/Redo history state
 const history = ref<any[]>([]);
