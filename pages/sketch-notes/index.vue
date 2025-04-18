@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full flex justify-center items-center py-2">
     <div class="w-full h-full flex flex-row">
-      <div class="w-[250px] flex-shrink-0 h-full"><ListOfSketchNotes /></div>
+      <div class="w-[350px] flex-shrink-0 h-full"><ListOfSketchNotes /></div>
       <div class="flex-grow h-full mx-auto flex">
         <div class="flex w-full max-w-7xl h-full rounded-lg">
           <SketchNotesContainer />

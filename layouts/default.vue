@@ -62,9 +62,9 @@ defineOptions({ ssr: false });
   .feedback-form .form-section:hover,
   .p-accordion .p-accordion-tab .p-accordion-header:hover,
   .custom-panel-header:hover {
-    color: var(--primary-color);
-    background-color: var(--color3);
-    border-color: var(--color3);
+    color: var(--primary-color) !important;
+    background-color: var(--color3) !important;
+    border-color: var(--) !important;
   }
 }
 

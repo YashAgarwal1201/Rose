@@ -15,7 +15,6 @@ export function useCanvasExport() {
     { label: "WebP Image", icon: "i-lucide-file-type-2", value: "webp" },
     { label: "SVG Vector", icon: "i-lucide-file-text", value: "svg" },
     { label: "PDF Document", icon: "i-lucide-file-down", value: "pdf" },
-    ,
   ];
 
   // Generate a timestamped filename

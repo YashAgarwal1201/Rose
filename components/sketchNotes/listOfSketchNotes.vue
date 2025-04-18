@@ -1,74 +1,95 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
     <Button
-      class="text-white shadow-none"
+      class="text-white shadow-none !rounded-xl"
       title="To do list info"
       @click="navigateToNewList"
     >
-      <FileEdit :size="16" />
+      <FileEdit :size="20" />
       <span class="ml-2">New Sketch Note</span>
     </Button>
 
-    <Accordion :multiple="true">
+    <Accordion
+      :multiple="true"
+      class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3"
+    >
       <!-- Last 7 Days -->
-      <AccordionPanel>
-        <template #header>Last 7 days</template>
-        <div v-if="recentListsWeek.length === 0">
-          No lists in the last 7 days
-        </div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="list in recentListsWeek"
-            :key="list.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToList(list.id)"
-          >
-            <span>{{ list.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(list.timestamp).toLocaleDateString() }}
-            </span>
+      <AccordionPanel :value="0" class="!border-none !bg-transparent">
+        <AccordionHeader class="!bg-transparent">Last 7 days</AccordionHeader>
+        <AccordionContent class="!bg-transparent"
+          ><div v-if="recentListsWeek.length === 0" class="text-sm">
+            No lists in the last 7 days
           </div>
-        </div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="list in recentListsWeek"
+              :key="list.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToList(list.id)"
+            >
+              <span>{{ list.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(list.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
       </AccordionPanel>
 
+      <div
+        class="mx-2 my-1 h-[1.5px] max-w-full bg-rose-800 dark:bg-rose-200 rounded"
+      ></div>
       <!-- Last 30 Days -->
-      <AccordionPanel>
-        <template #header>Last 30 days</template>
-        <div v-if="recentListsMonth.length === 0">
-          No lists in the last 30 days
-        </div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="list in recentListsMonth"
-            :key="list.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToList(list.id)"
-          >
-            <span>{{ list.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(list.timestamp).toLocaleDateString() }}
-            </span>
+      <AccordionPanel :value="1" class="!border-none">
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          >Last 30 days</AccordionHeader
+        >
+        <AccordionContent class="!bg-transparent"
+          ><div v-if="recentListsMonth.length === 0" class="text-sm">
+            No lists in the last 30 days
           </div>
-        </div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="list in recentListsMonth"
+              :key="list.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToList(list.id)"
+            >
+              <span>{{ list.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(list.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
       </AccordionPanel>
 
+      <div
+        class="mx-2 my-1 h-[1.5px] max-w-full bg-rose-800 dark:bg-rose-200 rounded"
+      ></div>
       <!-- Older Lists -->
-      <AccordionPanel>
-        <template #header>Older lists</template>
-        <div v-if="olderLists.length === 0">No older lists</div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="list in olderLists"
-            :key="list.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToList(list.id)"
-          >
-            <span>{{ list.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(list.timestamp).toLocaleDateString() }}
-            </span>
+      <AccordionPanel :value="2" class="!border-none">
+        <AccordionHeader class="!bg-transparent"
+          >Older Sketch Notes</AccordionHeader
+        >
+        <AccordionContent class="!bg-transparent"
+          ><div v-if="olderLists.length === 0" class="text-sm">
+            No older lists
           </div>
-        </div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="list in olderLists"
+              :key="list.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToList(list.id)"
+            >
+              <span>{{ list.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(list.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
       </AccordionPanel>
     </Accordion>
   </div>
@@ -133,7 +154,7 @@ const olderLists = computed(() => {
 });
 </script>
 
-<style scoped>
+<style lang="css" scoped>
 /* Add styles for better accordion appearance if needed */
 :deep(.p-accordion-panel) {
   margin-bottom: 0.5rem;
@@ -146,5 +167,9 @@ const olderLists = computed(() => {
 :deep(.p-accordion-content) {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
+}
+
+.p-accordioncontent-content {
+  background-color: transparent !important;
 }
 </style>

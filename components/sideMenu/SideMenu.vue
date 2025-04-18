@@ -21,7 +21,9 @@
         </div> -->
 
         <div class="w-full px-5 pb-5">
-          <div class="w-full flex flex-col rounded-3xl bg-rose-900 p-4">
+          <div
+            class="w-full flex flex-col rounded-3xl bg-rose-700 dark:bg-rose-900 p-4"
+          >
             <RouterLink to="/" :class="buttonStyles">
               <Home :size="16" />
               <span>Home</span>
@@ -34,7 +36,7 @@
               <span>Expense Calculator</span>
             </RouterLink> -->
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+            <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
             <RouterLink to="/to-do-list" :class="buttonStyles">
               <ListTodo :size="16" />

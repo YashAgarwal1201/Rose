@@ -1,42 +1,55 @@
 <template>
-  <div
-    class="px-4 py-2 w-full h-full flex flex-col gap-y-4 md:gap-y-5 2xl:gap-y-6"
-  >
+  <div class="px-4 py-2 w-full h-full flex flex-col gap-y-3">
     <!-- Toolbar -->
     <div
-      class="h-8 md:h-10 lg:h-11 flex-shrink-0 flex items-center gap-1 flex-wrap overflow-x-auto"
+      class="p-2 rounded-xl bg-rose-200 dark:bg-rose-950 flex-shrink-0 flex items-center gap-1 flex-wrap overflow-x-auto"
     >
       <!-- Pen Color -->
       <Button
         type="button"
-        class="h-full !rounded-xl bg-transparent"
+        class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="togglePenPopover"
         ><Pen :size="20"
       /></Button>
       <Popover ref="penPopover">
-        <div class="flex flex-col gap-4 w-[25rem] bg-transparent">
+        <div
+          class="flex flex-col gap-4 w-[25rem] bg-transparent p-3 rounded-lg shadow-lg"
+        >
           <div class="flex items-center gap-2">
-            <span class="text-sm">Pen color:</span>
+            <span class="text-sm text-slate-800 dark:text-slate-200"
+              >Pen color:</span
+            >
             <ColorPicker
               v-model="penColor"
               format="hex"
-              class="border rounded-lg"
+              class="border border-rose-200 dark:border-rose-800 rounded-lg"
             />
           </div>
         </div>
 
-        <div class="flex flex-col gap-2 p-2 w-48 bg-transparent">
-          <span class="text-sm font-medium">Pen width:</span>
+        <div
+          class="flex flex-col gap-2 p-2 w-48 bg-transparent rounded-lg shadow-lg"
+        >
+          <span class="text-sm font-medium text-slate-800 dark:text-slate-200"
+            >Pen width:</span
+          >
           <div class="flex justify-between gap-2">
             <Button
               v-for="width in [1, 2, 4, 6, 10]"
               :key="width"
-              class="p-2 min-w-10"
-              :class="{ 'bg-blue-200': penWidth === width }"
+              class="p-2 min-w-10 !bg-transparent !border-rose-200 dark:!border-rose-800 hover:!bg-rose-100 dark:hover:!bg-slate-600"
+              :class="{
+                '!bg-rose-300 dark:!bg-rose-800 !text-white':
+                  penWidth === width,
+              }"
               @click="setPenWidth(width)"
             >
               <div
-                class="rounded-full bg-black"
+                class="rounded-full"
+                :class="{
+                  'bg-black dark:bg-white': penWidth !== width,
+                  'bg-white dark:bg-white': penWidth === width,
+                }"
                 :style="{ width: width + 'px', height: width + 'px' }"
               ></div>
             </Button>
@@ -44,54 +57,66 @@
         </div>
       </Popover>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
 
       <!-- Background Color -->
       <Button
         type="button"
-        class="h-full !rounded-xl bg-transparent"
+        class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="toggleBgPopover"
         ><PaintBucket :size="20"
       /></Button>
       <Popover ref="bgPopover">
-        <div class="flex flex-col gap-4 w-[25rem] bg-transparent">
+        <div
+          class="flex flex-col gap-4 w-[25rem] bg-transparent p-3 rounded-lg shadow-lg"
+        >
           <div class="flex items-center gap-2">
-            <span class="text-sm">Background color:</span>
+            <span class="text-sm text-slate-800 dark:text-slate-200"
+              >Background color:</span
+            >
             <ColorPicker
               v-model="bgColor"
               format="hex"
-              class="border rounded-lg"
+              class="border border-rose-200 dark:border-rose-800 rounded-lg"
             />
           </div>
         </div>
       </Popover>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
 
       <!-- Undo/Redo Buttons -->
       <Button
         type="button"
-        class="h-full !rounded-xl bg-transparent"
+        class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="undo"
         :disabled="!canUndo"
-        :class="{ 'opacity-50 cursor-not-allowed': !canUndo }"
+        :class="{ '!opacity-50 !cursor-not-allowed': !canUndo }"
       >
         <Undo :size="20" />
       </Button>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
 
       <Button
         type="button"
-        class="h-full !rounded-xl bg-transparent"
+        class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="redo"
         :disabled="!canRedo"
-        :class="{ 'opacity-50 cursor-not-allowed': !canRedo }"
+        :class="{ '!opacity-50 !cursor-not-allowed': !canRedo }"
       >
         <Redo :size="20" />
       </Button>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
       <!-- Image Upload -->
 
       <FileUpload
@@ -100,54 +125,77 @@
         accept="image/*"
         :customUpload="true"
         chooseLabel="Upload Image"
-        class="!rounded-xl"
+        class="!rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @select="onImageUpload"
       />
 
       <!-- Edit Toggle -->
       <Button
-        class="ml-auto !rounded-xl px-4 py-2 flex items-center gap-x-2"
+        class="h-8 md:h-9 2xl:h-10 ml-auto !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="toggleEdit"
       >
         <component :is="isEditable ? Lock : Pencil" :size="16" />
         <span>{{ isEditable ? "Lock" : "Edit" }}</span>
       </Button>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
 
       <!-- Clear Canvas -->
       <Button
-        class="!rounded-xl px-4 py-2 flex items-center gap-x-2"
+        class="h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         @click="clear"
       >
         <Trash :size="16" />
         <span>Clear</span>
       </Button>
 
-      <div class="w-[1px] h-full bg-rose-100 dark:bg-rose-900"></div>
+      <div
+        class="w-[1px] h-[calc(100%-0.5rem)] bg-rose-100 dark:bg-rose-900"
+      ></div>
 
-      <!-- Export Options -->
-      <Select
-        :options="exportFormats"
-        optionLabel="label"
-        optionValue="value"
-        class="!rounded-xl h-full"
-        @change="(e: any) => handleExport(e.value)"
-        placeholder="Export"
+      <!-- Export Button with Popover -->
+      <Button
+        type="button"
+        class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+        @click="toggleExportPopover"
       >
-        <template #value="slotProps">
-          <Button
-            class="rounded-full h-full flex items-center gap-x-2"
-            :loading="isExporting"
-            severity="secondary"
-          >
-            <Download :size="16" />
-            <span>{{ slotProps.value ? slotProps.value : "Export" }}</span>
-          </Button>
-        </template>
-      </Select>
-    </div>
+        <Download :size="20" />
+      </Button>
 
+      <Popover
+        v-if="exportFormats?.length > 0"
+        ref="exportPopover"
+        class="!rounded-xl !bg-rose-300 dark:!bg-rose-950 !border-transparent"
+      >
+        <div class="flex flex-col gap-y-5 w-48 bg-transparent">
+          <span class="text-sm font-medium text-slate-800 dark:text-slate-200"
+            >Export format:</span
+          >
+          <div class="flex flex-col">
+            <div v-for="(format, index) in exportFormats" :key="format.value">
+              <Button
+                class="w-full flex !justify-start items-center gap-2 p-2 !text-slate-900 dark:!text-slate-100 !bg-transparent !border-transparent !rounded-xl cursor-pointer"
+                @click="
+                  () => {
+                    handleExport(format.value);
+                    exportPopover.value.hide();
+                  }
+                "
+              >
+                <File :size="16" class="" />
+                <span class="text-xs md:text-sm">{{ format.label }}</span>
+              </Button>
+              <div
+                v-if="index !== exportFormats.length - 1"
+                class="mx-2 my-1 h-[1px] max-w-full bg-rose-800 dark:bg-rose-200 rounded"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </Popover>
+    </div>
     <!-- Canvas -->
     <div class="max-w-full max-h-full flex-grow rounded-3xl relative">
       <canvas ref="canvas" class="w-full h-full rounded-3xl border"></canvas>
@@ -180,7 +228,7 @@ let signaturePad: SignaturePad | null = null;
 const canvas = ref<HTMLCanvasElement | null>(null);
 const isEditable = ref(false);
 const penColor = ref<string>("#000000");
-const bgColor = ref<string>("#ffffff");
+const bgColor = ref<string>("#0f0f0f");
 const penPopover = ref();
 const bgPopover = ref();
 const penWidth = ref<number>(2);
@@ -191,6 +239,7 @@ const history = ref<any[]>([]);
 const historyIndex = ref(-1);
 const canUndo = ref(false);
 const canRedo = ref(false);
+const exportPopover = ref();
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 
@@ -375,6 +424,10 @@ const toggleBgPopover = (event: any) => {
   bgPopover.value.toggle(event);
 };
 
+const toggleExportPopover = (event: any) => {
+  exportPopover.value.toggle(event);
+};
+
 // Undo/Redo functions
 const saveState = () => {
   if (!canvas.value || !signaturePad) return;
@@ -458,7 +511,7 @@ const applyState = (state: any) => {
 };
 </script>
 
-<style scoped>
+<style lang="css" scoped>
 canvas {
   touch-action: none; /* important for mobile/touch devices */
 }
