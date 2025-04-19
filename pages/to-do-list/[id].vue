@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full flex justify-center items-center py-2">
     <div class="w-full h-full flex flex-row">
-      <div class="w-[250px] h-full"><ToDoListOfTodos /></div>
+      <div class="w-[350px] h-full"><ToDoListOfTodos /></div>
       <div class="w-fit h-full mx-auto flex">
         <div class="flex w-full sm:w-[600px] h-full rounded-lg">
           <ToDoListContainer :current-list="currentList" />
@@ -12,8 +12,8 @@
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="To do list info"
             @click="toast.add({ title: FEATURE_COMING_SOON })"
-            ><Info :size="16" /> ></Button
-          >
+            ><Info :size="16" />
+          </Button>
           <Button
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="Mark all items as done"
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { CheckCircle, Download, Info, Trash } from "lucide-vue-next";
+import Button from "primevue/button";
 import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
 
 const toast = useToast();

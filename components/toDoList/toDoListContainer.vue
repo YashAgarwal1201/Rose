@@ -106,13 +106,19 @@ const deleteTodoItem = (listId: string, itemId: string) => {
 <template>
   <div class="w-full h-full flex flex-col gap-y-3 p-2">
     <div class="w-full flex gap-x-3">
-      <UInput
+      <!-- <InputText
         class="w-full h-10 *:h-10"
         v-model="newListTitle"
         :value="props.currentList ? props.currentList.title : ''"
         :placeholder="
           props.currentList ? props.currentList.title : 'Enter Title...'
         "
+        @keyup.enter="createNewTodoList"
+      /> -->
+      <InputText
+        v-model="newListTitle"
+        placeholder="Enter Title..."
+        class="w-full h-10"
         @keyup.enter="createNewTodoList"
       />
       <Button
@@ -131,12 +137,15 @@ const deleteTodoItem = (listId: string, itemId: string) => {
         :key="item.id"
         class="flex items-center space-x-3"
       >
-        <UCheckbox
+        <Checkbox
           v-model="item.isDone"
-          title="Mark to-do item as done"
-          @change="toggleTodoItem(item.id, $event)"
+          :binary="true"
+          inputId="isDone"
+          :aria-label="`Mark ${item.text} as done`"
+          class="!mt-1"
         />
-        <UInput
+
+        <InputText
           ref="inputRefs"
           v-model="item.text"
           placeholder="Enter todo item..."
@@ -155,7 +164,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
           title="Delete to do item"
           @click="deleteTodoItem(item.id)"
         >
-          <UIcon name="material-symbols:backspace-rounded" size="20px" />
+          <Delete :size="16" />
         </Button>
       </div>
     </div>
@@ -164,7 +173,10 @@ const deleteTodoItem = (listId: string, itemId: string) => {
 </template>
 
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { Plus, Delete } from "lucide-vue-next";
+import Button from "primevue/button";
+import Checkbox from "primevue/checkbox";
+import InputText from "primevue/inputtext";
 import { ref, nextTick } from "vue";
 import type { TodoList } from "~/types/typesAndInterfaces";
 

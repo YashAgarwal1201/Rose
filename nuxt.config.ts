@@ -3,6 +3,7 @@
 // import Aura from "@primeuix/themes/aura";
 import MyPreset from "./MyPreset";
 import tailwindcss from "@tailwindcss/vite";
+import fs from "fs";
 
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
@@ -11,6 +12,10 @@ export default defineNuxtConfig({
   devServer: {
     port: 5176,
     host: "0.0.0.0",
+    https: {
+      key: fs.readFileSync("./localhost-key.pem", "utf8"),
+      cert: fs.readFileSync("./localhost.pem", "utf8"),
+    },
   },
   css: ["~/assets/css/main.css"],
   ssr: false, // Disable server-side rendering (hack)
@@ -79,6 +84,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+
   primevue: {
     autoImport: true,
     options: {

@@ -9,7 +9,7 @@
     <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7">
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
       <div class="w-full flex flex-col gap-y-2 sm:gap-y-3">
-        <div
+        <!-- <div
           class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
         >
           <p class="italic text-xs md:text-sm">
@@ -23,9 +23,9 @@
             <Receipt :size="16" />
             <span>Add Transaction</span>
           </Button>
-        </div>
+        </div> -->
 
-        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
           <h3 class="font-heading text-lg md:text-xl">
             To Do Lists added this month
           </h3>
@@ -70,7 +70,7 @@
               <span>New ToDo List</span>
             </Button>
           </div>
-        </div>
+        </div> -->
 
         <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
           <h3 class="font-heading text-lg md:text-xl">
