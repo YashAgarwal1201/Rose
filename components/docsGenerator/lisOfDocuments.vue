@@ -1,7 +1,7 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
     <Button
-      class="text-white shadow-none px-4 rounded-full justify-center flex items-center gap-x-2"
+      class="text-white shadow-none !rounded-xl"
       title="To do list info"
       @click="navigateToNewDocument"
     >
@@ -9,64 +9,88 @@
       <span>New Document</span>
     </Button>
 
-    <Accordion :multiple="true">
+    <Accordion class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3">
       <!-- Last 7 Days -->
-      <AccordionTab header="Last 7 days">
-        <div v-if="recentListsWeek.length === 0">
-          No lists in the last 7 days
-        </div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="document in recentListsWeek"
-            :key="document.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToDocument(document.id)"
-          >
-            <span>{{ document.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(document.timestamp).toLocaleDateString() }}
-            </span>
-          </div>
-        </div>
-      </AccordionTab>
 
+      <AccordionPanel :value="0" class="!border-none !bg-transparent">
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Last 7 days
+          </h3></AccordionHeader
+        ><AccordionContent class="!bg-transparent !rounded-b-2xl">
+          <div v-if="recentListsWeek.length === 0">
+            No lists in the last 7 days
+          </div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="document in recentListsWeek"
+              :key="document.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToDocument(document.id)"
+            >
+              <span>{{ document.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(document.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
+      </AccordionPanel>
+      <div
+        class="mx-2 my-1 h-[1.5px] max-w-full bg-rose-800 dark:bg-rose-200 rounded"
+      ></div>
       <!-- Last 30 Days -->
-      <AccordionTab header="Last 30 days">
-        <div v-if="recentListsMonth.length === 0">
-          No lists in the last 30 days
-        </div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="document in recentListsMonth"
-            :key="document.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToDocument(document.id)"
-          >
-            <span>{{ document.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(document.timestamp).toLocaleDateString() }}
-            </span>
+      <AccordionPanel :value="1" class="!border-none">
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Last 30 days
+          </h3></AccordionHeader
+        >
+        <AccordionContent class="!bg-transparent">
+          <div v-if="recentListsMonth.length === 0">
+            No lists in the last 30 days
           </div>
-        </div>
-      </AccordionTab>
-
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="document in recentListsMonth"
+              :key="document.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToDocument(document.id)"
+            >
+              <span>{{ document.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(document.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
+      </AccordionPanel>
+      <div
+        class="mx-2 my-1 h-[1.5px] max-w-full bg-rose-800 dark:bg-rose-200 rounded"
+      ></div>
       <!-- Older Documents -->
-      <AccordionTab header="Older documents">
-        <div v-if="olderLists.length === 0">No older documents</div>
-        <div v-else class="flex flex-col gap-y-2">
-          <div
-            v-for="document in olderLists"
-            :key="document.id"
-            class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-            @click="navigateToDocument(document.id)"
-          >
-            <span>{{ document.title }}</span>
-            <span class="text-sm text-gray-500">
-              {{ new Date(document.timestamp).toLocaleDateString() }}
-            </span>
-          </div>
-        </div>
-      </AccordionTab>
+      <AccordionPanel :value="2" class="!border-none">
+        <AccordionHeader class="!bg-transparent !rounded-2xl"
+          ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
+            Older Docments
+          </h3></AccordionHeader
+        ><AccordionContent>
+          <div v-if="olderLists.length === 0">No older documents</div>
+          <div v-else class="flex flex-col gap-y-2">
+            <div
+              v-for="document in olderLists"
+              :key="document.id"
+              class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+              @click="navigateToDocument(document.id)"
+            >
+              <span>{{ document.title }}</span>
+              <span class="text-sm text-gray-500">
+                {{ new Date(document.timestamp).toLocaleDateString() }}
+              </span>
+            </div>
+          </div></AccordionContent
+        >
+      </AccordionPanel>
     </Accordion>
   </div>
 </template>
@@ -78,7 +102,9 @@ import { v4 as uuidv4 } from "uuid";
 import { FileEdit } from "lucide-vue-next";
 import Button from "primevue/button";
 import Accordion from "primevue/accordion";
-import AccordionTab from "primevue/accordiontab";
+import AccordionPanel from "primevue/accordionpanel";
+import AccordionHeader from "primevue/accordionheader";
+import AccordionContent from "primevue/accordioncontent";
 
 const router = useRouter();
 const documentStore = useDocumentStore();
@@ -129,4 +155,8 @@ const olderLists = computed(() => {
 });
 </script>
 
-<style scoped></style>
+<style>
+.p-accordioncontent-content {
+  background-color: transparent !important;
+}
+</style>

@@ -76,7 +76,7 @@
                 class="!rounded-xl px-4 py-2 flex-grow-1 flex items-center gap-x-2 text-sm sm:text-base lg:text-lg"
                 :outlined="true"
                 @click="closeFeedbackDialogHandle"
-                ><Trash :size="16" /><span>Cancel</span>
+                ><X :size="16" /><span>Cancel</span>
               </Button>
               <Button
                 type="submit"
@@ -93,7 +93,7 @@
 
 <script setup lang="ts">
 import { useHeaderStore } from "@/stores/headerStore";
-import { Send, Trash } from "lucide-vue-next";
+import { Send, X } from "lucide-vue-next";
 import Button from "primevue/button";
 import Drawer from "primevue/drawer";
 
@@ -110,11 +110,15 @@ const closeFeedbackDialogHandle = () => {
 
 const schema = yup.object({
   name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
+  email: yup
+    .string()
+    .required("Email is required")
+    .email("Please enter a valid email"),
   message: yup
     .string()
+    .required("Message is required")
     .min(10, "Message must be at least 10 characters")
-    .required("Message is required"),
+    .max(250, "Message can be at most 250 characters long"),
 });
 
 const onSubmit = (values: any) => {
