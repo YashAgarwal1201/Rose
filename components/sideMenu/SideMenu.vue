@@ -96,7 +96,7 @@ const darkMode = ref(true);
 const headerStore = useHeaderStore();
 
 const buttonStyles =
-  "!px-2 !py-4 !bg-transparent !text-white flex items-center !gap-x-3 rounded-xl *:text-lg font-normal";
+  "!px-2 !py-4 !bg-transparent !text-white flex items-center !gap-x-3 !rounded-xl *:text-lg font-normal";
 // const { isSideMenuVisible, closeSideMenu } = useSideMenu();
 
 const feedbackBtnHandle = () => {
