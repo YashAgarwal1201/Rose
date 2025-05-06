@@ -1,17 +1,7 @@
 <template>
-  <div class="px-4 py-3 w-full h-full flex flex-col gap-y-3">
-    <!-- Title Input -->
-    <div class="w-full flex-shrink-0">
-      <InputText
-        v-model="title"
-        type="text"
-        placeholder="Enter a title..."
-        class="w-full !rounded-xl text-xl md:text-2xl text-slate-800 dark:text-slate-200 bg-transparent border-b-2 border-rose-300 dark:border-rose-700 focus:outline-none focus:border-rose-500 px-3 py-2"
-      />
-    </div>
-
+  <div class="px-4 py-3 w-full h-full">
     <div
-      class="w-full h-full flex gap-3"
+      class="w-full h-full flex gap-2 border-0 border-rose-900"
       :class="{
         'flex-col': toolbarPosition === 'top',
         'flex-row': toolbarPosition === 'left',
@@ -340,9 +330,26 @@
           </div>
         </Popover>
       </div>
-      <!-- Canvas -->
-      <div class="max-w-full max-h-full flex-grow rounded-3xl relative">
-        <canvas ref="canvas" class="w-full h-full rounded-3xl border"></canvas>
+
+      <div class="flex-grow-1 flex flex-col">
+        <!-- Title Input -->
+        <div
+          class="w-full flex-shrink-0 border-b border-rose-400 dark:border-rose-950"
+        >
+          <InputText
+            v-model="title"
+            type="text"
+            placeholder="Enter a title..."
+            class="w-full !rounded-t-xl !rounded-b-none text-xl md:text-2xl text-slate-800 dark:text-slate-200 placeholder:!text-rose-300 !border-none border-rose-300 dark:border-rose-700 focus:outline-none focus:border-rose-500 !px-4 !py-3"
+            :style="{ backgroundColor: bgColor }"
+          />
+        </div>
+
+        <!-- Canvas -->
+
+        <div class="flex-grow relative rounded-xl">
+          <canvas ref="canvas" class="w-full h-full rounded-b-xl"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -397,7 +404,7 @@ const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 const handleExport = async (format: string) => {
   if (!canvas.value) return;
   try {
-    await exportCanvas(format, canvas.value, bgColor.value);
+    await exportCanvas(format, canvas.value, bgColor.value, title.value);
   } catch (error) {
     alert("Export failed: " + (error as Error).message);
   }
@@ -510,6 +517,7 @@ const clear = () => {
   ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
 
   signaturePad.clear();
+  title.value = "";
 };
 
 // Export canvas as image

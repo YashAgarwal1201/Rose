@@ -31,14 +31,14 @@
       >
         <ListTodo :size="16" />
       </RouterLink>
-      <RouterLink
+      <!-- <RouterLink
         to="/docs-generator"
         v-if="route.fullPath"
         :class="[
           route.fullPath === '/docs-generator' ? selectedButton : buttonStyles,
         ]"
         ><FileText :size="16"
-      /></RouterLink>
+      /></RouterLink> -->
 
       <RouterLink
         to="/sketch-notes"

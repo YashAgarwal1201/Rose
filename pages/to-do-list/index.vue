@@ -24,7 +24,8 @@
           class="h-fit flex flex-row gap-x-3 p-2 md:p-3 rounded-md shadow-md bg-rose-800"
         >
           <div class="mt-1">
-            <UCheckbox :value="listItem.isDone" />
+            <!-- <UCheckbox :value="listItem.isDone" /> -->
+            <Checkbox :value="listItem.isDone" />
           </div>
           <div>
             <h3
@@ -67,6 +68,7 @@ import { FileEdit } from "lucide-vue-next";
 import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
 import { v4 as uuidv4 } from "uuid";
 import Button from "primevue/button";
+import Checkbox from "primevue/checkbox";
 
 const router = useRouter();
 const todoStore = useTodoStore();

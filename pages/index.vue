@@ -86,7 +86,7 @@
               class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-900"
             >
               <div class="mt-1">
-                <UCheckbox :value="false" />
+                <Checkbox :value="false" />
               </div>
               <div>
                 <h3
@@ -120,11 +120,19 @@
         </div>
       </div>
     </div>
+
+    <!-- <div class="p-4">
+      <h1 class="text-xl font-bold mb-4">App B (Vue 3)</h1>
+      <div class="p-4 border rounded bg-gray-100">
+        Received message: <strong>{{ message || "No message yet." }}</strong>
+      </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { FileEdit, Receipt } from "lucide-vue-next";
+import Checkbox from "primevue/checkbox";
 import { v4 as uuidv4 } from "uuid";
 
 const router = useRouter();
@@ -134,6 +142,26 @@ const transactionStore = useExpenseCalculatorStore();
 definePageMeta({
   title: "Project Rose - Home Page",
 });
+
+// import { ref, onMounted, onBeforeUnmount } from "vue";
+
+// const message = ref("");
+
+// function handleMessage(event: any) {
+//   if (event.origin !== "http://localhost:4500") return; // Validate origin
+//   const { type, payload } = event.data;
+//   if (type === "UPDATE_TEXT") {
+//     message.value = payload;
+//   }
+// }
+
+// onMounted(() => {
+//   window.addEventListener("message", handleMessage);
+// });
+
+// onBeforeUnmount(() => {
+//   window.removeEventListener("message", handleMessage);
+// });
 
 // Format timestamp
 const formatTimestamp = (timestamp: string | number | Date) => {

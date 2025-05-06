@@ -45,12 +45,12 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-            <RouterLink to="/docs-generator" :class="buttonStyles">
+            <!-- <RouterLink to="/docs-generator" :class="buttonStyles">
               <FileText :size="16" />
               <span>Docs Generator</span>
             </RouterLink>
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
             <div :class="buttonStyles">
               <Moon :size="16" />
@@ -106,6 +106,8 @@ const feedbackBtnHandle = () => {
 
 const toggleDarkMode = () => {
   // Get the current theme by checking the 'dark-theme' class on the html element
+
+  console.log("darkMode", darkMode.value);
   const currentTheme = document.documentElement.classList.contains("dark")
     ? "dark"
     : "light";
