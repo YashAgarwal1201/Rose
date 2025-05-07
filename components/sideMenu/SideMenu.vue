@@ -52,6 +52,13 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
+            <RouterLink to="/sketch-notes" :class="buttonStyles">
+              <Signature :size="16" />
+              <span>Sketch Notes</span>
+            </RouterLink>
+
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
             <div :class="buttonStyles">
               <Moon :size="16" />
               <span>Dark Mode?</span>
@@ -88,6 +95,7 @@ import {
   FileText,
   Moon,
   MessageCircle,
+  Signature,
 } from "lucide-vue-next";
 import ToggleSwitch from "primevue/toggleswitch";
 

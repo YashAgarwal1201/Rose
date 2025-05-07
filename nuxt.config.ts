@@ -47,7 +47,10 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
   ],
 
-  plugins: [{ src: "~/plugins/highcharts-vue.ts", mode: "client" }],
+  plugins: [
+    { src: "~/plugins/highcharts-vue.ts", mode: "client" },
+    { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
+  ],
 
   fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
