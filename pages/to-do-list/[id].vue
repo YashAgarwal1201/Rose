@@ -9,15 +9,15 @@
 
         <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
           <Button
-            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            class="text-white w-10 h-10 shadow-none rounded-2xl flex-shrink-0"
             title="To do list info"
-            @click="toast.add({ title: FEATURE_COMING_SOON })"
+            @click="toast.add({ detail: FEATURE_COMING_SOON, life: 1500 })"
             ><Info :size="16" />
           </Button>
           <Button
             class="text-white w-10 h-10 shadow-none rounded-2xl"
             title="Mark all items as done"
-            @click="toast.add({ title: FEATURE_COMING_SOON })"
+            @click="toast.add({ detail: FEATURE_COMING_SOON, life: 1500 })"
             ><CheckCircle :size="16" />
           </Button>
           <Button
@@ -59,13 +59,21 @@ const deleteList = () => {
   if (!currentList.value) {
     router.push("/to-do-list");
     toast.add({
-      title: "No list found to delete, navigating to `To Do List home page`",
-      timeout: 700,
+      severity: "warn",
+      summary: "Warning",
+      detail: "No list found to delete, navigating to `To Do List home page`",
+      life: 700,
     });
     return;
   }
 
   todoStore.deleteTodoList(currentList.value.id);
+  toast.add({
+    severity: "success",
+    summary: "Success",
+    detail: "List deleted successfully",
+    life: 700,
+  });
   router.push("/to-do-list");
   // showDeleteModal.value = false;
 };

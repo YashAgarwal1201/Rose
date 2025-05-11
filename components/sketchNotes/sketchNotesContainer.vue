@@ -1,6 +1,7 @@
 <template>
   <div class="px-2 sm:px-3 md:px-4 py-2 sm:py-3 w-full h-full">
     <div
+      :v-show="false"
       class="w-full h-full flex gap-2 border-0 border-rose-900"
       :class="{
         'flex-col': toolbarPosition === 'top',
@@ -349,6 +350,20 @@
         </Popover>
       </div>
 
+      <CanvasToolbar
+        :toolbarPosition="toolbarPosition"
+        :isEditable="isEditable"
+        @navigateToNewList="navigateToNewList"
+        @togglePenPopover="togglePenPopover"
+        @toggleBrushWidthPopover="togglePenPopover"
+        @toggleEditable="toggleEdit"
+        @undoCanvas="undo"
+        @redoCanvas="redo"
+        @clearCanvas="clear"
+        @toggleTitleInput="() => {}"
+        @toggleToolbarPositionPopover="toggleToolbarPositionPopover"
+      />
+
       <div class="max-w-full flex-grow-1 flex flex-col">
         <!-- Title Input -->
         <div
@@ -403,14 +418,14 @@ let signaturePad: SignaturePad | null = null;
 const router = useRouter();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
-const isEditable = ref(false);
-const penColor = ref<string>("#000000");
-const bgColor = ref<string>("#0f0f0f");
+// const isEditable = ref(false);
+// const penColor = ref<string>("#000000");
+// const bgColor = ref<string>("#0f0f0f");
 const penPopover = ref();
 const bgPopover = ref();
-const penWidth = ref<number>(2);
+// const penWidth = ref<number>(2);
 // const penWidthPopover = ref();
-const title = ref("");
+// const title = ref("");
 
 // Undo/Redo history state
 const history = ref<any[]>([]);
@@ -419,7 +434,15 @@ const canUndo = ref(false);
 const canRedo = ref(false);
 const exportPopover = ref();
 const toolbarPositionPopover = ref();
-const toolbarPosition = ref("top");
+// const toolbarPosition = ref("top");
+
+import { storeToRefs } from "pinia";
+import { useSkecthNotesStore } from "@/stores/sketchNotesStore";
+import CanvasToolbar from "./CanvasToolbar.vue";
+
+const canvasStore = useSkecthNotesStore();
+const { penColor, penWidth, bgColor, title, toolbarPosition, isEditable } =
+  storeToRefs(canvasStore);
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 
@@ -433,7 +456,8 @@ const handleExport = async (format: string) => {
 };
 
 const handleToolbarPositionChange = (position: string) => {
-  toolbarPosition.value = position;
+  // toolbarPosition.value = position;
+  canvasStore.setToolbarPosition(position);
   toolbarPositionPopover.value.hide();
 };
 

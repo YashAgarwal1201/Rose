@@ -5,7 +5,7 @@ import { type PiniaPluginContext, createPinia } from "pinia";
 
 export default defineNuxtPlugin((nuxtApp) => {
   // Only run on client-side
-  if (process.server) return;
+  if (import.meta.server) return;
 
   // Create the database promise
   const dbPromise = openDB("pinia-storage", 1, {

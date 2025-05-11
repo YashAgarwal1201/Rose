@@ -16,22 +16,22 @@
             Last 7 days
           </h3></AccordionHeader
         ><AccordionContent class="!bg-transparent !rounded-b-2xl">
-          <div class="p-3">
+          <div class="bg-transparent font-content">
             <div v-if="recentListsWeek.length === 0">
               No lists in the last 7 days
             </div>
             <div v-else class="flex flex-col gap-y-2">
-              <div
+              <Button
                 v-for="list in recentListsWeek"
                 :key="list.id"
-                class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                class="flex !justify-between items-center p-2 rounded cursor-pointer transition-colors duration-200"
                 @click="navigateToList(list.id)"
               >
                 <span>{{ list.title }}</span>
-                <span class="text-sm text-gray-500">{{
+                <span class="text-sm text-slate-600">{{
                   new Date(list.timestamp).toLocaleDateString()
                 }}</span>
-              </div>
+              </Button>
             </div>
           </div></AccordionContent
         >
@@ -47,22 +47,22 @@
           </h3></AccordionHeader
         >
         <AccordionContent class="!bg-transparent"
-          ><div class="p-3">
+          ><div class="bg-transparent font-content">
             <div v-if="recentListsMonth.length === 0">
               No lists in the last 30 days
             </div>
             <div v-else class="flex flex-col gap-y-2">
-              <div
+              <Button
                 v-for="list in recentListsMonth"
                 :key="list.id"
-                class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                class="flex !justify-between items-center p-2 rounded cursor-pointer transition-colors duration-200"
                 @click="navigateToList(list.id)"
               >
                 <span>{{ list.title }}</span>
-                <span class="text-sm text-gray-500">{{
+                <span class="text-sm text-slate-600">{{
                   new Date(list.timestamp).toLocaleDateString()
                 }}</span>
-              </div>
+              </Button>
             </div>
           </div></AccordionContent
         >
@@ -78,20 +78,20 @@
           </h3></AccordionHeader
         >
         <AccordionContent class="!bg-transparent"
-          ><div class="p-3">
+          ><div class="bg-transparent font-content">
             <div v-if="olderLists.length === 0">No older lists</div>
             <div v-else class="flex flex-col gap-y-2">
-              <div
+              <Button
                 v-for="list in olderLists"
                 :key="list.id"
-                class="flex justify-between items-center p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                class="flex !justify-between items-center p-2 rounded cursor-pointer transition-colors duration-200"
                 @click="navigateToList(list.id)"
               >
                 <span>{{ list.title }}</span>
                 <span class="text-sm text-gray-500">{{
                   new Date(list.timestamp).toLocaleDateString()
                 }}</span>
-              </div>
+              </Button>
             </div>
           </div>
         </AccordionContent>
@@ -109,6 +109,7 @@ import { useTodoStore } from "@/stores/todoStore";
 import Accordion from "primevue/accordion";
 import AccordionPanel from "primevue/accordionpanel";
 import AccordionContent from "primevue/accordioncontent";
+import Button from "primevue/button";
 
 const router = useRouter();
 const todoStore = useTodoStore();
