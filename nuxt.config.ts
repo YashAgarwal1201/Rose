@@ -71,6 +71,21 @@ export default defineNuxtConfig({
         },
       ],
     },
+    workbox: {
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/projectt-rose.vercel\.app\/.*$/,
+          handler: "NetworkFirst",
+          options: {
+            cacheName: "api-cache",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 300,
+            },
+          },
+        },
+      ],
+    },
     client: {
       installPrompt: true,
     },

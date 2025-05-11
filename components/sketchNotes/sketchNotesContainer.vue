@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-3 w-full h-full">
+  <div class="px-2 sm:px-3 md:px-4 py-2 sm:py-3 w-full h-full">
     <div
       class="w-full h-full flex gap-2 border-0 border-rose-900"
       :class="{
@@ -11,7 +11,7 @@
     >
       <!-- Toolbar -->
       <div
-        class="w-full p-2 rounded-xl bg-rose-400 dark:bg-rose-950 flex flex-nowrap gap-1 overflow-x-auto"
+        class="w-full p-2 rounded-xl bg-rose-400 dark:bg-rose-950 flex flex-nowrap gap-1 overflow-x-auto flex-shrink-0"
         :class="{
           'flex-row items-center':
             toolbarPosition === 'top' || toolbarPosition === 'bottom',
@@ -20,11 +20,11 @@
         }"
       >
         <Button
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           title="To do list info"
           @click="navigateToNewList"
         >
-          <FileEdit :size="20" />
+          <FileEdit :size="16" />
         </Button>
 
         <div
@@ -40,9 +40,9 @@
         <!-- Pen Color -->
         <Button
           type="button"
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="togglePenPopover"
-          ><Pen :size="20"
+          ><Pen :size="16"
         /></Button>
         <Popover ref="penPopover">
           <div class="flex flex-col gap-4 w-[25rem] bg-transparent p-2">
@@ -104,9 +104,9 @@
         <!-- Background Color -->
         <Button
           type="button"
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleBgPopover"
-          ><PaintBucket :size="20"
+          ><PaintBucket :size="16"
         /></Button>
         <Popover ref="bgPopover">
           <div class="flex flex-col gap-4 w-[25rem] bg-transparent p-2">
@@ -154,12 +154,12 @@
         <!-- Undo/Redo Buttons -->
         <Button
           type="button"
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="undo"
           :disabled="!canUndo"
           :class="{ '!opacity-50 !cursor-not-allowed': !canUndo }"
         >
-          <Undo :size="20" />
+          <Undo :size="16" />
         </Button>
 
         <div
@@ -174,12 +174,12 @@
 
         <Button
           type="button"
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="redo"
           :disabled="!canRedo"
           :class="{ '!opacity-50 !cursor-not-allowed': !canRedo }"
         >
-          <Redo :size="20" />
+          <Redo :size="16" />
         </Button>
 
         <div
@@ -261,7 +261,7 @@
         <Button
           title="Export Canvas"
           type="button"
-          class="!flex-shrink-0 size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleExportPopover"
         >
           <Download :size="20" />
