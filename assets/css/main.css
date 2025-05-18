@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-content: "Cabin", sans-serif;
-  --font-heading: "Raleway", cursive;
-  --font-subheading: "Josefin Sans", cursive;
+  --font-content: "Rubik", sans-serif;
+  --font-heading: "Spectral", serif;
+  --font-subheading: "Spectral", serif;
 }
 
 @layer components {

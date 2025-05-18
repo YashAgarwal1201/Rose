@@ -64,9 +64,12 @@ const currentList = computed(() =>
 const deleteList = () => {
   if (!currentList.value) {
     router.push("/to-do-list");
+
     toast.add({
-      title: "No list found to delete, navigating to `To Do List home page`",
-      timeout: 700,
+      severity: "info",
+      summary: "Info",
+      detail: "No list found to delete, navigating to `To Do List home page`",
+      life: 3000,
     });
     return;
   }

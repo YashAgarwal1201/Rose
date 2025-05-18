@@ -5,12 +5,13 @@ const config: Config = {
   important: true,
   theme: {
     extend: {
-      fontFamily: {
-        heading: ["Raleway", "sans-serif"], // Raleway for headings
-        content: ["Inter", "sans-serif"], // Inter for content
-      },
+      // fontFamily: {
+      //   heading: ["adamina", "sans-serif"], // Raleway for headings
+      //   content: ["work-sans", "sans-serif"], // Inter for content
+      // },
     },
   },
+  darkMode: "class",
   plugins: [
     function ({
       addUtilities,

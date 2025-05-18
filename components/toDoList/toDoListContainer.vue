@@ -131,7 +131,7 @@ const deleteTodoItem = (listId: string, itemId: string) => {
     </div>
 
     <!-- Todo Items -->
-    <div class="space-y-2">
+    <div class="space-y-2" ref="listContainer">
       <div
         v-for="(item, index) in currentList?.list || []"
         :key="item.id"
@@ -187,6 +187,7 @@ const route = useRoute();
 // Refs
 
 const inputRefs = ref<(HTMLInputElement | null)[]>([]);
+const listContainer = ref<HTMLElement | null>(null);
 
 const props = defineProps<{
   currentList: TodoList | undefined;
@@ -194,6 +195,12 @@ const props = defineProps<{
 
 const newListTitle = ref(props.currentList ? props.currentList.title : "");
 const listId = computed(() => route.params.id as string);
+
+const setInputRefs = (el: HTMLInputElement | null) => {
+  if (el && !inputRefs.value.includes(el)) {
+    inputRefs.value.push(el);
+  }
+};
 
 // Methods
 const createNewTodoList = () => {
@@ -255,17 +262,35 @@ const handleEnterKey = async (
     await nextTick();
 
     // Focus the new input
-    const allInputs = inputRefs.value.filter((input) => input !== null);
-    console.log("All Inputs", allInputs);
-    const nextInput = allInputs[allInputs.length];
+    // const allInputs = inputRefs.value.filter((input) => input !== null);
+    // console.log("All Inputs", allInputs);
+    // const nextInput = allInputs[allInputs.length - 1];
 
-    console.log(nextInput?.firstChild);
-    if (nextInput) {
-      nextInput.focus();
-      console.log("Focused");
+    // console.log(nextInput?.firstChild);
+    // if (nextInput) {
+    //   nextInput.focus();
+    //   console.log("Focused");
+    // }
+
+    // Query all input[type="text"] elements inside the list container
+    const inputs = listContainer.value?.querySelectorAll('input[type="text"]');
+
+    const lastInput = inputs?.[inputs.length - 1] as
+      | HTMLInputElement
+      | undefined;
+
+    if (lastInput?.focus) {
+      lastInput.focus();
+    } else {
+      console.warn("Could not find the new input to focus.");
     }
   }
 };
+
+onUpdated(() => {
+  // Reset refs to match current rendered inputs
+  inputRefs.value = inputRefs.value.filter(Boolean);
+});
 
 // Clean up empty items when component unmounts
 onBeforeUnmount(() => {

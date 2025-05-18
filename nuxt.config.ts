@@ -42,12 +42,23 @@ export default defineNuxtConfig({
 
   modules: [
     "@pinia/nuxt",
+    [
+      "@nuxtjs/color-mode",
+      {
+        classSuffix: "", // so it adds `dark` or `light` directly (not `dark-mode`, etc.)
+        preference: "system", // default value (can be 'light', 'dark' or 'system')
+        fallback: "light", // fallback when system preference can't be determined
+        storageKey: "nuxt-color-mode", // key used in localStorage
+      },
+    ],
     "@nuxt/fonts",
     "@vite-pwa/nuxt",
     "@primevue/nuxt-module",
   ],
-
-  plugins: [{ src: "~/plugins/highcharts-vue.ts", mode: "client" }],
+  plugins: [
+    { src: "~/plugins/highcharts-vue.ts", mode: "client" },
+    { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
+  ],
 
   fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
@@ -65,6 +76,34 @@ export default defineNuxtConfig({
           src: "/logo.svg",
           sizes: "any",
           type: "image/svg+xml",
+        },
+      ],
+    },
+    workbox: {
+      globPatterns: ["**/*.{js,css,html,ico,png,svg,ts}"],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/fonts\.bunny\.net\/.*/i,
+          handler: "CacheFirst",
+          method: "GET",
+          options: {
+            cacheName: "bunny-fonts",
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+            },
+          },
+        },
+        {
+          urlPattern: /^https:\/\/projectt-rose.vercel\.app\/.*$/,
+          handler: "NetworkFirst",
+          options: {
+            cacheName: "api-cache",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 300,
+            },
+          },
         },
       ],
     },

@@ -1,17 +1,8 @@
 <template>
-  <div class="px-4 py-3 w-full h-full flex flex-col gap-y-3">
-    <!-- Title Input -->
-    <div class="w-full flex-shrink-0">
-      <InputText
-        v-model="title"
-        type="text"
-        placeholder="Enter a title..."
-        class="w-full !rounded-xl text-xl md:text-2xl text-slate-800 dark:text-slate-200 bg-transparent border-b-2 border-rose-300 dark:border-rose-700 focus:outline-none focus:border-rose-500 px-3 py-2"
-      />
-    </div>
-
+  <div class="px-2 sm:px-3 md:px-4 py-2 sm:py-3 w-full h-full">
     <div
-      class="w-full h-full flex gap-3"
+      :v-show="false"
+      class="w-full h-full flex gap-2 border-0 border-rose-900"
       :class="{
         'flex-col': toolbarPosition === 'top',
         'flex-row': toolbarPosition === 'left',
@@ -21,20 +12,38 @@
     >
       <!-- Toolbar -->
       <div
-        class="p-2 rounded-xl bg-rose-400 dark:bg-rose-950 flex-shrink-0 flex gap-1 overflow-x-auto"
+        class="w-full p-2 rounded-xl bg-rose-400 dark:bg-rose-950 flex flex-nowrap gap-1 overflow-x-auto flex-shrink-0"
         :class="{
-          'flex-row  items-center':
+          'flex-row items-center':
             toolbarPosition === 'top' || toolbarPosition === 'bottom',
-          'flex-col  items-start':
+          'flex-col items-start':
             toolbarPosition === 'left' || toolbarPosition === 'right',
         }"
       >
+        <Button
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          title="To do list info"
+          @click="navigateToNewList"
+        >
+          <FileEdit :size="16" />
+        </Button>
+
+        <div
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
+          :class="{
+            'w-[1px] h-[calc(100%-0.5rem)]':
+              toolbarPosition === 'top' || toolbarPosition === 'bottom',
+            'mx-2 my-1 h-[1px] w-full':
+              toolbarPosition === 'left' || toolbarPosition === 'right',
+          }"
+        ></div>
+
         <!-- Pen Color -->
         <Button
           type="button"
-          class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="togglePenPopover"
-          ><Pen :size="20"
+          ><Pen :size="16"
         /></Button>
         <Popover ref="penPopover">
           <div class="flex flex-col gap-4 w-[25rem] bg-transparent p-2">
@@ -84,11 +93,11 @@
         </Popover>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -96,9 +105,9 @@
         <!-- Background Color -->
         <Button
           type="button"
-          class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleBgPopover"
-          ><PaintBucket :size="20"
+          ><PaintBucket :size="16"
         /></Button>
         <Popover ref="bgPopover">
           <div class="flex flex-col gap-4 w-[25rem] bg-transparent p-2">
@@ -134,11 +143,11 @@
         </Popover>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -146,40 +155,40 @@
         <!-- Undo/Redo Buttons -->
         <Button
           type="button"
-          class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="undo"
           :disabled="!canUndo"
           :class="{ '!opacity-50 !cursor-not-allowed': !canUndo }"
         >
-          <Undo :size="20" />
+          <Undo :size="16" />
         </Button>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
 
         <Button
           type="button"
-          class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="redo"
           :disabled="!canRedo"
           :class="{ '!opacity-50 !cursor-not-allowed': !canRedo }"
         >
-          <Redo :size="20" />
+          <Redo :size="16" />
         </Button>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -187,7 +196,7 @@
         <!-- Edit Toggle -->
         <Button
           title="Toggle Edit Mode"
-          class="h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleEdit"
           :class="{
             ' ml-auto':
@@ -201,11 +210,11 @@
         </Button>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -213,7 +222,7 @@
         <!-- Clear Canvas -->
         <Button
           title="Clear Canvas"
-          class="h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="clear"
         >
           <Trash :size="16" />
@@ -221,11 +230,11 @@
         </Button>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -233,18 +242,18 @@
         <!-- Save Changes -->
         <Button
           title="Save Changes"
-          class="h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
         >
           <Check :size="16" />
           <!-- <span>Save Changes</span> -->
         </Button>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -253,7 +262,7 @@
         <Button
           title="Export Canvas"
           type="button"
-          class="size-8 md:size-9 2xl:size-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleExportPopover"
         >
           <Download :size="20" />
@@ -292,11 +301,11 @@
         </Popover>
 
         <div
-          class="bg-rose-100 dark:bg-rose-900"
+          class="bg-rose-100 dark:bg-rose-900 flex-shrink-0"
           :class="{
             'w-[1px] h-[calc(100%-0.5rem)]':
               toolbarPosition === 'top' || toolbarPosition === 'bottom',
-            'mx-2 my-1 h-[1px] max-w-full block':
+            'mx-2 my-1 h-[1px] w-full':
               toolbarPosition === 'left' || toolbarPosition === 'right',
           }"
         ></div>
@@ -304,7 +313,7 @@
         <!-- Change toolbar position -->
         <Button
           title="Change Toolbar Position"
-          class="h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
+          class="!flex-shrink-0 h-8 md:h-9 2xl:h-10 !rounded-xl px-4 py-2 flex items-center gap-x-2 !bg-transparent !border-transparent !text-slate-900 dark:!text-slate-100 hover:!bg-rose-100 dark:hover:!bg-slate-700"
           @click="toggleToolbarPositionPopover"
         >
           <Wrench :size="16" />
@@ -340,9 +349,40 @@
           </div>
         </Popover>
       </div>
-      <!-- Canvas -->
-      <div class="max-w-full max-h-full flex-grow rounded-3xl relative">
-        <canvas ref="canvas" class="w-full h-full rounded-3xl border"></canvas>
+
+      <CanvasToolbar
+        :toolbarPosition="toolbarPosition"
+        :isEditable="isEditable"
+        @navigateToNewList="navigateToNewList"
+        @togglePenPopover="togglePenPopover"
+        @toggleBrushWidthPopover="togglePenPopover"
+        @toggleEditable="toggleEdit"
+        @undoCanvas="undo"
+        @redoCanvas="redo"
+        @clearCanvas="clear"
+        @toggleTitleInput="() => {}"
+        @toggleToolbarPositionPopover="toggleToolbarPositionPopover"
+      />
+
+      <div class="max-w-full flex-grow-1 flex flex-col">
+        <!-- Title Input -->
+        <div
+          class="w-full flex-shrink-0 border-b border-rose-400 dark:border-rose-950"
+        >
+          <InputText
+            v-model="title"
+            type="text"
+            placeholder="Enter a title..."
+            class="w-full !rounded-t-xl !rounded-b-none text-xl md:text-2xl text-slate-800 dark:text-slate-200 placeholder:!text-rose-300 !border-none border-rose-300 dark:border-rose-700 focus:outline-none focus:border-rose-500 !px-4 !py-3"
+            :style="{ backgroundColor: bgColor }"
+          />
+        </div>
+
+        <!-- Canvas -->
+
+        <div class="flex-grow relative rounded-xl">
+          <canvas ref="canvas" class="w-full h-full rounded-b-xl"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -370,18 +410,22 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import FileUpload from "primevue/fileupload";
 import Popover from "primevue/popover";
+import { useRouter } from "vue-router";
+import { v4 as uuidv4 } from "uuid";
 
 let signaturePad: SignaturePad | null = null;
 
+const router = useRouter();
+
 const canvas = ref<HTMLCanvasElement | null>(null);
-const isEditable = ref(false);
-const penColor = ref<string>("#000000");
-const bgColor = ref<string>("#0f0f0f");
+// const isEditable = ref(false);
+// const penColor = ref<string>("#000000");
+// const bgColor = ref<string>("#0f0f0f");
 const penPopover = ref();
 const bgPopover = ref();
-const penWidth = ref<number>(2);
+// const penWidth = ref<number>(2);
 // const penWidthPopover = ref();
-const title = ref("");
+// const title = ref("");
 
 // Undo/Redo history state
 const history = ref<any[]>([]);
@@ -390,21 +434,30 @@ const canUndo = ref(false);
 const canRedo = ref(false);
 const exportPopover = ref();
 const toolbarPositionPopover = ref();
-const toolbarPosition = ref("top");
+// const toolbarPosition = ref("top");
+
+import { storeToRefs } from "pinia";
+import { useSkecthNotesStore } from "@/stores/sketchNotesStore";
+import CanvasToolbar from "./CanvasToolbar.vue";
+
+const canvasStore = useSkecthNotesStore();
+const { penColor, penWidth, bgColor, title, toolbarPosition, isEditable } =
+  storeToRefs(canvasStore);
 
 const { exportFormats, isExporting, exportCanvas } = useCanvasExport();
 
 const handleExport = async (format: string) => {
   if (!canvas.value) return;
   try {
-    await exportCanvas(format, canvas.value, bgColor.value);
+    await exportCanvas(format, canvas.value, bgColor.value, title.value);
   } catch (error) {
     alert("Export failed: " + (error as Error).message);
   }
 };
 
 const handleToolbarPositionChange = (position: string) => {
-  toolbarPosition.value = position;
+  // toolbarPosition.value = position;
+  canvasStore.setToolbarPosition(position);
   toolbarPositionPopover.value.hide();
 };
 
@@ -510,6 +563,7 @@ const clear = () => {
   ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
 
   signaturePad.clear();
+  title.value = "";
 };
 
 // Export canvas as image
@@ -668,6 +722,11 @@ const applyState = (state: any) => {
     }
   };
   img.src = state.image;
+};
+
+const navigateToNewList = () => {
+  const newListId = uuidv4();
+  router.push(`/to-do-list/${newListId}`);
 };
 </script>
 

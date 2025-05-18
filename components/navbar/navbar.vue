@@ -31,23 +31,23 @@
       >
         <ListTodo :size="16" />
       </RouterLink>
-      <RouterLink
+      <!-- <RouterLink
         to="/docs-generator"
         v-if="route.fullPath"
         :class="[
           route.fullPath === '/docs-generator' ? selectedButton : buttonStyles,
         ]"
         ><FileText :size="16"
-      /></RouterLink>
+      /></RouterLink> -->
 
-      <RouterLink
+      <!-- <RouterLink
         to="/sketch-notes"
         v-if="route.fullPath"
         :class="[
           route.fullPath === '/sketch-notes' ? selectedButton : buttonStyles,
         ]"
         ><Signature :size="16"
-      /></RouterLink>
+      /></RouterLink> -->
     </div>
 
     <div

@@ -35,7 +35,7 @@ const isUnsupportedScreen = ref(false);
 
 onMounted(() => {
   const checkScreenSize = () => {
-    isUnsupportedScreen.value = window.innerWidth < 1024;
+    isUnsupportedScreen.value = window.innerWidth < 102;
   };
 
   checkScreenSize();
@@ -53,6 +53,12 @@ useHead({
 });
 
 defineOptions({ ssr: false });
+
+import { useNuxtApp } from "#app";
+
+// Initialize the IndexedDB persistence
+const { $piniaIndexedDB } = useNuxtApp();
+$piniaIndexedDB();
 </script>
 
 <style lang="css">
@@ -64,7 +70,7 @@ defineOptions({ ssr: false });
   .custom-panel-header:hover {
     color: var(--primary-color) !important;
     background-color: var(--color3) !important;
-    border-color: var(--) !important;
+    border-color: var(--color3) !important;
   }
 }
 
