@@ -52,20 +52,20 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-            <RouterLink to="/sketch-notes" :class="buttonStyles">
+            <!-- <RouterLink to="/sketch-notes" :class="buttonStyles">
               <Signature :size="16" />
               <span>Sketch Notes</span>
             </RouterLink>
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
             <div :class="buttonStyles">
               <Moon :size="16" />
               <span>Dark Mode?</span>
               <ToggleSwitch
-                v-model="darkMode"
+                :modelValue="colorMode.preference === 'dark'"
+                @update:modelValue="toggleDarkMode"
                 class="ml-auto"
-                @change="toggleDarkMode"
               />
             </div>
 
@@ -112,22 +112,44 @@ const feedbackBtnHandle = () => {
   headerStore.showSideMenu = false;
 };
 
+// onMounted(() => {
+//   if (import.meta.client) {
+//     const storedTheme = localStorage.getItem("theme");
+
+//     if (storedTheme === "dark") {
+//       darkMode.value = true;
+//       document.documentElement.classList.add("dark");
+//     } else if (storedTheme === "light") {
+//       darkMode.value = false;
+//       document.documentElement.classList.remove("dark");
+//     } else {
+//       // fallback to system preference
+//       darkMode.value = window.matchMedia(
+//         "(prefers-color-scheme: dark)"
+//       ).matches;
+//       document.documentElement.classList.toggle("dark", darkMode.value);
+//     }
+//   }
+// });
+
+// watch(darkMode, (newVal) => {
+//   if (import.meta.client) {
+//     if (newVal) {
+//       document.documentElement.classList.add("dark");
+//       document.documentElement.classList.remove("light");
+//       localStorage.setItem("theme", "dark");
+//     } else {
+//       document.documentElement.classList.remove("dark");
+//       document.documentElement.classList.add("light");
+//       localStorage.setItem("theme", "light");
+//     }
+//   }
+// });
+
+const colorMode = useColorMode();
+
 const toggleDarkMode = () => {
-  // Get the current theme by checking the 'dark-theme' class on the html element
-
-  console.log("darkMode", darkMode.value);
-  const currentTheme = document.documentElement.classList.contains("dark")
-    ? "dark"
-    : "light";
-
-  // Toggle the theme on the 'html' element
-  if (currentTheme === "light") {
-    document.documentElement.classList.remove("light");
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-    document.documentElement.classList.add("light");
-  }
+  colorMode.preference = colorMode.preference === "dark" ? "light" : "dark";
 };
 </script>
 

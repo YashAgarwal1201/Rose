@@ -25,7 +25,7 @@
           </Button>
         </div> -->
 
-        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
           <h3 class="font-heading text-lg md:text-xl">
             To Do Lists added this month
           </h3>
@@ -39,7 +39,8 @@
               class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-900"
             >
               <div class="mt-1">
-                <UCheckbox :value="false" />
+                <Checkbox :value="false" />
+                <!-- <UCheckbox :value="false" /> -->
               </div>
               <div>
                 <h3
@@ -70,9 +71,9 @@
               <span>New ToDo List</span>
             </Button>
           </div>
-        </div> -->
+        </div>
 
-        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
           <h3 class="font-heading text-lg md:text-xl">
             Documents added this month
           </h3>
@@ -117,7 +118,7 @@
               <span>New ToDo List</span>
             </Button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
 
