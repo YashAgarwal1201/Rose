@@ -8,78 +8,71 @@
       header="Menu"
     >
       <div class="flex flex-col">
-        <!-- <div class="flex justify-between items-start p-5">
-          <h2 class="font-heading text-xl sm:text-2xl lg:text-3xl text-color5">
-            Menu
-          </h2>
-          <Button
-            icon="material-symbols:close-rounded"
-            @click="headerStore.showSideMenu = false"
-            class="self-end bg-transparent rounded-full"
-            variant="outline"
-          />
-        </div> -->
+        <div
+          class="w-full flex flex-col rounded-3xl bg-rose-700 dark:bg-rose-900 p-4"
+        >
+          <RouterLink to="/" :class="buttonStyles">
+            <Home :size="16" />
+            <span>Home</span>
+          </RouterLink>
 
-        <div class="w-full px-5 pb-5">
-          <div
-            class="w-full flex flex-col rounded-3xl bg-rose-700 dark:bg-rose-900 p-4"
-          >
-            <RouterLink to="/" :class="buttonStyles">
-              <Home :size="16" />
-              <span>Home</span>
-            </RouterLink>
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
-
-            <!-- <RouterLink to="/expense-calculator" :class="buttonStyles">
+          <!-- <RouterLink to="/expense-calculator" :class="buttonStyles">
               <Calculator :size="16" />
               <span>Expense Calculator</span>
             </RouterLink> -->
 
-            <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
+          <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-            <RouterLink to="/to-do-list" :class="buttonStyles">
-              <ListTodo :size="16" />
-              <span>To Do List</span>
-            </RouterLink>
+          <RouterLink to="/to-do-list" :class="buttonStyles">
+            <ListTodo :size="16" />
+            <span>To Do List</span>
+          </RouterLink>
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-            <!-- <RouterLink to="/docs-generator" :class="buttonStyles">
+          <!-- <RouterLink to="/docs-generator" :class="buttonStyles">
               <FileText :size="16" />
               <span>Docs Generator</span>
             </RouterLink>
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-            <!-- <RouterLink to="/sketch-notes" :class="buttonStyles">
+          <!-- <RouterLink to="/sketch-notes" :class="buttonStyles">
               <Signature :size="16" />
               <span>Sketch Notes</span>
             </RouterLink>
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-            <div :class="buttonStyles">
-              <Moon :size="16" />
-              <span>Dark Mode?</span>
-              <ToggleSwitch
-                :modelValue="colorMode.preference === 'dark'"
-                @update:modelValue="toggleDarkMode"
-                class="ml-auto"
-              />
-            </div>
-
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
-
-            <Button
-              @click="feedbackBtnHandle"
-              :class="buttonStyles"
-              class="text-white !border-none !flex !items-center !justify-start shadow-none"
-            >
-              <MessageCircle :size="16" />
-              <span>Give Feedback</span>
-            </Button>
+          <div :class="buttonStyles">
+            <Palette :size="16" />
+            <span>Theme</span>
+            <Select
+              :modelValue="colorMode.preference"
+              @update:modelValue="(val) => (colorMode.preference = val)"
+              :options="[
+                { label: 'System', value: 'system' },
+                { label: 'Dark', value: 'dark' },
+                { label: 'Light', value: 'light' },
+              ]"
+              optionLabel="label"
+              optionValue="value"
+              class="ml-auto w-auto !text-sm !rounded-xl"
+            />
           </div>
+
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
+          <Button
+            @click="feedbackBtnHandle"
+            :class="buttonStyles"
+            class="text-white !border-none !flex !items-center !justify-start shadow-none"
+          >
+            <MessageCircle :size="16" />
+            <span>Give Feedback</span>
+          </Button>
         </div>
       </div>
     </Drawer>
@@ -96,8 +89,9 @@ import {
   Moon,
   MessageCircle,
   Signature,
+  Palette,
 } from "lucide-vue-next";
-import ToggleSwitch from "primevue/toggleswitch";
+import Select from "primevue/select";
 
 const darkMode = ref(true);
 
