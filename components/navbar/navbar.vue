@@ -53,7 +53,7 @@
     <div
       class="w-full h-full md:h-fit flex justify-between items-center mt-0 md:mt-auto"
     >
-      <h3 class="block md:hidden text-lg sm:text-xl">
+      <h3 class="block md:hidden text-lg sm:text-xl font-heading">
         {{ headerStore.headerTitle }}
       </h3>
 

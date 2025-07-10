@@ -2,7 +2,7 @@
   <div class="w-full h-full flex justify-center">
     <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl lg:text-3xl font-heading">Documents</h1>
+        <h1 class="hidden md:block text-2xl lg:text-3xl font-heading">Documents</h1>
         <Button
           v-if="documentStore?.documents?.length > 0"
           class="text-white shadow-none"
