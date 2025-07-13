@@ -9,29 +9,39 @@
 
         <div class="h-full flex flex-col justify-end items-center gap-2 px-2">
           <Button
-            class="text-white w-10 h-10 shadow-none rounded-2xl flex-shrink-0"
+            class="text-white w-10 h-10 shadow-none !rounded-2xl flex-shrink-0"
             title="To do list info"
             @click="toast.add({ detail: FEATURE_COMING_SOON, life: 1500 })"
             ><Info :size="16" />
           </Button>
           <Button
-            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            class="text-white w-10 h-10 shadow-none !rounded-2xl"
             title="Mark all items as done"
             @click="toast.add({ detail: FEATURE_COMING_SOON, life: 1500 })"
             ><CheckCircle :size="16" />
           </Button>
           <Button
-            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            class="text-white w-10 h-10 shadow-none !rounded-2xl"
             title="Delete to do list"
             @click="deleteList"
             ><Trash :size="16" />
           </Button>
           <Button
-            class="text-white w-10 h-10 shadow-none rounded-2xl"
+            class="text-white w-10 h-10 shadow-none !rounded-2xl"
             title="Download to do list"
-            @click="downloadList"
+            @click="(event) => downloadPanel?.toggle(event)"
             ><Download :size="16" />
           </Button>
+
+          <OverlayPanel ref="downloadPanel">
+            <div class="flex flex-col gap-2">
+              <Button label="Download as JSON" @click="download('json')" />
+              <Button label="Download as Text" @click="download('txt')" />
+              <Button label="Download as Markdown" @click="download('md')" />
+              <Button label="Download as CSV" @click="download('csv')" />
+              <Button label="Download as HTML" @click="download('html')" />
+            </div>
+          </OverlayPanel>
         </div>
       </div>
     </div>
@@ -42,12 +52,16 @@
 import { CheckCircle, Download, Info, Trash } from "lucide-vue-next";
 import Button from "primevue/button";
 import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
+import OverlayPanel from "primevue/overlaypanel";
+import { ref } from "vue";
 
 const toast = useToast();
 
 const route = useRoute();
 const router = useRouter();
 const todoStore = useTodoStore();
+
+const downloadPanel = ref();
 
 const listId = computed(() => route.params.id as string);
 
@@ -78,27 +92,50 @@ const deleteList = () => {
   // showDeleteModal.value = false;
 };
 
-const downloadList = () => {
+function download(format: string) {
   if (!currentList.value) return;
 
-  const listData = {
-    title: currentList.value.title,
-    items: currentList.value.list,
-    created: currentList.value.timestamp,
-  };
+  let content = "";
+  let mime = "text/plain";
+  let extension = format;
 
-  const blob = new Blob([JSON.stringify(listData, null, 2)], {
-    type: "application/json",
-  });
+  switch (format) {
+    case "json":
+      content = generateJson(currentList.value);
+      mime = "application/json";
+      break;
+    case "txt":
+      content = generateTxt(currentList.value);
+      mime = "text/plain";
+      break;
+    case "md":
+      content = generateMarkdown(currentList.value);
+      mime = "text/markdown";
+      break;
+    case "csv":
+      content = generateCsv(currentList.value);
+      mime = "text/csv";
+      break;
+    case "html":
+      content = generateHtml(currentList.value);
+      mime = "text/html";
+      break;
+    default:
+      return;
+  }
+
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${currentList.value.title || "todo-list"}.json`;
+  a.download = `${currentList.value.title || "todo-list"}.${extension}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-};
+
+  // downloadMenu.value?.hide();
+}
 </script>
 
 <style scoped></style>

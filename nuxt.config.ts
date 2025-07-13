@@ -1,8 +1,5 @@
 import MyPreset from "./MyPreset";
 import tailwindcss from "@tailwindcss/vite";
-import fs from "fs";
-
-const isLocalDev = process.env.NODE_ENV === "development";
 
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
@@ -11,18 +8,10 @@ export default defineNuxtConfig({
   devServer: {
     port: 5176,
     host: "0.0.0.0",
-    ...(isLocalDev &&
-    fs.existsSync("./localhost-key.pem") &&
-    fs.existsSync("./localhost.pem")
-      ? {
-          https: {
-            key: fs.readFileSync("./localhost-key.pem", "utf8"),
-            cert: fs.readFileSync("./localhost.pem", "utf8"),
-          },
-        }
-      : {}),
   },
-
+  build: {
+    analyze: false,
+  },
   css: ["~/assets/css/main.css"],
   ssr: false, // Disable server-side rendering (hack)
 
@@ -57,10 +46,10 @@ export default defineNuxtConfig({
   ],
   plugins: [
     { src: "~/plugins/highcharts-vue.ts", mode: "client" },
-    { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
+    // { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
   ],
 
-  fonts: { families: [{ name: "Raleway", provider: "google" }] },
+  // fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
   pwa: {
     registerType: "autoUpdate",

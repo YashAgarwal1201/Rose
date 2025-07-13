@@ -7,8 +7,18 @@ import type {
   TodoList,
 } from "~/types/typesAndInterfaces";
 
+function toRawData<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export const useTodoStore = defineStore("todos", () => {
-  const listOfTodos = ref<ListOfTodos>([]);
+  let listOfTodos = ref<ListOfTodos>([]);
+  let loaded = ref<boolean>(false);
+
+  const loadTodos = async () => {
+    listOfTodos.value = await getAllLists();
+    loaded.value = true;
+  };
 
   // Create a new TodoItem
   const createTodoItem = (text: string): TodoItem => ({
@@ -28,26 +38,28 @@ export const useTodoStore = defineStore("todos", () => {
   });
 
   // Add a new TodoList to the ListOfTodos.
-  const addTodoList = (id: string, title: string) => {
+  const addTodoList = async (id: string, title: string) => {
     const newList = createTodoList(id, title);
     listOfTodos.value.push(newList);
+    await saveList(toRawData(newList));
     return newList;
   };
 
   // Add a new TodoItem to a specific TodoList.
-  const addTodoItemToList = (listId: string, text: string) => {
+  const addTodoItemToList = async (listId: string, text: string) => {
     const targetList = listOfTodos.value.find((list) => list.id === listId);
     if (targetList) {
       const newTodo = createTodoItem(text);
       targetList.list.push(newTodo);
       updateListCompletionStatus(targetList);
+      await saveList(toRawData(targetList));
       return newTodo;
     }
     return null;
   };
 
   // Update an existing TodoItem in a specific TodoList.
-  const updateTodoItemInList = (
+  const updateTodoItemInList = async (
     listId: string,
     todoId: string,
     updates: Partial<TodoItem>
@@ -61,6 +73,7 @@ export const useTodoStore = defineStore("todos", () => {
           ...updates,
         };
         updateListCompletionStatus(targetList);
+        await saveList(toRawData(targetList));
         return targetList.list[itemIndex];
       }
     }
@@ -68,30 +81,33 @@ export const useTodoStore = defineStore("todos", () => {
   };
 
   // Update an existing TodoList.
-  const updateTodoList = (listId: string, updates: Partial<TodoList>) => {
+  const updateTodoList = async (listId: string, updates: Partial<TodoList>) => {
     const listIndex = listOfTodos.value.findIndex((list) => list.id === listId);
     if (listIndex !== -1) {
       listOfTodos.value[listIndex] = {
         ...listOfTodos.value[listIndex],
         ...updates,
       };
+      await saveList(toRawData(listOfTodos.value[listIndex]));
       return listOfTodos.value[listIndex];
     }
     return null;
   };
 
   // Delete a TodoItem from a specific TodoList.
-  const deleteTodoItemFromList = (listId: string, todoId: string) => {
-    const targetList = listOfTodos.value.find((list) => list.id === listId);
+  const deleteTodoItemFromList = async (listId: string, todoId: string) => {
+    const targetList = listOfTodos.value?.find((list) => list.id === listId);
     if (targetList) {
-      targetList.list = targetList.list.filter((item) => item.id !== todoId);
+      targetList.list = targetList.list?.filter((item) => item.id !== todoId);
       updateListCompletionStatus(targetList);
+      await saveList(toRawData(targetList));
     }
   };
 
   // Delete an entire TodoList.
-  const deleteTodoList = (listId: string) => {
-    listOfTodos.value = listOfTodos.value.filter((list) => list.id !== listId);
+  const deleteTodoList = async (listId: string) => {
+    listOfTodos.value = listOfTodos.value?.filter((list) => list.id !== listId);
+    await deleteList(listId);
   };
 
   // Update list completion status based on all todo items
@@ -110,8 +126,21 @@ export const useTodoStore = defineStore("todos", () => {
     listOfTodos.value.filter((list) => !list.isDone)
   );
 
+  const clearStoreData = async () => {
+    await clearAllLists();
+    listOfTodos.value = [];
+  };
+
+  const nukeDatabase = async () => {
+    await deleteDatabase();
+    listOfTodos.value = [];
+    loaded.value = false;
+  };
+
   return {
     listOfTodos,
+    loaded,
+    loadTodos,
     completedLists,
     activeLists,
     addTodoList,
@@ -120,5 +149,7 @@ export const useTodoStore = defineStore("todos", () => {
     updateTodoList,
     deleteTodoItemFromList,
     deleteTodoList,
+    clearStoreData,
+    nukeDatabase,
   };
 });

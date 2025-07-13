@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-content: "Rubik", sans-serif;
-  --font-heading: "Spectral", serif;
-  --font-subheading: "Spectral", serif;
+  /* --font-content: "Rubik", sans-serif; */
+  --font-content: "Manrope", sans-serif;
+  /* --font-heading: "Spectral", serif; */
+  --font-heading: "Petrona", serif;
+  /* --font-subheading: "Spectral", serif; */
+  --font-subheading: "Petrona", serif;
 }
 
 @layer components {

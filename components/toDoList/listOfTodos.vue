@@ -1,13 +1,21 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
-    <Button
-      class="text-white shadow-none !rounded-xl"
-      title="To do list info"
-      @click="navigateToNewList"
-    >
-      <FileEdit :size="16" />
-      <span>New ToDo List</span>
-    </Button>
+    <div class="flex items-center gap-3">
+      <Button
+        class="text-white shadow-none h-full flex-shrink-0 !rounded-xl"
+        title="Go back"
+        @click="goBack"
+        ><ArrowLeft :size="16" />
+      </Button>
+      <Button
+        class="text-white shadow-none !rounded-xl flex-grow"
+        title="To do list info"
+        @click="navigateToNewList"
+      >
+        <FileEdit :size="16" />
+        <span>New ToDo List</span>
+      </Button>
+    </div>
 
     <Accordion class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3">
       <AccordionPanel :value="0" class="!border-none !bg-transparent">
@@ -104,7 +112,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { v4 as uuidv4 } from "uuid";
-import { FileEdit } from "lucide-vue-next";
+import { ArrowLeft, FileEdit } from "lucide-vue-next";
 import { useTodoStore } from "@/stores/todoStore";
 import Accordion from "primevue/accordion";
 import AccordionPanel from "primevue/accordionpanel";
@@ -123,6 +131,10 @@ const navigateToList = (listId: string) => {
 const navigateToNewList = () => {
   const newListId = uuidv4(); // Generate a new UUID
   router.push(`/to-do-list/${newListId}`);
+};
+
+const goBack = () => {
+  router.back();
 };
 
 // Helper function to create date objects for filtering

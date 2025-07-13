@@ -17,8 +17,15 @@
     <FeedbackDialog />
   </div>
 
-  <div v-else class="h-full flex justify-center items-center p-2">
-    <p class="text-center">
+  <div
+    v-else
+    class="h-full flex flex-col justify-center items-center p-2 font-content"
+  >
+    <img
+      :src="BuildingWebsiteImage"
+      class="max-w-80 select-none pointer-events-none"
+    />
+    <p class="text-base lg:text-lg mb-3 italic px-3">
       Sorry this screen is not supported. Work is under progress
     </p>
   </div>
@@ -28,6 +35,7 @@
 import TransactionsHistoryModal from "~/components/expenseCalculator/TransactionsHistoryModal.vue";
 import Navbar from "~/components/navbar/navbar.vue";
 import SideMenu from "~/components/sideMenu/SideMenu.vue";
+import BuildingWebsiteImage from "~/assets/illustrations/buildingWebsiteRose.svg";
 
 import { ref, onMounted } from "vue";
 
@@ -35,7 +43,7 @@ const isUnsupportedScreen = ref(false);
 
 onMounted(() => {
   const checkScreenSize = () => {
-    isUnsupportedScreen.value = window.innerWidth < 102;
+    isUnsupportedScreen.value = window.innerWidth < 1024;
   };
 
   checkScreenSize();
@@ -48,17 +56,24 @@ onMounted(() => {
 
 const route = useRoute();
 
+// onMounted(() => {
+//   const todoStore = useTodoStore();
+//   if (!todoStore.loaded) {
+//     todoStore.loadTodos();
+//   }
+// });
+
 useHead({
   meta: [{ property: "og:title", content: `Rose - ${route.meta.title}` }],
 });
 
 defineOptions({ ssr: false });
 
-import { useNuxtApp } from "#app";
+// import { useNuxtApp } from "#app";
 
 // Initialize the IndexedDB persistence
-const { $piniaIndexedDB } = useNuxtApp();
-$piniaIndexedDB();
+// const { $piniaIndexedDB } = useNuxtApp();
+// $piniaIndexedDB();
 </script>
 
 <style lang="css">
