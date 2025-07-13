@@ -11,7 +11,6 @@ export default defineNuxtConfig({
   },
   build: {
     analyze: false,
-    // extractCSS: false, // Faster in dev
   },
   css: ["~/assets/css/main.css"],
   ssr: false, // Disable server-side rendering (hack)
@@ -47,10 +46,10 @@ export default defineNuxtConfig({
   ],
   plugins: [
     { src: "~/plugins/highcharts-vue.ts", mode: "client" },
-    { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
+    // { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
   ],
 
-  fonts: { families: [{ name: "Raleway", provider: "google" }] },
+  // fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
   pwa: {
     registerType: "autoUpdate",

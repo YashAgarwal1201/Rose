@@ -118,11 +118,11 @@ const deleteTodoItem = (listId: string, itemId: string) => {
       <InputText
         v-model="newListTitle"
         placeholder="Enter Title..."
-        class="w-full h-10"
+        class="w-full h-10 !rounded-2xl"
         @keyup.enter="createNewTodoList"
       />
       <Button
-        class="text-white w-10 h-10 shadow-none rounded-2xl"
+        class="text-white w-10 h-10 shadow-none !rounded-2xl"
         title="Delete to do item"
         @click="createNewTodoList"
       >
@@ -157,10 +157,10 @@ const deleteTodoItem = (listId: string, itemId: string) => {
             props.currentList?.id &&
               updateTodoItem(props.currentList.id, item.id, item.text)
           "
-          class="w-full h-10 *:h-10"
+          class="w-full h-10 *:h-10 !rounded-2xl"
         />
         <Button
-          class="text-white w-10 h-10 shadow-none rounded-2xl"
+          class="text-white w-10 h-10 shadow-none !rounded-2xl"
           title="Delete to do item"
           @click="deleteTodoItem(item.id)"
         >
@@ -203,7 +203,7 @@ const setInputRefs = (el: HTMLInputElement | null) => {
 };
 
 // Methods
-const createNewTodoList = () => {
+const createNewTodoList = async () => {
   if (newListTitle.value.trim() !== "") {
     // Create new list
     const newList = todoStore.addTodoList(
@@ -213,7 +213,7 @@ const createNewTodoList = () => {
 
     // Automatically add first empty item to the new list
     if (newList) {
-      todoStore.addTodoItemToList(newList.id, "");
+      todoStore.addTodoItemToList((await newList).id, "");
       // router.push(`/to-do-list/${newList.id}`);
     }
   }
