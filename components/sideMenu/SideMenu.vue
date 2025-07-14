@@ -46,6 +46,45 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
+          <Panel
+            toggleable
+            :collapsed="isKeyboardPanelCollapsed"
+            :class="buttonStyles"
+            class="!border-none *:!p-0 !bg-transparent !text-white font-content"
+          >
+            <template #header>
+              <div
+                class="flex items-center w-full gap-x-3 cursor-pointer"
+                @click="toggleKeyboardPanel"
+              >
+                <Keyboard :size="16" />
+                <h3 class="text-lg font-medium text-white">
+                  Keyboard Shortcuts
+                </h3>
+              </div>
+            </template>
+
+            <template #toggleicon><div></div></template>
+            <div class="flex flex-col gap-2 py-2">
+              <ul class="flex flex-col gap-1 !list-disc list-inside">
+                <li class="flex items-center gap-x-3 !list-disc">
+                  Press <kbd>Ctrl</kbd> + <kbd>H</kbd> for "Home" section
+                </li>
+                <li class="flex items-center gap-x-3 !list-disc">
+                  Press <kbd>Ctrl</kbd> + <kbd>T</kbd> for "To-Do List" section
+                </li>
+                <li class="flex items-center gap-x-3 !list-disc">
+                  Press <kbd>Ctrl</kbd> + <kbd>F</kbd> for "Feedback" section
+                </li>
+                <li class="flex items-center gap-x-3 !list-disc">
+                  Press <kbd>Ctrl</kbd> + <kbd>M</kbd> for "Menu & others"
+                </li>
+              </ul>
+            </div>
+          </Panel>
+
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
           <div :class="buttonStyles">
             <Palette :size="16" />
             <span>Theme</span>
@@ -142,19 +181,22 @@ import {
   Signature,
   Palette,
   FolderX,
+  Keyboard,
 } from "lucide-vue-next";
 import Select from "primevue/select";
+import { onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 
-const darkMode = ref(true);
+const router = useRouter();
 
 const todoStore = useTodoStore();
 const toast = useToast();
 const headerStore = useHeaderStore();
 const isPanelCollapsed = ref(true);
+const isKeyboardPanelCollapsed = ref(true);
 
 const buttonStyles =
   "!px-2 !py-4 !bg-transparent !text-white flex items-center !gap-x-3 !rounded-xl *:text-lg font-normal";
-// const { isSideMenuVisible, closeSideMenu } = useSideMenu();
 
 const feedbackBtnHandle = () => {
   headerStore.showFeedback = true;
@@ -166,45 +208,11 @@ const togglePanel = () => {
   isPanelCollapsed.value = !isPanelCollapsed.value;
 };
 
-// onMounted(() => {
-//   if (import.meta.client) {
-//     const storedTheme = localStorage.getItem("theme");
-
-//     if (storedTheme === "dark") {
-//       darkMode.value = true;
-//       document.documentElement.classList.add("dark");
-//     } else if (storedTheme === "light") {
-//       darkMode.value = false;
-//       document.documentElement.classList.remove("dark");
-//     } else {
-//       // fallback to system preference
-//       darkMode.value = window.matchMedia(
-//         "(prefers-color-scheme: dark)"
-//       ).matches;
-//       document.documentElement.classList.toggle("dark", darkMode.value);
-//     }
-//   }
-// });
-
-// watch(darkMode, (newVal) => {
-//   if (import.meta.client) {
-//     if (newVal) {
-//       document.documentElement.classList.add("dark");
-//       document.documentElement.classList.remove("light");
-//       localStorage.setItem("theme", "dark");
-//     } else {
-//       document.documentElement.classList.remove("dark");
-//       document.documentElement.classList.add("light");
-//       localStorage.setItem("theme", "light");
-//     }
-//   }
-// });
+const toggleKeyboardPanel = () => {
+  isKeyboardPanelCollapsed.value = !isKeyboardPanelCollapsed.value;
+};
 
 const colorMode = useColorMode();
-
-const toggleDarkMode = () => {
-  colorMode.preference = colorMode.preference === "dark" ? "light" : "dark";
-};
 
 async function clearStoreData() {
   await todoStore.clearStoreData();
@@ -225,6 +233,49 @@ async function deleteEntireDB() {
     life: 2000,
   });
 }
+
+function handleGlobalKeydown(event: KeyboardEvent) {
+  if (event.shiftKey) {
+    const key = event.key.toLowerCase();
+    switch (key) {
+      case "m":
+        event.preventDefault();
+        headerStore.showSideMenu = !headerStore.showSideMenu;
+        break;
+      case "h":
+        event.preventDefault();
+        router.push("/");
+        headerStore.showSideMenu = false;
+        break;
+      case "t":
+        event.preventDefault();
+        router.push("/to-do-list");
+        headerStore.showSideMenu = false;
+        break;
+      case "f":
+        event.preventDefault();
+        feedbackBtnHandle();
+        break;
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener("keydown", handleGlobalKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleGlobalKeydown);
+});
 </script>
 
-<style scoped></style>
+<style scoped>
+kbd {
+  padding-inline: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: smaller;
+  vertical-align: middle;
+  background-color: var(--color-rose-950);
+  color: var(--color-rose-100);
+}
+</style>
