@@ -24,7 +24,7 @@ export async function getList(id: string) {
 }
 
 export async function saveList(list: any) {
-  console.log("Saving list to IndexedDB:", JSON.stringify(list, null, 2));
+  // console.log("Saving list to IndexedDB:", JSON.stringify(list, null, 2));
   const db = await dbPromise;
   return db.put(STORE_NAME, list);
 }

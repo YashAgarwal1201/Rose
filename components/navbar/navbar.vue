@@ -4,7 +4,7 @@
   >
     <div
       v-if="route.fullPath"
-      class="w-full hidden md:flex flex-row md:flex-col justify-start items-center"
+      class="w-full hidden md:flex flex-row md:flex-col justify-start items-center gap-2"
     >
       <RouterLink
         to="/"
@@ -24,7 +24,7 @@
       </RouterLink> -->
       <RouterLink
         to="/to-do-list"
-        v-if="route.fullPath"
+        v-if="userStore.enabledFeatures.includes('todo') && route.fullPath"
         :class="[
           route.fullPath === '/to-do-list' ? selectedButton : buttonStyles,
         ]"
@@ -75,7 +75,9 @@ import {
   Menu,
   Home,
   Signature,
-} from "lucide-vue-next";
+  } from "lucide-vue-next";
+
+  const userStore = useUserSetupStore();
 
 // defineOptions({ ssr: false });
 defineNuxtComponent({

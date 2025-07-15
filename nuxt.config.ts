@@ -124,4 +124,14 @@ export default defineNuxtConfig({
       },
     },
   },
+
+  runtimeConfig: {
+    // Private (only on server)
+    // privateApiKey: process.env.PRIVATE_API_KEY,
+
+    // Public (client + server)
+    public: {
+      devProfileUrl: process.env.NUXT_PUBLIC_DEVELOPER_PROFILE_URL,
+    },
+  },
 });
