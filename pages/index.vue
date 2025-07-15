@@ -10,13 +10,19 @@
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
       <div class="w-full flex flex-col gap-y-2 sm:gap-y-3">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
-          <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
-            <h4 class="font-heading text-3xl text-center">{{ recentListsInCurrentMonth.length ?? 0 }}</h4>
-            <p class="text-base sm:text-lg font-content text-center">Todo lists created</p>
+          <div
+            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
+          >
+            <h4 class="font-heading text-3xl text-center">
+              {{ recentListsInCurrentMonth.length ?? 0 }}
+            </h4>
+            <p class="text-base sm:text-lg font-content text-center">
+              Todo lists created
+            </p>
           </div>
 
           <!-- uncomment once document generator is ready -->
-           <!-- <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
+          <!-- <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
             <h4 class="font-heading text-3xl text-center">{{ recentListsInCurrentMonth.length ?? 0 }}</h4>
             <p class="text-base sm:text-lg font-content text-center">Documentes created</p>
           </div> -->
@@ -149,6 +155,7 @@ import { useConfirm } from "primevue/useconfirm";
 const confirm = useConfirm();
 const router = useRouter();
 const todoStore = useTodoStore();
+const userStore = useUserSetupStore();
 const transactionStore = useExpenseCalculatorStore();
 
 definePageMeta({

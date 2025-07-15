@@ -48,6 +48,13 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
+          <RouterLink to="/customise-app" :class="buttonStyles">
+            <Wrench :size="16" />
+            <span>Customise App</span>
+          </RouterLink>
+
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
           <Panel
             toggleable
             :collapsed="isKeyboardPanelCollapsed"
@@ -131,13 +138,14 @@
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear entire application data?
                 </p>
+                <!-- TODO: delete user app data also -->
                 <Button
                   label="Delete Entire App Data"
                   icon="pi pi-times"
                   severity="danger"
                   class="!rounded-xl flex-shrink-0"
                   size="small"
-                  @click="deleteEntireDB"
+                  @click="confirmDeleteEntireDB"
                 />
               </div>
               <div class="mx-0 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
@@ -145,13 +153,14 @@
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear Todos data only?
                 </p>
+
                 <Button
                   label="Clear To-Do Store"
                   icon="pi pi-trash"
                   severity="secondary"
                   class="!rounded-xl flex-shrink-0"
                   size="small"
-                  @click="clearStoreData"
+                  @click="confirmClearStoreData"
                 />
               </div>
             </div>
@@ -191,17 +200,20 @@ import {
   Calculator,
   ListTodo,
   FileText,
-  Moon,
   MessageCircle,
   Signature,
   Palette,
   FolderX,
   Keyboard,
   UserCircle,
+  Wrench,
 } from "lucide-vue-next";
 import Select from "primevue/select";
 import { onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { useConfirm } from "primevue/useconfirm";
+
+const confirm = useConfirm();
 
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -289,6 +301,48 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleGlobalKeydown);
 });
+
+function confirmDeleteEntireDB() {
+  confirm.require({
+    message:
+      "Are you sure you want to delete ALL app data? This cannot be undone.",
+    header: "Confirm Delete All",
+    icon: "pi pi-exclamation-triangle",
+    rejectLabel: "Cancel",
+    acceptLabel: "Yes, Delete",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      await todoStore.nukeDatabase();
+      toast.add({
+        severity: "warn",
+        summary: "Database Deleted",
+        detail: "All App Data removed",
+        life: 2000,
+      });
+    },
+  });
+}
+
+function confirmClearStoreData() {
+  confirm.require({
+    message: "Clear all To-Do items?",
+    header: "Confirm Clear To-Do Store",
+    icon: "pi pi-trash",
+    rejectLabel: "Cancel",
+    acceptLabel: "Yes, Clear",
+    acceptClass: "p-button-secondary",
+
+    accept: async () => {
+      await todoStore.clearStoreData();
+      toast.add({
+        severity: "info",
+        summary: "Store Cleared",
+        detail: "All To-Do items deleted",
+        life: 2000,
+      });
+    },
+  });
+}
 </script>
 
 <style scoped>
