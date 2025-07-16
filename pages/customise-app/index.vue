@@ -24,14 +24,18 @@
         </RouterLink>
       </div>
 
-      <p class="text-lg">
+      <p v-if="setupStore.userName" class="text-lg">
+        Update your name or continue as
+        <strong>{{ setupStore.userName }}</strong>
+      </p>
+      <p v-else class="text-lg">
         Enter your name or continue as <strong>User #{{ defaultId }}</strong>
       </p>
 
       <div class="w-full max-w-2xl flex flex-col gap-y-4 m-auto">
         <InputText
           v-model="userName"
-          class="!rounded-2xl"
+          class="!rounded-2xl !py-3 !px-4"
           placeholder="Enter your name..."
           :maxlength="70"
           @keyup.enter="goToStep(1)"
@@ -54,17 +58,21 @@
         Select the features u want to use in your application
       </p>
       <div class="w-full max-w-2xl flex flex-col gap-y-4 m-auto">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-wrap justify-center items-center gap-3">
           <Button
             v-for="f in features"
             :key="f.value"
             :class="{
-              '!bg-blue-600 text-white': selectedFeatures.includes(f.value),
+              '!bg-rose-900 !border-rose-900 !text-white':
+                selectedFeatures.includes(f.value),
               'pointer-events-none': f.disabled,
             }"
             :disabled="f.disabled"
-            class="!rounded-xl flex flex-col items-center gap-y-3 aspect-square max-w-36"
+            class="!rounded-4xl flex flex-col items-center gap-y-3 aspect-square w-full max-w-36 !font-heading"
             @click="toggleFeature(f.value)"
+            :title="
+              f.disabled ? 'Coming Soon' : 'Click to add/remove this feature'
+            "
             ><component :is="f.icon" :size="24" /><span>{{
               f.label
             }}</span></Button
@@ -105,6 +113,7 @@ import {
   FileText,
   Signature,
   X,
+  Calculator,
 } from "lucide-vue-next";
 
 const router = useRouter();
@@ -114,10 +123,10 @@ const defaultId =
   setupStore.userName || new Date().getTime().toString().slice(-5); // Generate a default ID based on timestamp
 const userName = ref(setupStore.userName ?? "");
 const selectedFeatures = ref<string[]>([]);
-const activeStep = ref(0);
+const activeStep = ref(setupStore.userName ? 1 : 0);
 
 const hasExistingSetup = computed(() => {
-  return setupStore.userName || setupStore.enabledFeatures.length > 0; // Adjust if your store has a getter / field
+  return setupStore.userName && setupStore.enabledFeatures.length > 0; // Adjust if your store has a getter / field
 });
 
 const steps = [{ label: "Username" }, { label: "Features" }];
@@ -126,6 +135,7 @@ const features = [
   { label: "To Do List", value: "todo", icon: ListTodo, disabled: false },
   { label: "Docs Generator", value: "docs", icon: FileText, disabled: true },
   { label: "Sketch Notes", value: "sketch", icon: Signature, disabled: true },
+  // { label: "Expense Calculator", value: "calculator", icon: Calculator, disabled: true },
 ];
 
 function toggleFeature(value: string) {

@@ -1,17 +1,19 @@
 <template>
   <div
-    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 p-2"
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 p-2 overflow-y-auto font-content"
   >
-    <div class="w-full h-[200px]">
+    <div class="w-full h-[200px] flex-shrink-0">
       <HomepageDateAndTime />
     </div>
 
-    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7">
+    <div
+      class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7 flex-grow-1"
+    >
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
-      <div class="w-full flex flex-col gap-y-2 sm:gap-y-3">
+      <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
           <div
-            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
+            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
             <h4 class="font-heading text-3xl text-center">
               {{ recentListsInCurrentMonth.length ?? 0 }}
@@ -39,7 +41,7 @@
             <div
               v-for="(listItem, index) in recentListsInCurrentMonth"
               :key="index"
-              class="w-60 h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg shadow-md bg-rose-800 font-content"
+              class="w-60 h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg sm:rounded-xl shadow-md bg-rose-800 font-content"
             >
               <div class="mt-1 flex-shrink-0">
                 <Checkbox :value="listItem.isDone" />

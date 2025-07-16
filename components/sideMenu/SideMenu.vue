@@ -27,12 +27,19 @@
 
           <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-          <RouterLink to="/to-do-list" :class="buttonStyles">
+          <RouterLink
+            v-if="userStore.enabledFeatures.includes('todo')"
+            to="/to-do-list"
+            :class="buttonStyles"
+          >
             <ListTodo :size="16" />
             <span>To Do List</span>
           </RouterLink>
 
-          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+          <div
+            v-if="userStore.enabledFeatures.includes('todo')"
+            class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"
+          ></div>
 
           <!-- <RouterLink to="/docs-generator" :class="buttonStyles">
               <FileText :size="16" />
@@ -218,6 +225,7 @@ const confirm = useConfirm();
 const router = useRouter();
 const config = useRuntimeConfig();
 
+const userStore = useUserSetupStore();
 const todoStore = useTodoStore();
 const toast = useToast();
 const headerStore = useHeaderStore();
@@ -343,6 +351,13 @@ function confirmClearStoreData() {
     },
   });
 }
+
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    headerStore.showSideMenu = false;
+  }
+);
 </script>
 
 <style scoped>

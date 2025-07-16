@@ -63,13 +63,13 @@
         </div>
 
         <div
-          v-if="filteredAndSortedTodos?.length > 0"
+          v-if="filteredAndSortedTodos?.length > 0 && userStore?.enabledFeatures.includes('todo')"
           class="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto"
         >
           <div
             v-for="(listItem, index) in filteredAndSortedTodos"
             :key="index"
-            class="h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg shadow-md bg-rose-800 font-content"
+            class="h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg sm:rounded-xl shadow-md bg-rose-800 font-content"
           >
             <div class="mt-1 flex-shrink-0">
               <Checkbox :value="listItem.isDone" />
@@ -151,7 +151,8 @@ import { useConfirm } from "primevue/useconfirm";
 const confirm = useConfirm();
 
 const router = useRouter();
-const todoStore = useTodoStore();
+  const todoStore = useTodoStore();
+const userStore = useUserSetupStore();
 
 // Search state
 const searchQuery = ref("");

@@ -3,9 +3,9 @@ export default defineNuxtRouteMiddleware((to) => {
   store.loadFromStorage();
 
   // Avoid redirect loop
-  if (to.path === '/customise-app') return;
+  if (to.path === "/customise-app") return;
 
   if (!store.userName || store.enabledFeatures.length === 0) {
-    return navigateTo('/customise-app');
+    return navigateTo("/customise-app");
   }
 });
