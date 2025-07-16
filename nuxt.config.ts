@@ -35,7 +35,7 @@ export default defineNuxtConfig({
       "@nuxtjs/color-mode",
       {
         classSuffix: "", // so it adds `dark` or `light` directly (not `dark-mode`, etc.)
-        preference: "system", // default value (can be 'light', 'dark' or 'system')
+        preference: "dark", // default value (can be 'light', 'dark' or 'system')
         fallback: "light", // fallback when system preference can't be determined
         storageKey: "nuxt-color-mode", // key used in localStorage
       },
@@ -122,6 +122,16 @@ export default defineNuxtConfig({
           cssLayer: false,
         },
       },
+    },
+  },
+
+  runtimeConfig: {
+    // Private (only on server)
+    // privateApiKey: process.env.PRIVATE_API_KEY,
+
+    // Public (client + server)
+    public: {
+      devProfileUrl: process.env.NUXT_PUBLIC_DEVELOPER_PROFILE_URL,
     },
   },
 });

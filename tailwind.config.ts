@@ -6,8 +6,8 @@ const config: Config = {
   theme: {
     extend: {
       // fontFamily: {
-      //   heading: ["adamina", "sans-serif"], // Raleway for headings
-      //   content: ["work-sans", "sans-serif"], // Inter for content
+      //   heading: ["Petrona", "sans-serif"], // Raleway for headings
+      //   content: ["Manrope", "sans-serif"], // Inter for content
       // },
     },
   },

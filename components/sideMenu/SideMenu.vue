@@ -5,8 +5,10 @@
       :dismissable="true"
       position="right"
       class="!w-full !max-w-[768px] h-full rounded-none md:rounded-l-3xl"
-      header="Menu"
     >
+      <template #header>
+        <h2 class="font-heading text-2xl md:text-2xl">Menu</h2>
+      </template>
       <div class="flex flex-col">
         <div
           class="w-full flex flex-col rounded-3xl bg-rose-700 dark:bg-rose-900 p-4"
@@ -25,12 +27,19 @@
 
           <!-- <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-          <RouterLink to="/to-do-list" :class="buttonStyles">
+          <RouterLink
+            v-if="userStore.enabledFeatures.includes('todo')"
+            to="/to-do-list"
+            :class="buttonStyles"
+          >
             <ListTodo :size="16" />
             <span>To Do List</span>
           </RouterLink>
 
-          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+          <div
+            v-if="userStore.enabledFeatures.includes('todo')"
+            class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"
+          ></div>
 
           <!-- <RouterLink to="/docs-generator" :class="buttonStyles">
               <FileText :size="16" />
@@ -46,13 +55,20 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
+          <RouterLink to="/customise-app" :class="buttonStyles">
+            <Wrench :size="16" />
+            <span>Customise App</span>
+          </RouterLink>
+
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+
           <Panel
             toggleable
             :collapsed="isKeyboardPanelCollapsed"
             :class="buttonStyles"
-            class="!border-none *:!p-0 !bg-transparent !text-white font-content"
+            class="!border-none *:!p-0 flex-col flex-wrap items-start font-content w-full"
           >
-            <template #header>
+            <template #header class="w-full">
               <div
                 class="flex items-center w-full gap-x-3 cursor-pointer"
                 @click="toggleKeyboardPanel"
@@ -64,7 +80,7 @@
               </div>
             </template>
 
-            <template #toggleicon><div></div></template>
+            <template #toggleicon class="hidden"><div></div></template>
             <div class="flex flex-col gap-2 py-2">
               <ul class="flex flex-col gap-1 !list-disc list-inside">
                 <li class="flex items-center gap-x-3 !list-disc">
@@ -85,7 +101,8 @@
 
           <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
-          <div :class="buttonStyles">
+          <!-- TODO: fix theming later -->
+          <!-- <div :class="buttonStyles">
             <Palette :size="16" />
             <span>Theme</span>
             <Select
@@ -102,15 +119,15 @@
             />
           </div>
 
-          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
           <Panel
             toggleable
             :collapsed="isPanelCollapsed"
             :class="buttonStyles"
-            class="!border-none *:!p-0 !bg-transparent !text-white font-content"
+            class="!border-none *:!p-0 flex-col flex-wrap items-start font-content w-full"
           >
-            <template #header>
+            <template #header class="w-full">
               <div
                 class="flex items-center w-full gap-x-3 cursor-pointer"
                 @click="togglePanel"
@@ -122,19 +139,20 @@
               </div>
             </template>
 
-            <template #toggleicon><div></div></template>
-            <div class="flex flex-col gap-2 py-2">
+            <template #toggleicon class="hidden"><div></div></template>
+            <div class="w-full flex flex-col gap-2 py-2">
               <div class="flex items-center gap-x-3">
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear entire application data?
                 </p>
+                <!-- TODO: delete user app data also -->
                 <Button
                   label="Delete Entire App Data"
                   icon="pi pi-times"
                   severity="danger"
                   class="!rounded-xl flex-shrink-0"
                   size="small"
-                  @click="deleteEntireDB"
+                  @click="confirmDeleteEntireDB"
                 />
               </div>
               <div class="mx-0 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
@@ -142,13 +160,14 @@
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear Todos data only?
                 </p>
+
                 <Button
                   label="Clear To-Do Store"
                   icon="pi pi-trash"
                   severity="secondary"
                   class="!rounded-xl flex-shrink-0"
                   size="small"
-                  @click="clearStoreData"
+                  @click="confirmClearStoreData"
                 />
               </div>
             </div>
@@ -163,6 +182,18 @@
             <MessageCircle :size="16" />
             <span>Give Feedback</span>
           </Button>
+
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
+          <a
+            :href="config.public.devProfileUrl"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            :class="buttonStyles"
+            class="text-white !border-none !flex !items-center !justify-start shadow-none"
+          >
+            <UserCircle :size="16" />
+            <span>Developer Profile</span>
+          </a>
         </div>
       </div>
     </Drawer>
@@ -176,19 +207,25 @@ import {
   Calculator,
   ListTodo,
   FileText,
-  Moon,
   MessageCircle,
   Signature,
   Palette,
   FolderX,
   Keyboard,
+  UserCircle,
+  Wrench,
 } from "lucide-vue-next";
 import Select from "primevue/select";
 import { onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { useConfirm } from "primevue/useconfirm";
+
+const confirm = useConfirm();
 
 const router = useRouter();
+const config = useRuntimeConfig();
 
+const userStore = useUserSetupStore();
 const todoStore = useTodoStore();
 const toast = useToast();
 const headerStore = useHeaderStore();
@@ -196,7 +233,7 @@ const isPanelCollapsed = ref(true);
 const isKeyboardPanelCollapsed = ref(true);
 
 const buttonStyles =
-  "!px-2 !py-4 !bg-transparent !text-white flex items-center !gap-x-3 !rounded-xl *:text-lg font-normal";
+  "!px-2 !py-4 !bg-transparent !text-white flex items-center !gap-x-3 !rounded-xl *:text-lg font-normal font-content";
 
 const feedbackBtnHandle = () => {
   headerStore.showFeedback = true;
@@ -247,6 +284,11 @@ function handleGlobalKeydown(event: KeyboardEvent) {
         router.push("/");
         headerStore.showSideMenu = false;
         break;
+      case "d":
+        event.preventDefault();
+        router.push("docs-generator");
+        headerStore.showSideMenu = false;
+        break;
       case "t":
         event.preventDefault();
         router.push("/to-do-list");
@@ -267,6 +309,55 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleGlobalKeydown);
 });
+
+function confirmDeleteEntireDB() {
+  confirm.require({
+    message:
+      "Are you sure you want to delete ALL app data? This cannot be undone.",
+    header: "Confirm Delete All",
+    icon: "pi pi-exclamation-triangle",
+    rejectLabel: "Cancel",
+    acceptLabel: "Yes, Delete",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      await todoStore.nukeDatabase();
+      toast.add({
+        severity: "warn",
+        summary: "Database Deleted",
+        detail: "All App Data removed",
+        life: 2000,
+      });
+    },
+  });
+}
+
+function confirmClearStoreData() {
+  confirm.require({
+    message: "Clear all To-Do items?",
+    header: "Confirm Clear To-Do Store",
+    icon: "pi pi-trash",
+    rejectLabel: "Cancel",
+    acceptLabel: "Yes, Clear",
+    acceptClass: "p-button-secondary",
+
+    accept: async () => {
+      await todoStore.clearStoreData();
+      toast.add({
+        severity: "info",
+        summary: "Store Cleared",
+        detail: "All To-Do items deleted",
+        life: 2000,
+      });
+    },
+  });
+}
+
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    headerStore.showSideMenu = false;
+  }
+);
 </script>
 
 <style scoped>
