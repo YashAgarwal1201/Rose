@@ -40,14 +40,14 @@
         ><FileText :size="16"
       /></RouterLink> -->
 
-      <!-- <RouterLink
+      <RouterLink
         to="/sketch-notes"
         v-if="route.fullPath"
         :class="[
           route.fullPath === '/sketch-notes' ? selectedButton : buttonStyles,
         ]"
         ><Signature :size="16"
-      /></RouterLink> -->
+      /></RouterLink>
     </div>
 
     <div
@@ -75,9 +75,9 @@ import {
   Menu,
   Home,
   Signature,
-  } from "lucide-vue-next";
+} from "lucide-vue-next";
 
-  const userStore = useUserSetupStore();
+const userStore = useUserSetupStore();
 
 // defineOptions({ ssr: false });
 defineNuxtComponent({

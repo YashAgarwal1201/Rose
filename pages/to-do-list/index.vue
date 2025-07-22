@@ -38,7 +38,7 @@
           <div class="max-w-full flex items-center gap-3">
             <!-- Sorting Options -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <Dropdown
+              <Select
                 v-model="sortOption"
                 :options="sortOptions"
                 optionLabel="label"
@@ -48,9 +48,9 @@
               />
             </div>
 
-            <!-- Filter on the basis of completion status -->
+            <!-- Filter by completion status -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <Dropdown
+              <Select
                 v-model="completionFilter"
                 :options="completionFilterOptions"
                 optionLabel="label"
@@ -63,7 +63,10 @@
         </div>
 
         <div
-          v-if="filteredAndSortedTodos?.length > 0 && userStore?.enabledFeatures.includes('todo')"
+          v-if="
+            filteredAndSortedTodos?.length > 0 &&
+            userStore?.enabledFeatures.includes('todo')
+          "
           class="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto"
         >
           <div
@@ -147,11 +150,12 @@ import InputText from "primevue/inputtext";
 import Dropdown from "primevue/dropdown";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
+import Select from "primevue/select";
 
 const confirm = useConfirm();
 
 const router = useRouter();
-  const todoStore = useTodoStore();
+const todoStore = useTodoStore();
 const userStore = useUserSetupStore();
 
 // Search state

@@ -350,7 +350,7 @@
         </Popover>
       </div>
 
-      <CanvasToolbar
+      <!-- <CanvasToolbar
         :toolbarPosition="toolbarPosition"
         :isEditable="isEditable"
         @navigateToNewList="navigateToNewList"
@@ -362,7 +362,7 @@
         @clearCanvas="clear"
         @toggleTitleInput="() => {}"
         @toggleToolbarPositionPopover="toggleToolbarPositionPopover"
-      />
+      /> -->
 
       <div class="max-w-full flex-grow-1 flex flex-col">
         <!-- Title Input -->

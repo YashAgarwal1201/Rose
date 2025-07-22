@@ -1,14 +1,12 @@
 <template>
   <div
-    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 p-2 overflow-y-auto font-content"
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 px-2 md:px-4 py-2 overflow-y-auto font-content"
   >
-    <div class="w-full h-[200px] flex-shrink-0">
+    <div class="w-full flex-shrink-0">
       <HomepageDateAndTime />
     </div>
 
-    <div
-      class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7 flex-grow-1"
-    >
+    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 flex-grow-1">
       <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
       <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
