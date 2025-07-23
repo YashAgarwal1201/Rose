@@ -11,7 +11,7 @@
           <Button
             class="text-white w-10 h-10 shadow-none !rounded-2xl flex-shrink-0"
             title="To do list info"
-            @click="toast.add({ detail: FEATURE_COMING_SOON, life: 1500 })"
+            @click="infoDialogVisible = true"
             ><Info :size="16" />
           </Button>
           <Button
@@ -45,6 +45,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Info Dialog -->
+    <Dialog
+      maximizable
+      dismissable-mask
+      v-model:visible="infoDialogVisible"
+      :modal="true"
+      class="w-full md:w-[30rem] h-auto !rounded-2xl"
+    >
+      <template #header
+        ><h2 class="font-heading text-xl md:text-2xl">Search</h2></template
+      >
+      <div
+        v-if="currentList"
+        class="border border-rose-200 dark:border-rose-800 rounded-2xl font-content text-base"
+      >
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">Title:</span>
+          <span>{{ currentList.title }}</span>
+        </div>
+        <div class="w-full h-[1px] bg-rose-200 dark:bg-rose-800"></div>
+
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">ID:</span>
+          <span>{{ currentList.id }}</span>
+        </div>
+        <div class="w-full h-[1px] bg-rose-200 dark:bg-rose-800"></div>
+
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">Created At:</span>
+          <span>{{ formatDate(currentList.timestamp) }}</span>
+        </div>
+        <div class="w-full h-[1px] bg-rose-200 dark:bg-rose-800"></div>
+
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">Status:</span>
+          <span>{{ currentList.isDone ? "Completed" : "In Progress" }}</span>
+        </div>
+        <div class="w-full h-[1px] bg-rose-200 dark:bg-rose-800"></div>
+
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">Total Items:</span>
+          <span>{{ currentList.list.length }}</span>
+        </div>
+        <div class="w-full h-[1px] bg-rose-200 dark:bg-rose-800"></div>
+
+        <div class="w-full flex items-center justify-between px-4 py-2">
+          <span class="font-subheading">Completed Items:</span>
+          <span>{{ currentList.list.filter((i) => i.isDone).length }}</span>
+        </div>
+      </div>
+
+      <div v-else>
+        <p>No list selected.</p>
+      </div>
+    </Dialog>
   </div>
 </template>
 
@@ -54,6 +110,7 @@ import Button from "primevue/button";
 import { FEATURE_COMING_SOON } from "~/constants/defaultToastMessages";
 import OverlayPanel from "primevue/overlaypanel";
 import { ref } from "vue";
+import Dialog from "primevue/dialog";
 
 const toast = useToast();
 
@@ -62,6 +119,12 @@ const router = useRouter();
 const todoStore = useTodoStore();
 
 const downloadPanel = ref();
+const infoDialogVisible = ref(false);
+
+function formatDate(date: string | Date) {
+  const d = new Date(date);
+  return d.toLocaleString();
+}
 
 const listId = computed(() => route.params.id as string);
 

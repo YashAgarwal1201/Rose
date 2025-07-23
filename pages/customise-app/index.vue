@@ -87,7 +87,7 @@
           @click="goToStep(0)"
           variant="outlined"
           class="!rounded-xl flex items-center gap-x-2"
-          ><ArrowLeft :size="24" /><span>Go back</span>
+          ><ArrowLeft :size="24" /><span>Change Username</span>
         </Button>
         <Button
           @click="finishSetup"
@@ -129,7 +129,7 @@ const hasExistingSetup = computed(() => {
   return setupStore.userName && setupStore.enabledFeatures.length > 0; // Adjust if your store has a getter / field
 });
 
-const steps = [{ label: "Username" }, { label: "Features" }];
+// const steps = [{ label: "Username" }, { label: "Features" }];
 
 const features = [
   { label: "To Do List", value: "todo", icon: ListTodo, disabled: false },

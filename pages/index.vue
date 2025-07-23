@@ -1,22 +1,19 @@
 <template>
   <div
-    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 p-2 overflow-y-auto font-content"
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 px-2 md:px-4 py-2 overflow-y-auto font-content"
   >
-    <div class="w-full h-[200px] flex-shrink-0">
+    <div class="w-full flex-shrink-0">
       <HomepageDateAndTime />
     </div>
 
-    <div
-      class="w-full flex flex-col gap-y-3 sm:gap-y-4 mt-5 md:mt-7 flex-grow-1"
-    >
-      <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
+    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 flex-grow-1">
       <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
           <div
             class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
             <h4 class="font-heading text-3xl text-center">
-              {{ recentListsInCurrentMonth.length ?? 0 }}
+              {{ todoStore.listOfTodos?.length ?? 0 }}
             </h4>
             <p class="text-base sm:text-lg font-content text-center">
               Todo lists created
@@ -24,135 +21,132 @@
           </div>
 
           <!-- uncomment once document generator is ready -->
-          <!-- <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
-            <h4 class="font-heading text-3xl text-center">{{ recentListsInCurrentMonth.length ?? 0 }}</h4>
-            <p class="text-base sm:text-lg font-content text-center">Documentes created</p>
-          </div> -->
-        </div>
-
-        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
-          <h3 class="font-heading text-lg md:text-xl">
-            To Do Lists added this month
-          </h3>
           <div
-            v-if="recentListsInCurrentMonth.length > 0"
-            class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
+            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
-            <div
-              v-for="(listItem, index) in recentListsInCurrentMonth"
-              :key="index"
-              class="w-60 h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg sm:rounded-xl shadow-md bg-rose-800 font-content"
-            >
-              <div class="mt-1 flex-shrink-0">
-                <Checkbox :value="listItem.isDone" />
-              </div>
-              <div class="flex-grow">
-                <h3
-                  class="w-fit text-base sm:text-lg 2xl:text-xl underline cursor-pointer line-clamp-1"
-                  @click="navigateToList(listItem.id)"
-                >
-                  {{ listItem.title }}
-                </h3>
-                <span class="text-xs sm:text-sm text-rose-200">{{
-                  formatTimestamp(listItem.timestamp)
-                }}</span>
-              </div>
-              <div class="flex-shrink-0">
-                <Button
-                  class="text-white shadow-none rounded-2xl"
-                  :text="true"
-                  title="Delete to do list"
-                  @click="confirmDelete(listItem)"
-                >
-                  <Trash :size="16" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div
-            v-else
-            class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
-          >
-            <p class="italic text-xs md:text-sm">
-              You have no todo list to show
+            <h4 class="font-heading text-3xl text-center">
+              {{ todoStore.listOfTodos.length ?? 0 }}
+            </h4>
+            <p class="text-base sm:text-lg font-content text-center">
+              Sketch notes created
             </p>
-            <Button
-              class="text-white shadow-none rounded-full px-4 py-2"
-              title="To do list"
-              @click="navigateToNewList"
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full flex flex-col sm:flex-row gap-5">
+        <div
+          class="max-w-full min-h-72 flex flex-col gap-y-3 rounded-xl border border-rose-200 dark:border-rose-900 p-4 font-content flex-grow-1 flex-shrink-0"
+        >
+          <div
+            class="mb-4 w-full flex flex-col sm:flex-row flex-wrap justify-between items-center gap-x-10 flex-shrink-0"
+          >
+            <h3 class="font-heading text-lg md:text-xl lg:text-2xl mb-2">
+              Recent To-Do Lists
+            </h3>
+
+            <SelectButton
+              v-model="selectedFilter"
+              :options="filterOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="mb-4"
+            />
+          </div>
+
+          <DataTable
+            v-if="filteredLists.length > 0"
+            :value="visibleRecentLists"
+            tableStyle="min-width: 100%"
+            stripedRows
+            responsiveLayout="scroll"
+          >
+            <Column header="Completed">
+              <template #body="{ data }">
+                <Checkbox :binary="true" :modelValue="data.isDone" disabled />
+              </template>
+            </Column>
+
+            <Column field="title" header="Title">
+              <template #body="{ data }">
+                <span
+                  class="cursor-pointer underline"
+                  @click="navigateToList(data.id)"
+                >
+                  {{ data.title }}
+                </span>
+              </template>
+            </Column>
+
+            <Column header="Created On">
+              <template #body="{ data }">
+                {{ formatTimestamp(data.timestamp) }}
+              </template>
+            </Column>
+
+            <Column
+              header="Actions"
+              headerClass="text-center"
+              style="width: 4rem"
             >
-              <FileEdit :size="16" />
-              <span>New ToDo List</span>
+              <template #body="{ data }">
+                <div class="flex items-center gap-x-2">
+                  <Button
+                    severity="danger"
+                    text
+                    @click="confirmDelete(data)"
+                    class="!rounded-xl"
+                    ><Trash :size="16" />
+                  </Button>
+                  <Button
+                    text
+                    @click="navigateToList(data.id)"
+                    class="!rounded-xl"
+                    ><Eye :size="16" />
+                  </Button>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+
+          <div v-else class="text-center italic text-sm sm:text-base m-auto">
+            No to-do lists found for
+            {{
+              selectedFilter === "week"
+                ? "this week"
+                : selectedFilter === "month"
+                ? "this month"
+                : "this year"
+            }}.
+          </div>
+
+          <div v-if="showViewAll" class="mt-4 text-center">
+            <Button
+              class="!rounded-xl px-4 py-2 flex justify-center items-center gap-x-2"
+              @click="router.push('/to-do-list/')"
+              ><View :size="16" /><span>View all</span>
             </Button>
           </div>
         </div>
-
-        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
-          <h3 class="font-heading text-lg md:text-xl">
-            Documents added this month
-          </h3>
-          <div
-            v-if="recentListsInCurrentMonth.length > 0"
-            class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
-          >
-            <div
-              v-for="(listItem, index) in recentListsInCurrentMonth"
-              :key="index"
-              class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-900"
-            >
-              <div class="mt-1">
-                <Checkbox :value="false" />
-              </div>
-              <div>
-                <h3
-                  class="text-base sm:text-lg 2xl:text-xl font-heading cursor-pointer underline text-rose-50"
-                  @click="navigateToList(listItem.id)"
-                >
-                  {{ listItem.title }}
-                </h3>
-                <span class="text-xs sm:text-sm text-rose-200">{{
-                  formatTimestamp(listItem.timestamp)
-                }}</span>
-              </div>
-            </div>
-          </div>
-          <div
-            v-else
-            class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
-          >
-            <p class="italic text-xs md:text-sm">
-              You have no todo list to show
-            </p>
-            <Button
-              class="text-white shadow-none !rounded-xl px-4 py-2"
-              title="Sketch Notes"
-              @click="navigateToNewList"
-            >
-              <FileEdit :size="16" />
-              <span>New ToDo List</span>
-            </Button>
-          </div>
-        </div> -->
       </div>
     </div>
-
-    <!-- <div class="p-4">
-      <h1 class="text-xl font-bold mb-4">App B (Vue 3)</h1>
-      <div class="p-4 border rounded bg-gray-100">
-        Received message: <strong>{{ message || "No message yet." }}</strong>
-      </div>
-    </div> -->
 
     <ConfirmDialog></ConfirmDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { FileEdit, Receipt, Trash } from "lucide-vue-next";
+import { Eye, FileEdit, Receipt, Trash, View } from "lucide-vue-next";
 import Checkbox from "primevue/checkbox";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
+
+import SelectButton from "primevue/selectbutton";
+
+import { ref, computed } from "vue";
+
+type FilterOption = "week" | "month" | "year";
 
 const confirm = useConfirm();
 const router = useRouter();
@@ -164,25 +158,53 @@ definePageMeta({
   title: "Project Rose - Home Page",
 });
 
-// import { ref, onMounted, onBeforeUnmount } from "vue";
+const selectedFilter = ref<FilterOption>("week");
 
-// const message = ref("");
+const filterOptions = [
+  { label: "This Week", value: "week" },
+  { label: "This Month", value: "month" },
+  { label: "This Year", value: "year" },
+];
 
-// function handleMessage(event: any) {
-//   if (event.origin !== "http://localhost:4500") return; // Validate origin
-//   const { type, payload } = event.data;
-//   if (type === "UPDATE_TEXT") {
-//     message.value = payload;
-//   }
-// }
+const MAX_VISIBLE_ROWS = 5;
 
-// onMounted(() => {
-//   window.addEventListener("message", handleMessage);
-// });
+const filteredLists = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-// onBeforeUnmount(() => {
-//   window.removeEventListener("message", handleMessage);
-// });
+  const lists = todoStore.activeLists;
+
+  switch (selectedFilter.value) {
+    case "week": {
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      return lists.filter((list) => new Date(list.timestamp) >= sevenDaysAgo);
+    }
+
+    case "month": {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfMonth);
+    }
+
+    case "year": {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfYear);
+    }
+
+    default: {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfYear);
+    }
+  }
+});
+
+const visibleRecentLists = computed(() => {
+  return filteredLists.value.slice(0, MAX_VISIBLE_ROWS);
+});
+
+const showViewAll = computed(() => {
+  return filteredLists.value.length > MAX_VISIBLE_ROWS;
+});
 
 // Format timestamp
 const formatTimestamp = (timestamp: string | number | Date) => {
