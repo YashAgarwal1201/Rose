@@ -332,7 +332,7 @@
             </span>
             <div class="flex flex-col">
               <Button
-                v-for="position in ['top', 'bottom', 'left', 'right']"
+                v-for="position in ['top', 'bottom']"
                 :key="position"
                 class="w-full flex !justify-start items-center gap-2 p-2 !text-slate-900 dark:!text-slate-100 !bg-transparent !border-transparent !rounded-xl cursor-pointer"
                 :class="{

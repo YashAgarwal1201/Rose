@@ -7,7 +7,6 @@
     </div>
 
     <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 flex-grow-1">
-      <!-- <h2 class="font-heading text-xl md:text-2xl">This year at a glance</h2> -->
       <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
           <div
@@ -21,69 +20,18 @@
             </p>
           </div>
 
-          <!-- uncomment once document generator is ready
-          <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
-            <h4 class="font-heading text-3xl text-center">{{ recentListsInCurrentMonth.length ?? 0 }}</h4>
-            <p class="text-base sm:text-lg font-content text-center">Documentes created</p>
-          </div> -->
-        </div>
-
-        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
-          <h3 class="font-heading text-lg md:text-xl">
-            To Do Lists added this month
-          </h3>
+          <!-- uncomment once document generator is ready -->
           <div
-            v-if="recentListsInCurrentMonth.length > 0"
-            class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
+            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
-            <div
-              v-for="(listItem, index) in recentListsInCurrentMonth"
-              :key="index"
-              class="w-60 h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg sm:rounded-xl shadow-md bg-rose-800 font-content"
-            >
-              <div class="mt-1 flex-shrink-0">
-                <Checkbox :value="listItem.isDone" />
-              </div>
-              <div class="flex-grow">
-                <h3
-                  class="w-fit text-base sm:text-lg 2xl:text-xl underline cursor-pointer line-clamp-1"
-                  @click="navigateToList(listItem.id)"
-                >
-                  {{ listItem.title }}
-                </h3>
-                <span class="text-xs sm:text-sm text-rose-200">{{
-                  formatTimestamp(listItem.timestamp)
-                }}</span>
-              </div>
-              <div class="flex-shrink-0">
-                <Button
-                  class="text-white shadow-none rounded-2xl"
-                  :text="true"
-                  title="Delete to do list"
-                  @click="confirmDelete(listItem)"
-                >
-                  <Trash :size="16" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div
-            v-else
-            class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
-          >
-            <p class="italic text-xs md:text-sm">
-              You have no todo list to show
+            <h4 class="font-heading text-3xl text-center">
+              {{ todoStore.listOfTodos.length ?? 0 }}
+            </h4>
+            <p class="text-base sm:text-lg font-content text-center">
+              Sketch notes created
             </p>
-            <Button
-              class="text-white shadow-none rounded-full px-4 py-2"
-              title="To do list"
-              @click="navigateToNewList"
-            >
-              <FileEdit :size="16" />
-              <span>New ToDo List</span>
-            </Button>
           </div>
-        </div> -->
+        </div>
       </div>
 
       <div class="w-full flex flex-col sm:flex-row gap-5">
@@ -105,38 +53,6 @@
               class="mb-4"
             />
           </div>
-
-          <!-- <div
-          v-if="filteredLists.length > 0"
-          class="w-full flex flex-col gap-4 flex-grow-1 overflow-y-auto"
-        >
-          <div
-            v-for="(listItem, index) in filteredLists"
-            :key="index"
-            class="w-60 flex items-start gap-x-3 p-3 rounded-xl shadow bg-rose-800"
-          >
-            <Checkbox :value="listItem.isDone" />
-            <div class="flex-grow">
-              <h3
-                class="text-base font-heading underline cursor-pointer line-clamp-1"
-                @click="navigateToList(listItem.id)"
-              >
-                {{ listItem.title }}
-              </h3>
-              <p class="text-xs text-rose-200">
-                {{ formatTimestamp(listItem.timestamp) }}
-              </p>
-            </div>
-            <Button
-              class="text-white shadow-none rounded-2xl"
-              :text="true"
-              title="Delete to-do list"
-              @click="confirmDelete(listItem)"
-            >
-              <Trash :size="16" />
-            </Button>
-          </div>
-        </div> -->
 
           <DataTable
             v-if="filteredLists.length > 0"
@@ -168,15 +84,27 @@
               </template>
             </Column>
 
-            <Column header="Actions" style="width: 4rem">
+            <Column
+              header="Actions"
+              headerClass="text-center"
+              style="width: 4rem"
+            >
               <template #body="{ data }">
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  text
-                  rounded
-                  @click="confirmDelete(data)"
-                />
+                <div class="flex items-center gap-x-2">
+                  <Button
+                    severity="danger"
+                    text
+                    @click="confirmDelete(data)"
+                    class="!rounded-xl"
+                    ><Trash :size="16" />
+                  </Button>
+                  <Button
+                    text
+                    @click="navigateToList(data.id)"
+                    class="!rounded-xl"
+                    ><Eye :size="16" />
+                  </Button>
+                </div>
               </template>
             </Column>
           </DataTable>
@@ -194,34 +122,26 @@
 
           <div v-if="showViewAll" class="mt-4 text-center">
             <Button
-              label="View All"
-              icon="pi pi-eye"
-              class="rounded-full px-4 py-2"
+              class="!rounded-xl px-4 py-2 flex justify-center items-center gap-x-2"
               @click="router.push('/to-do-list/')"
-            />
+              ><View :size="16" /><span>View all</span>
+            </Button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- <div class="p-4">
-      <h1 class="text-xl font-bold mb-4">App B (Vue 3)</h1>
-      <div class="p-4 border rounded bg-gray-100">
-        Received message: <strong>{{ message || "No message yet." }}</strong>
-      </div>
-    </div> -->
 
     <ConfirmDialog></ConfirmDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { FileEdit, Receipt, Trash } from "lucide-vue-next";
+import { Eye, FileEdit, Receipt, Trash, View } from "lucide-vue-next";
 import Checkbox from "primevue/checkbox";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
-import Card from "primevue/card";
+
 import SelectButton from "primevue/selectbutton";
 
 import { ref, computed } from "vue";
@@ -285,26 +205,6 @@ const visibleRecentLists = computed(() => {
 const showViewAll = computed(() => {
   return filteredLists.value.length > MAX_VISIBLE_ROWS;
 });
-
-// import { ref, onMounted, onBeforeUnmount } from "vue";
-
-// const message = ref("");
-
-// function handleMessage(event: any) {
-//   if (event.origin !== "http://localhost:4500") return; // Validate origin
-//   const { type, payload } = event.data;
-//   if (type === "UPDATE_TEXT") {
-//     message.value = payload;
-//   }
-// }
-
-// onMounted(() => {
-//   window.addEventListener("message", handleMessage);
-// });
-
-// onBeforeUnmount(() => {
-//   window.removeEventListener("message", handleMessage);
-// });
 
 // Format timestamp
 const formatTimestamp = (timestamp: string | number | Date) => {

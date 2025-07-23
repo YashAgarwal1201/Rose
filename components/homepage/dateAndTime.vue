@@ -32,6 +32,7 @@
       modal
       class="w-full md:w-[30rem] h-[30rem]"
       maximizable
+      dismissable-mask
     >
       <template #header
         ><h2 class="font-heading text-xl md:text-2xl">Search</h2></template
@@ -49,7 +50,7 @@
 <script setup lang="ts">
 import { Search } from "lucide-vue-next";
 import { ref, onMounted } from "vue";
-import QuoteOfTheDay from "../quoteOfTheDay/quoteOfTheDay.vue";
+import QuoteOfTheDay from "./quoteOfTheDay/quoteOfTheDay.vue";
 
 const userStore = useUserSetupStore();
 const userName = userStore.userName;
