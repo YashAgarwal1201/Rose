@@ -7,28 +7,28 @@
     </div>
 
     <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 flex-grow-1">
-      <h2 class="font-heading text-xl md:text-2xl">This Month at a glance</h2>
+      <!-- <h2 class="font-heading text-xl md:text-2xl">This year at a glance</h2> -->
       <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
           <div
             class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
             <h4 class="font-heading text-3xl text-center">
-              {{ recentListsInCurrentMonth.length ?? 0 }}
+              {{ todoStore.listOfTodos?.length ?? 0 }}
             </h4>
             <p class="text-base sm:text-lg font-content text-center">
               Todo lists created
             </p>
           </div>
 
-          <!-- uncomment once document generator is ready -->
-          <!-- <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
+          <!-- uncomment once document generator is ready
+          <div class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4">
             <h4 class="font-heading text-3xl text-center">{{ recentListsInCurrentMonth.length ?? 0 }}</h4>
             <p class="text-base sm:text-lg font-content text-center">Documentes created</p>
           </div> -->
         </div>
 
-        <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
+        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
           <h3 class="font-heading text-lg md:text-xl">
             To Do Lists added this month
           </h3>
@@ -83,54 +83,124 @@
               <span>New ToDo List</span>
             </Button>
           </div>
-        </div>
+        </div> -->
+      </div>
 
-        <!-- <div class="w-full flex flex-col gap-y-3 sm:gap-y-4">
-          <h3 class="font-heading text-lg md:text-xl">
-            Documents added this month
-          </h3>
+      <div class="w-full flex flex-col sm:flex-row gap-5">
+        <div
+          class="max-w-full min-h-72 flex flex-col gap-y-3 rounded-xl border border-rose-200 dark:border-rose-900 p-4 font-content flex-grow-1 flex-shrink-0"
+        >
           <div
-            v-if="recentListsInCurrentMonth.length > 0"
-            class="w-full flex flex-row flex-nowrap gap-x-2 sm:gap-x-3 pr-4 pl-2 pb-1 overflow-y-auto"
+            class="mb-4 w-full flex flex-col sm:flex-row flex-wrap justify-between items-center gap-x-10 flex-shrink-0"
           >
-            <div
-              v-for="(listItem, index) in recentListsInCurrentMonth"
-              :key="index"
-              class="w-[200px] flex-shrink-0 flex flex-row gap-x-3 p-3 md:p-4 rounded-md shadow-md bg-rose-900"
-            >
-              <div class="mt-1">
-                <Checkbox :value="false" />
-              </div>
-              <div>
-                <h3
-                  class="text-base sm:text-lg 2xl:text-xl font-heading cursor-pointer underline text-rose-50"
-                  @click="navigateToList(listItem.id)"
-                >
-                  {{ listItem.title }}
-                </h3>
-                <span class="text-xs sm:text-sm text-rose-200">{{
-                  formatTimestamp(listItem.timestamp)
-                }}</span>
-              </div>
-            </div>
+            <h3 class="font-heading text-lg md:text-xl lg:text-2xl mb-2">
+              Recent To-Do Lists
+            </h3>
+
+            <SelectButton
+              v-model="selectedFilter"
+              :options="filterOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="mb-4"
+            />
           </div>
+
+          <!-- <div
+          v-if="filteredLists.length > 0"
+          class="w-full flex flex-col gap-4 flex-grow-1 overflow-y-auto"
+        >
           <div
-            v-else
-            class="h-[100px] pl-2 flex flex-col justify-center items-center gap-y-2"
+            v-for="(listItem, index) in filteredLists"
+            :key="index"
+            class="w-60 flex items-start gap-x-3 p-3 rounded-xl shadow bg-rose-800"
           >
-            <p class="italic text-xs md:text-sm">
-              You have no todo list to show
-            </p>
+            <Checkbox :value="listItem.isDone" />
+            <div class="flex-grow">
+              <h3
+                class="text-base font-heading underline cursor-pointer line-clamp-1"
+                @click="navigateToList(listItem.id)"
+              >
+                {{ listItem.title }}
+              </h3>
+              <p class="text-xs text-rose-200">
+                {{ formatTimestamp(listItem.timestamp) }}
+              </p>
+            </div>
             <Button
-              class="text-white shadow-none !rounded-xl px-4 py-2"
-              title="Sketch Notes"
-              @click="navigateToNewList"
+              class="text-white shadow-none rounded-2xl"
+              :text="true"
+              title="Delete to-do list"
+              @click="confirmDelete(listItem)"
             >
-              <FileEdit :size="16" />
-              <span>New ToDo List</span>
+              <Trash :size="16" />
             </Button>
           </div>
         </div> -->
+
+          <DataTable
+            v-if="filteredLists.length > 0"
+            :value="visibleRecentLists"
+            tableStyle="min-width: 100%"
+            stripedRows
+            responsiveLayout="scroll"
+          >
+            <Column header="Completed">
+              <template #body="{ data }">
+                <Checkbox :binary="true" :modelValue="data.isDone" disabled />
+              </template>
+            </Column>
+
+            <Column field="title" header="Title">
+              <template #body="{ data }">
+                <span
+                  class="cursor-pointer underline"
+                  @click="navigateToList(data.id)"
+                >
+                  {{ data.title }}
+                </span>
+              </template>
+            </Column>
+
+            <Column header="Created On">
+              <template #body="{ data }">
+                {{ formatTimestamp(data.timestamp) }}
+              </template>
+            </Column>
+
+            <Column header="Actions" style="width: 4rem">
+              <template #body="{ data }">
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  rounded
+                  @click="confirmDelete(data)"
+                />
+              </template>
+            </Column>
+          </DataTable>
+
+          <div v-else class="text-center italic text-sm sm:text-base m-auto">
+            No to-do lists found for
+            {{
+              selectedFilter === "week"
+                ? "this week"
+                : selectedFilter === "month"
+                ? "this month"
+                : "this year"
+            }}.
+          </div>
+
+          <div v-if="showViewAll" class="mt-4 text-center">
+            <Button
+              label="View All"
+              icon="pi pi-eye"
+              class="rounded-full px-4 py-2"
+              @click="router.push('/to-do-list/')"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -151,6 +221,12 @@ import Checkbox from "primevue/checkbox";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
+import Card from "primevue/card";
+import SelectButton from "primevue/selectbutton";
+
+import { ref, computed } from "vue";
+
+type FilterOption = "week" | "month" | "year";
 
 const confirm = useConfirm();
 const router = useRouter();
@@ -160,6 +236,54 @@ const transactionStore = useExpenseCalculatorStore();
 
 definePageMeta({
   title: "Project Rose - Home Page",
+});
+
+const selectedFilter = ref<FilterOption>("week");
+
+const filterOptions = [
+  { label: "This Week", value: "week" },
+  { label: "This Month", value: "month" },
+  { label: "This Year", value: "year" },
+];
+
+const MAX_VISIBLE_ROWS = 5;
+
+const filteredLists = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lists = todoStore.activeLists;
+
+  switch (selectedFilter.value) {
+    case "week": {
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      return lists.filter((list) => new Date(list.timestamp) >= sevenDaysAgo);
+    }
+
+    case "month": {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfMonth);
+    }
+
+    case "year": {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfYear);
+    }
+
+    default: {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      return lists.filter((list) => new Date(list.timestamp) >= startOfYear);
+    }
+  }
+});
+
+const visibleRecentLists = computed(() => {
+  return filteredLists.value.slice(0, MAX_VISIBLE_ROWS);
+});
+
+const showViewAll = computed(() => {
+  return filteredLists.value.length > MAX_VISIBLE_ROWS;
 });
 
 // import { ref, onMounted, onBeforeUnmount } from "vue";

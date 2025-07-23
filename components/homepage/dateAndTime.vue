@@ -23,7 +23,7 @@
         </Button>
       </div>
 
-      <p>a quote</p>
+      <QuoteOfTheDay />
     </div>
 
     <!-- Search Modal -->
@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { Search } from "lucide-vue-next";
 import { ref, onMounted } from "vue";
+import QuoteOfTheDay from "../quoteOfTheDay/quoteOfTheDay.vue";
 
 const userStore = useUserSetupStore();
 const userName = userStore.userName;
