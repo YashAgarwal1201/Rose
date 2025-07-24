@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-full flex flex-col gap-y-3 p-2">
-    <div class="w-full flex gap-x-3">
+  <div class="w-full h-full flex flex-col gap-y-10 p-2">
+    <div class="w-full flex gap-x-2 sm:gap-x-3">
       <!-- <InputText
         class="w-full h-10 *:h-10"
         v-model="newListTitle"
@@ -18,19 +18,19 @@
         @keyup.enter="createNewTodoList"
       />
       <Button
-          class="text-white shadow-none !rounded-2xl"
-          title="Delete to do item"
-          @click="createNewTodoList"
-        >
-          <CornerDownLeft :size="20" />
-        </Button>
-      <Button
+        class="text-white shadow-none !rounded-2xl"
+        title="Delete to do item"
+        @click="createNewTodoList"
+      >
+        <CornerDownLeft :size="20" />
+      </Button>
+      <!-- <Button
         class="text-white shadow-none !rounded-2xl"
         title="Delete to do item"
         @click="createNewTodoList"
       >
         <Plus :size="20" />
-      </Button>
+      </Button> -->
     </div>
 
     <!-- Todo Items -->
@@ -38,14 +38,23 @@
       <div
         v-for="(item, index) in currentList?.list || []"
         :key="item.id"
-        class="flex items-center gap-x-3"
+        class="flex items-center gap-x-2 sm:gap-x-3"
       >
+        <!-- <Checkbox
+          v-model="item.isDone"
+          :binary="true"
+          inputId="isDone"
+          :aria-label="`Mark ${item.text} as done`"
+          class="!mt-1"
+        /> -->
+
         <Checkbox
           v-model="item.isDone"
           :binary="true"
           inputId="isDone"
           :aria-label="`Mark ${item.text} as done`"
           class="!mt-1"
+          @change="toggleTodoItem(item.id, item.isDone)"
         />
 
         <InputText
@@ -64,15 +73,17 @@
           class="w-full !rounded-2xl"
         />
         <Button
-          class="text-white shadow-none !rounded-2xl"
+          class="text-white shadow-none !rounded-2xl flex-shrink-0"
           title="Delete to do item"
-          @click="props.currentList?.id &&
-              handleEnterKey(index, props.currentList.id, item.id)"
+          @click="
+            props.currentList?.id &&
+              handleEnterKey(index, props.currentList.id, item.id)
+          "
         >
           <CornerDownLeft :size="20" />
         </Button>
         <Button
-          class="text-white shadow-none !rounded-2xl"
+          class="text-white shadow-none !rounded-2xl flex-shrink-0"
           title="Delete to do item"
           @click="deleteTodoItem(item.id)"
         >
@@ -143,9 +154,25 @@ const updateTodoItem = (listId: string, itemId: string, text: string) => {
   }
 };
 
+// const toggleTodoItem = (itemId: string, isDone: boolean) => {
+//   if (!props.currentList) return;
+//   todoStore.updateTodoItemInList(props.currentList.id, itemId, { isDone });
+// };
+
 const toggleTodoItem = (itemId: string, isDone: boolean) => {
   if (!props.currentList) return;
+
+  // Update item status
   todoStore.updateTodoItemInList(props.currentList.id, itemId, { isDone });
+
+  // Recalculate entire list status
+  const list = todoStore.listOfTodos.find(
+    (l) => l.id === props.currentList?.id
+  );
+  if (list) {
+    const allDone = list.list.every((item) => item.isDone);
+    todoStore.updateTodoList(props.currentList.id, { isDone: allDone });
+  }
 };
 
 const deleteTodoItem = (itemId: string) => {

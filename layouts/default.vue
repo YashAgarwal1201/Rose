@@ -10,10 +10,13 @@
       <slot />
     </div> -->
 
-    <div  v-if="showNavbar" class="w-full md:w-[70px] h-[60px] md:h-full flex-shrink-0"><Navbar /></div>
     <div
-      class="flex-grow-1 max-w-full"
+      v-if="showNavbar"
+      class="w-full md:w-[70px] h-[60px] md:h-full flex-shrink-0"
     >
+      <Navbar />
+    </div>
+    <div class="flex-grow-1 max-w-full overflow-y-auto">
       <slot />
     </div>
 
@@ -52,7 +55,7 @@ const isUnsupportedScreen = ref(false);
 
 onMounted(() => {
   const checkScreenSize = () => {
-    isUnsupportedScreen.value = window.innerWidth < 1024;
+    isUnsupportedScreen.value = window.innerWidth < 102;
   };
 
   checkScreenSize();
