@@ -2,10 +2,8 @@
   <div class="w-full h-full flex justify-center">
     <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
       <!-- Header -->
-      <div class="flex items-center justify-between">
-        <h1 class="hidden md:block text-2xl lg:text-3xl font-heading">
-          Your To Do Lists
-        </h1>
+      <div class="hidden md:flex items-center justify-between">
+        <h1 class="text-2xl lg:text-3xl font-heading">Your To Do Lists</h1>
         <Button
           v-if="todoStore?.listOfTodos?.length > 0"
           class="text-white shadow-none !rounded-xl flex items-center justify-center gap-2 px-4 py-2"
@@ -33,46 +31,63 @@
               placeholder="Search to-do lists..."
               class="w-full p-2 !rounded-xl font-content text-sm xl:text-base"
             />
+
+            <Button
+              v-if="todoStore?.listOfTodos?.length > 0"
+              class="text-white !flex md:!hidden shadow-none !rounded-xl items-center justify-center gap-2 px-4 py-2"
+              title="To do list"
+              @click="navigateToNewList"
+            >
+              <Plus :size="16" />
+            </Button>
           </div>
 
-          <div class="max-w-full flex items-center gap-3">
+          <div class="w-full md:w-auto grid grid-cols-2 gap-3 flex-shrink-0">
             <!-- Sorting Options -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <Dropdown
+              <Select
                 v-model="sortOption"
                 :options="sortOptions"
                 optionLabel="label"
                 optionValue="value"
                 placeholder="Sort lists"
-                class="w-48 !rounded-xl font-content text-sm xl:text-base"
+                class="w-full !rounded-xl font-content text-sm xl:text-base"
               />
             </div>
 
-            <!-- Filter on the basis of completion status -->
+            <!-- Filter by completion status -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <Dropdown
+              <Select
                 v-model="completionFilter"
                 :options="completionFilterOptions"
                 optionLabel="label"
                 optionValue="value"
                 placeholder="Filter by status"
-                class="w-48 !rounded-xl font-content text-sm xl:text-base"
+                class="w-full !rounded-xl font-content text-sm xl:text-base"
               />
             </div>
           </div>
         </div>
 
         <div
-          v-if="filteredAndSortedTodos?.length > 0"
+          v-if="
+            filteredAndSortedTodos?.length > 0 &&
+            userStore?.enabledFeatures.includes('todo')
+          "
           class="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto"
         >
           <div
             v-for="(listItem, index) in filteredAndSortedTodos"
             :key="index"
-            class="h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg shadow-md bg-rose-800 font-content"
+            class="h-fit flex flex-row items-start gap-x-3 p-2 md:p-3 rounded-lg sm:rounded-xl shadow-md bg-rose-800 font-content"
           >
             <div class="mt-1 flex-shrink-0">
-              <Checkbox :value="listItem.isDone" />
+              <Checkbox
+                :binary="true"
+                v-model="listItem.isDone"
+                @change="onListCompletionToggle(listItem)"
+              />
+              <!-- <Checkbox :value="listItem.isDone" /> -->
             </div>
             <div class="flex-grow">
               <h3
@@ -147,11 +162,14 @@ import InputText from "primevue/inputtext";
 import Dropdown from "primevue/dropdown";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
+import Select from "primevue/select";
+import type { TodoList } from "~/types/typesAndInterfaces";
 
 const confirm = useConfirm();
 
 const router = useRouter();
 const todoStore = useTodoStore();
+const userStore = useUserSetupStore();
 
 // Search state
 const searchQuery = ref("");
@@ -246,6 +264,10 @@ const confirmDelete = (listItem: any) => {
       // Optional: You can add a notification here if you want
     },
   });
+};
+
+const onListCompletionToggle = async (listItem: TodoList) => {
+  await todoStore.updateTodoList(listItem.id, { isDone: listItem.isDone });
 };
 
 // Navigation function

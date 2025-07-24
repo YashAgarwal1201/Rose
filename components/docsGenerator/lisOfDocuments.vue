@@ -1,13 +1,21 @@
 <template>
   <div class="p-3 flex flex-col gap-y-4 w-full h-full">
-    <Button
-      class="text-white shadow-none !rounded-xl"
-      title="To do list info"
-      @click="navigateToNewDocument"
-    >
-      <FileEdit :size="16" />
-      <span>New Document</span>
-    </Button>
+    <div class="flex items-center gap-3">
+      <Button
+        class="text-white shadow-none h-full flex-shrink-0 !rounded-xl"
+        title="Go back"
+        @click="goBack"
+        ><ArrowLeft :size="16" />
+      </Button>
+      <Button
+        class="text-white shadow-none !rounded-xl flex-grow"
+        title="To do list info"
+        @click="navigateToNewDocument"
+      >
+        <FileEdit :size="16" />
+        <span>New Document</span>
+      </Button>
+    </div>
 
     <Accordion class="bg-rose-700 dark:bg-rose-900 rounded-2xl p-3">
       <!-- Last 7 Days -->
@@ -72,7 +80,7 @@
       <AccordionPanel :value="2" class="!border-none">
         <AccordionHeader class="!bg-transparent !rounded-2xl"
           ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
-            Older Docments
+            Older Documents
           </h3></AccordionHeader
         ><AccordionContent>
           <div v-if="olderLists.length === 0">No older documents</div>
@@ -99,7 +107,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { v4 as uuidv4 } from "uuid";
-import { FileEdit } from "lucide-vue-next";
+import { ArrowLeft, FileEdit } from "lucide-vue-next";
 import Button from "primevue/button";
 import Accordion from "primevue/accordion";
 import AccordionPanel from "primevue/accordionpanel";
@@ -116,6 +124,10 @@ const navigateToDocument = (documentId: string) => {
 const navigateToNewDocument = () => {
   const newDocumentId = uuidv4();
   router.push(`/docs-generator/${newDocumentId}`);
+};
+
+const goBack = () => {
+  router.back();
 };
 
 const getDateBefore = (days: number) => {

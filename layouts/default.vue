@@ -3,10 +3,20 @@
     v-if="!isUnsupportedScreen"
     class="w-full h-full flex flex-col md:flex-row font-content"
   >
-    <div class="w-full md:w-[70px] h-[60px] md:h-full"><Navbar /></div>
+    <!-- <div  v-if="showNavbar" class="w-full md:w-[70px] h-[60px] md:h-full"><Navbar /></div>
     <div
       class="w-full md:w-[calc(100%-70px)] max-w-[1440px] h-[calc(100%-60px)] md:h-full"
     >
+      <slot />
+    </div> -->
+
+    <div
+      v-if="showNavbar"
+      class="w-full md:w-[70px] h-[60px] md:h-full flex-shrink-0"
+    >
+      <Navbar />
+    </div>
+    <div class="flex-grow-1 max-w-full overflow-y-auto">
       <slot />
     </div>
 
@@ -39,11 +49,13 @@ import BuildingWebsiteImage from "~/assets/illustrations/buildingWebsiteRose.svg
 
 import { ref, onMounted } from "vue";
 
+const route = useRoute();
+
 const isUnsupportedScreen = ref(false);
 
 onMounted(() => {
   const checkScreenSize = () => {
-    isUnsupportedScreen.value = window.innerWidth < 1024;
+    isUnsupportedScreen.value = window.innerWidth < 102;
   };
 
   checkScreenSize();
@@ -54,26 +66,13 @@ onMounted(() => {
   });
 });
 
-const route = useRoute();
-
-// onMounted(() => {
-//   const todoStore = useTodoStore();
-//   if (!todoStore.loaded) {
-//     todoStore.loadTodos();
-//   }
-// });
+const showNavbar = computed(() => route.path !== "/customise-app");
 
 useHead({
   meta: [{ property: "og:title", content: `Rose - ${route.meta.title}` }],
 });
 
 defineOptions({ ssr: false });
-
-// import { useNuxtApp } from "#app";
-
-// Initialize the IndexedDB persistence
-// const { $piniaIndexedDB } = useNuxtApp();
-// $piniaIndexedDB();
 </script>
 
 <style lang="css">
