@@ -33,6 +33,7 @@
       class="w-full md:w-[30rem] h-[30rem]"
       maximizable
       dismissable-mask
+      :draggable="false"
     >
       <template #header
         ><h2 class="font-heading text-xl md:text-2xl">Search</h2></template

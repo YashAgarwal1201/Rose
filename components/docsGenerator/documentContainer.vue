@@ -1,9 +1,7 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <div
-      class="w-full lg:w-[1024px] h-full py-4 flex flex-col gap-y-5 md:gap-y-7"
-    >
-      <div class="flex items-center justify-between">
+    <div class="w-full h-full py-4 flex flex-col gap-y-5 md:gap-y-7">
+      <div class="flex items-center justify-between flex-shrink-0">
         <InputText
           v-model="documentTitle"
           placeholder="Document Title"
@@ -19,7 +17,7 @@
         </Button> -->
       </div>
 
-      <div class="editor-container w-full h-full">
+      <div class="editor-container w-full h-full flex-grow-1">
         <div
           id="editorjs"
           class="w-full h-full border border-[#d1d5db] bg-transparent p-4 rounded-3xl"

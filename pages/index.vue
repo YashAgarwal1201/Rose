@@ -6,11 +6,12 @@
       <HomepageDateAndTime />
     </div>
 
-    <div class="w-full flex flex-col gap-y-3 sm:gap-y-4 flex-grow-1">
+    <div class="w-full flex flex-col gap-y-5 sm:gap-y-6 flex-grow-1">
+      <!-- Data stats -->
       <div class="w-full flex flex-col gap-y-5 sm:gap-y-6">
         <div class="w-full flex flex-nowrap items-center gap-3 overflow-x-auto">
           <div
-            class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
+            class="w-full max-w-3xs aspect-video flex-shrink-0 flex flex-col justify-center items-center gap-y-3 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
             <h4 class="font-heading text-3xl text-center">
               {{ todoStore.listOfTodos?.length ?? 0 }}
@@ -20,8 +21,8 @@
             </p>
           </div>
 
-          <!-- uncomment once document generator is ready -->
-          <div
+          <!-- uncomment once sketch notes is ready -->
+          <!-- <div
             class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
             <h4 class="font-heading text-3xl text-center">
@@ -30,16 +31,48 @@
             <p class="text-base sm:text-lg font-content text-center">
               Sketch notes created
             </p>
-          </div>
+          </div> -->
         </div>
       </div>
 
+      <!-- Quick Actions -->
+      <div class="flex md:hidden flex-col gap-y-4">
+        <h2 class="font-heading text-xl sm:text-2xl">Quick Actions</h2>
+        <div class="w-full flex items-center overflow-x-auto gap-x-3">
+          <RouterLink
+            to=""
+            @click.prevent="navigateToNewList"
+            class="w-3xs aspect-video flex flex-col justify-center items-center gap-y-2 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4 flex-shrink-0"
+          >
+            <ListTodo :size="24" />
+            <span class="text-base sm:text-lg">Create a new todo list</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/sketch-notes"
+            class="w-3xs aspect-video flex flex-col justify-center items-center gap-y-2 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4 flex-shrink-0"
+          >
+            <Signature :size="24" />
+            <span class="text-base sm:text-lg">Create a sketch note</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/docs-generator"
+            class="w-3xs aspect-video flex flex-col justify-center items-center gap-y-2 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4 flex-shrink-0"
+          >
+            <FileText :size="24" />
+            <span class="text-base sm:text-lg">Create a new todo list</span>
+          </RouterLink>
+        </div>
+      </div>
+
+      <!-- Recent data -->
       <div class="w-full flex flex-col sm:flex-row gap-5">
         <div
           class="max-w-full min-h-72 flex flex-col gap-y-3 rounded-xl border border-rose-200 dark:border-rose-900 p-4 font-content flex-grow-1 flex-shrink-0"
         >
           <div
-            class="mb-4 w-full flex flex-col sm:flex-row flex-wrap justify-between items-center gap-x-10 flex-shrink-0"
+            class="mb-4 w-full flex flex-col sm:flex-row flex-wrap justify-between sm:items-center gap-x-10 flex-shrink-0"
           >
             <h3 class="font-heading text-lg md:text-xl lg:text-2xl mb-2">
               Recent To-Do Lists
@@ -50,7 +83,7 @@
               :options="filterOptions"
               optionLabel="label"
               optionValue="value"
-              class="mb-4"
+              class="mb-4 *:!text-xs sm:*:!text-sm md:*:!text-base"
             />
           </div>
 
@@ -61,13 +94,17 @@
             stripedRows
             responsiveLayout="scroll"
           >
-            <Column header="Completed">
+            <Column header="Completed" header-class="font-heading">
               <template #body="{ data }">
-                <Checkbox :binary="true" :modelValue="data.isDone" disabled />
+                <Checkbox
+                  :binary="true"
+                  v-model="data.isDone"
+                  @change="onListCompletionToggle(data)"
+                />
               </template>
             </Column>
 
-            <Column field="title" header="Title">
+            <Column field="title" header="Title" header-class="font-heading">
               <template #body="{ data }">
                 <span
                   class="cursor-pointer underline"
@@ -78,7 +115,7 @@
               </template>
             </Column>
 
-            <Column header="Created On">
+            <Column header="Created On" header-class="font-heading">
               <template #body="{ data }">
                 {{ formatTimestamp(data.timestamp) }}
               </template>
@@ -86,8 +123,8 @@
 
             <Column
               header="Actions"
-              headerClass="text-center"
               style="width: 4rem"
+              header-class="font-heading text-center"
             >
               <template #body="{ data }">
                 <div class="flex items-center gap-x-2">
@@ -136,7 +173,16 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, FileEdit, Receipt, Trash, View } from "lucide-vue-next";
+import {
+  Eye,
+  FileEdit,
+  FileText,
+  ListTodo,
+  Receipt,
+  Signature,
+  Trash,
+  View,
+} from "lucide-vue-next";
 import Checkbox from "primevue/checkbox";
 import { v4 as uuidv4 } from "uuid";
 import ConfirmDialog from "primevue/confirmdialog";
@@ -145,6 +191,7 @@ import { useConfirm } from "primevue/useconfirm";
 import SelectButton from "primevue/selectbutton";
 
 import { ref, computed } from "vue";
+import type { TodoList } from "~/types/typesAndInterfaces";
 
 type FilterOption = "week" | "month" | "year";
 
@@ -172,7 +219,7 @@ const filteredLists = computed(() => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const lists = todoStore.activeLists;
+  const lists = todoStore.listOfTodos;
 
   switch (selectedFilter.value) {
     case "week": {
@@ -235,7 +282,7 @@ const getDateBefore = (days: number) => {
 
 const recentListsWeek = computed(() => {
   const sevenDaysAgo = getDateBefore(7);
-  return todoStore.activeLists.filter((list) => {
+  return todoStore.listOfTodos?.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate >= sevenDaysAgo;
   });
@@ -245,7 +292,7 @@ const recentListsInCurrentMonth = computed(() => {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
-  return todoStore.activeLists.filter((list) => {
+  return todoStore.listOfTodos?.filter((list) => {
     const listDate = new Date(list.timestamp);
     return listDate >= startOfMonth;
   });
@@ -265,6 +312,10 @@ const confirmDelete = (listItem: any) => {
       // Optional: You can add a notification here if you want
     },
   });
+};
+
+const onListCompletionToggle = async (listItem: TodoList) => {
+  await todoStore.updateTodoList(listItem.id, { isDone: listItem.isDone });
 };
 </script>
 
