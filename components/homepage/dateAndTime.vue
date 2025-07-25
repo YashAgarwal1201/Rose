@@ -30,7 +30,7 @@
     <Dialog
       v-model:visible="showSearchModal"
       modal
-      class="w-full md:w-[30rem] h-[30rem]"
+      class="w-full sm:w-[30rem] absolute sm:static !bottom-0 h-full sm:h-[30rem]"
       maximizable
       dismissable-mask
       :draggable="false"
