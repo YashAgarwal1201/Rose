@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 px-2 md:px-4 py-2 overflow-y-auto font-content"
+    class="w-full max-w-[1440px] h-full flex flex-col justify-start items-center gap-y-5 px-3 md:px-4 py-2 overflow-y-auto font-content"
   >
     <div class="w-full flex-shrink-0">
       <HomepageDateAndTime />
@@ -61,7 +61,7 @@
             class="w-3xs aspect-video flex flex-col justify-center items-center gap-y-2 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4 flex-shrink-0"
           >
             <FileText :size="24" />
-            <span class="text-base sm:text-lg">Create a new todo list</span>
+            <span class="text-base sm:text-lg">Create a new document</span>
           </RouterLink>
         </div>
       </div>
