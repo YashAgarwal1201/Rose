@@ -63,10 +63,12 @@
       :draggable="false"
       v-model:visible="infoDialogVisible"
       :modal="true"
-      class="w-full md:w-[30rem] h-auto !rounded-2xl"
+      class="w-full sm:w-[30rem] h-auto !rounded-2xl"
     >
       <template #header
-        ><h2 class="font-heading text-xl md:text-2xl">Search</h2></template
+        ><h2 class="font-heading text-xl md:text-2xl">
+          About todo list
+        </h2></template
       >
       <div
         v-if="currentList"

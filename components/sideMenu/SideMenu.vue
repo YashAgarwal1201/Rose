@@ -134,14 +134,14 @@
               >
                 <FolderX :size="16" />
                 <h3 class="text-lg font-medium text-white">
-                  Manage Application Storage
+                  Manage App Storage
                 </h3>
               </div>
             </template>
 
             <template #toggleicon class="hidden"><div></div></template>
             <div class="w-full flex flex-col gap-2 py-2">
-              <div class="flex items-center gap-x-3">
+              <div class="flex flex-wrap items-center gap-3">
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear entire application data?
                 </p>
@@ -156,7 +156,7 @@
                 />
               </div>
               <div class="mx-0 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
-              <div class="flex items-center gap-x-3">
+              <div class="flex flex-wrap items-center gap-3">
                 <p class="flex flex-grow text-sm xl:text-base">
                   Clear Todos data only?
                 </p>

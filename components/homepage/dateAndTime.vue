@@ -6,7 +6,7 @@
       <img :src="icon" alt="time icon" class="w-full" />
     </div>
     -->
-    <div class="w-full flex flex-col gap-y-2">
+    <div class="w-full flex flex-col gap-y-4">
       <div class="flex flex-row justify-between items-center w-full">
         <!-- <h1 class="text-2xl md:text-4xl font-heading">{{ formattedDate }}</h1>
       <h2 class="text-xl md:text-3xl uppercase">{{ currentTime }}</h2> -->
@@ -16,7 +16,7 @@
 
         <!-- Search Button -->
         <Button
-          class="mt-3 w-fit px-4 py-2 !rounded-xl text-white"
+          class="w-fit px-4 py-2 !rounded-xl text-white"
           icon="pi pi-search"
           @click="showSearchModal = true"
           ><Search :size="20" />
@@ -30,7 +30,7 @@
     <Dialog
       v-model:visible="showSearchModal"
       modal
-      class="w-full md:w-[30rem] h-[30rem]"
+      class="w-full sm:w-[30rem] absolute sm:static !bottom-0 h-full sm:h-[30rem]"
       maximizable
       dismissable-mask
       :draggable="false"
@@ -44,6 +44,32 @@
         class="w-full p-2 !rounded-xl font-content text-base"
         autofocus
       />
+
+      <div
+        v-for="list in todoSearchResults"
+        :key="list?.id"
+        class="mt-3 p-3 border border-zinc-300 dark:border-zinc-700 rounded-xl"
+      >
+        <h3 class="font-subheading text-lg mb-2">
+          {{ list?.title }}
+          <span
+            v-if="list?._titleMatchOnly"
+            class="text-xs text-zinc-500 dark:text-zinc-400 italic ml-2"
+          >
+            (title match)
+          </span>
+        </h3>
+
+        <ul v-if="!list?._titleMatchOnly" class="space-y-1">
+          <li
+            v-for="item in list?.filteredItems"
+            :key="item?.id"
+            class="text-sm text-zinc-700 dark:text-zinc-200"
+          >
+            • {{ item?.text }}
+          </li>
+        </ul>
+      </div>
     </Dialog>
   </div>
 </template>
@@ -56,6 +82,16 @@ import QuoteOfTheDay from "./quoteOfTheDay/quoteOfTheDay.vue";
 const userStore = useUserSetupStore();
 const userName = userStore.userName;
 
+const todoStore = useTodoStore();
+
+const searchIndex = ref<
+  {
+    listId: string;
+    title: string;
+    items: { id: string; text: string }[];
+  }[]
+>([]);
+
 const currentDate = ref("");
 const currentTime = ref("");
 const formattedDate = ref("");
@@ -65,6 +101,52 @@ const icon = ref("");
 // state for modal & search input
 const showSearchModal = ref(false);
 const searchQuery = ref("");
+const rawQuery = ref("");
+
+let debounceTimer: number | null = null;
+
+watch(
+  () => todoStore.listOfTodos,
+  (lists) => {
+    searchIndex.value = lists.map((list) => ({
+      listId: list.id,
+      title: list.title.toLowerCase(),
+      items: list.list.map((item) => ({
+        id: item.id,
+        text: item.text.toLowerCase(),
+      })),
+    }));
+  },
+  { immediate: true, deep: true }
+);
+
+// Computed search results
+const todoSearchResults = computed(() => {
+  const query = searchQuery.value;
+  if (!query) return [];
+
+  return searchIndex.value
+    .map(({ listId, title, items }) => {
+      const titleMatches = title.includes(query);
+      const matchingItems = items.filter((item) => item.text.includes(query));
+
+      if (titleMatches || matchingItems.length > 0) {
+        const fullList = todoStore.listOfTodos.find((l) => l.id === listId);
+        return {
+          ...fullList!,
+          filteredItems: titleMatches
+            ? fullList!.list
+            : matchingItems.map((i) =>
+                fullList!.list.find((item) => item.id === i.id)
+              ),
+          _titleMatchOnly: titleMatches && matchingItems.length === 0,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+});
 
 const updateDateTime = () => {
   const now = new Date();
