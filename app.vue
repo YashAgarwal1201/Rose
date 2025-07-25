@@ -1,5 +1,5 @@
 <template>
-  <div class="w-screen h-screen">
+  <div class="w-dvw h-dvh">
     <NuxtLayout>
       <NuxtPwaManifest />
       <NuxtPage />

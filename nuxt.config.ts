@@ -44,10 +44,7 @@ export default defineNuxtConfig({
     "@vite-pwa/nuxt",
     "@primevue/nuxt-module",
   ],
-  plugins: [
-    { src: "~/plugins/highcharts-vue.ts", mode: "client" },
-    // { src: "~/plugins/piniaIndexedDbPlugin.client.ts", mode: "client" },
-  ],
+  plugins: [{ src: "~/plugins/highcharts-vue.ts", mode: "client" }],
 
   // fonts: { families: [{ name: "Raleway", provider: "google" }] },
 
@@ -57,8 +54,8 @@ export default defineNuxtConfig({
       name: "Project Rose",
       short_name: "Rose",
       description: "A Nuxt 3 Progressive Web App",
-      theme_color: "#ffffff",
-      background_color: "#ffffff",
+      theme_color: "#9f1239",
+      background_color: "#0a0a0a",
       display: "standalone",
       icons: [
         {

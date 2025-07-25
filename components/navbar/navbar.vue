@@ -53,12 +53,12 @@
     <div
       class="w-full h-full md:h-fit flex justify-between items-center mt-0 md:mt-auto"
     >
-      <h3 class="block md:hidden text-lg sm:text-xl font-heading">
+      <h1 class="block md:hidden text-xl sm:text-2xl font-heading">
         {{ headerStore.headerTitle }}
-      </h3>
+      </h1>
 
       <Button
-        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center !border-none !bg-transparent rounded-full md:!rounded-3xl *:text-lg pointer-events-auto"
+        class="w-auto md:w-full h-auto aspect-square flex justify-center items-center !border-none !bg-transparent !rounded-full md:!rounded-3xl *:text-lg pointer-events-auto"
         @click="headerStore.showSideMenu = true"
         severity="secondary"
         ><Menu :size="16"

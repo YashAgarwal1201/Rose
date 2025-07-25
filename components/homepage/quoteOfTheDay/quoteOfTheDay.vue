@@ -1,15 +1,15 @@
 <template>
-  <div class="w-full p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900 font-content">
+  <div class="w-full p-4 rounded-xl bg-rose-50 dark:bg-rose-950 font-content">
     <div v-if="quote" class="flex flex-col items-start gap-y-2">
-      <p class="text-lg italic text-zinc-800 dark:text-zinc-100">
+      <p class="text-base italic text-rose-900 dark:text-rose-50">
         "{{ quote.text }}"
       </p>
-      <p class="text-sm text-zinc-500 dark:text-zinc-400 font-medium self-end">
+      <p class="text-sm text-rose-800 dark:text-rose-100 font-medium self-end">
         — {{ quote.author }}
         <!-- <span>({{ quote.source }})</span> -->
       </p>
     </div>
-    <div v-else class="text-center text-zinc-500 italic">Loading quote...</div>
+    <div v-else class="text-center text-rose-100 italic">Loading quote...</div>
   </div>
 </template>
 

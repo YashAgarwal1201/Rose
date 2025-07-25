@@ -1,8 +1,12 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <div class="w-full h-full p-2 sm:p-4 flex flex-col gap-y-5 md:gap-y-7">
+    <div
+      class="w-full h-full px-3 py-2 sm:px-4 sm:py-4 flex flex-col gap-y-5 md:gap-y-7"
+    >
       <div class="flex items-center justify-between">
-        <h1 class="hidden md:block text-2xl lg:text-3xl font-heading">Documents</h1>
+        <h1 class="hidden md:block text-2xl lg:text-3xl font-heading">
+          Documents
+        </h1>
         <Button
           v-if="documentStore?.documents?.length > 0"
           class="text-white shadow-none"
@@ -99,7 +103,7 @@
         class="w-full h-[calc(100%-40px)] flex flex-col justify-center items-center"
       >
         <img
-          :src="NotFoundImage"
+          :src="EmptyBoxImage"
           class="max-w-80 select-none pointer-events-none"
         />
         <!-- <NotFoundImage /> -->
@@ -121,7 +125,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
+// import NotFoundImage from "~/assets/illustrations/pageNotFoundRose.svg";
+import EmptyBoxImage from "~/assets/illustrations/emptyBoxRose.svg";
 import { FileEdit } from "lucide-vue-next";
 import Button from "primevue/button";
 
