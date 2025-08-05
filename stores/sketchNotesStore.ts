@@ -1,4 +1,4 @@
-// todo: store for sketch notes
+// todo: store for Handwritten Notes
 import { defineStore } from "pinia";
 import { ref } from "vue";
 

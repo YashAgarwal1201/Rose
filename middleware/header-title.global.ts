@@ -8,7 +8,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const routeTitleMap: Record<string, string> = {
     home: "",
     "to-do-list": "Your To do lists",
-    "sketch-notes": "Sketch Notes",
+    "sketch-notes": "Handwritten Notes",
     "docs-generator": "Your Documents",
   };
 
@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   // Handle dynamic subroutes like sketch-notes/[id]
   if (to.name?.toString().startsWith("sketch-notes")) {
-    headerStore.headerTitle = "New Sketch Note";
+    headerStore.headerTitle = "New Handwritten Notes";
   } else if (to.name?.toString().startsWith("to-do-list")) {
     headerStore.headerTitle = "New To Do List";
   } else if (to.name?.toString().startsWith("docs-generator")) {

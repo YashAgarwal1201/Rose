@@ -21,7 +21,7 @@
             </p>
           </div>
 
-          <!-- uncomment once sketch notes is ready -->
+          <!-- uncomment once Handwritten Notes is ready -->
           <!-- <div
             class="w-full max-w-80 flex-shrink-0 flex flex-col gap-y-3 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4"
           >
@@ -29,7 +29,7 @@
               {{ todoStore.listOfTodos.length ?? 0 }}
             </h4>
             <p class="text-base sm:text-lg font-content text-center">
-              Sketch notes created
+              Handwritten Notes created
             </p>
           </div> -->
         </div>
@@ -53,7 +53,7 @@
             class="w-3xs aspect-video flex flex-col justify-center items-center gap-y-2 rounded-2xl bg-rose-200 dark:bg-rose-900 text-rose-950 dark:text-rose-100 p-4 flex-shrink-0"
           >
             <Signature :size="24" />
-            <span class="text-base sm:text-lg">Create a sketch note</span>
+            <span class="text-base sm:text-lg">Create a Handwritten Notes</span>
           </RouterLink>
 
           <RouterLink

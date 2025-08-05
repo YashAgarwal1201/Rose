@@ -9,19 +9,19 @@
           Your Handwritten Notes
         </h1>
         <Button
-          v-if="sketchNotesStore?.listOfTodos?.length > 0"
+          v-if="handNotesStore?.listOfTodos?.length > 0"
           class="text-white shadow-none !rounded-xl flex items-center justify-center gap-2 px-4 py-2"
           title="To do list"
           @click="navigateToNewList"
         >
           <Plus :size="16" />
-          <span>New Handwritten Notes</span>
+          <span>New Handwritten Note</span>
         </Button>
       </div>
 
       <!-- List of to dos -->
       <div
-        v-if="sketchNotesStore?.listOfTodos?.length > 0"
+        v-if="handNotesStore?.listOfTodos?.length > 0"
         class="w-full h-[calc(100%-40px)] flex flex-col gap-4"
       >
         <!-- Filters -->
@@ -159,7 +159,7 @@ import Select from "primevue/select";
 const confirm = useConfirm();
 
 const router = useRouter();
-const sketchNotesStore = useTodoStore();
+const handNotesStore = useTodoStore();
 const userStore = useUserSetupStore();
 
 // Search state
@@ -176,9 +176,9 @@ const sortOptions = [
 
 const completionFilter = ref("all");
 const completionFilterOptions = computed(() => {
-  const allCount = sketchNotesStore.listOfTodos.length;
-  const completedCount = sketchNotesStore.completedLists.length;
-  const activeCount = sketchNotesStore.activeLists.length;
+  const allCount = handNotesStore.listOfTodos.length;
+  const completedCount = handNotesStore.completedLists.length;
+  const activeCount = handNotesStore.activeLists.length;
 
   return [
     { label: `All (${allCount})`, value: "all" },
@@ -199,7 +199,7 @@ const formatTimestamp = (timestamp: string | number | Date) => {
 // Computed property for filtered and sorted todos
 const filteredAndSortedTodos = computed(() => {
   // First, filter todos based on search query
-  let result = [...sketchNotesStore.listOfTodos];
+  let result = [...handNotesStore.listOfTodos];
 
   // 1. Filter by search
   if (searchQuery.value.trim()) {
@@ -249,7 +249,7 @@ const confirmDelete = (listItem: any) => {
     icon: "pi pi-exclamation-triangle",
     acceptClass: "p-button-danger",
     accept: () => {
-      sketchNotesStore.deleteTodoList(listItem.id);
+      handNotesStore.deleteTodoList(listItem.id);
     },
     reject: () => {
       // Optional: You can add a notification here if you want
@@ -259,13 +259,13 @@ const confirmDelete = (listItem: any) => {
 
 // Navigation function
 const navigateToList = (listId: string) => {
-  router.push(`/sketch-notes/${listId}`);
+  router.push(`/handwritten-notes/${listId}`);
 };
 
 // Navigation function for new list
 const navigateToNewList = () => {
   const newListId = uuidv4(); // Generate a new UUID
-  router.push(`/sketch-notes/${newListId}`);
+  router.push(`/handwritten-notes/${newListId}`);
 };
 </script>
 

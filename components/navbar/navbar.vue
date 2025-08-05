@@ -40,14 +40,16 @@
         ><FileText :size="16"
       /></RouterLink> -->
 
-      <!-- <RouterLink
-        to="/sketch-notes"
+      <RouterLink
+        to="/handwritten-notes"
         v-if="route.fullPath"
         :class="[
-          route.fullPath === '/sketch-notes' ? selectedButton : buttonStyles,
+          route.fullPath === '/handwritten-notes'
+            ? selectedButton
+            : buttonStyles,
         ]"
         ><Signature :size="16"
-      /></RouterLink> -->
+      /></RouterLink>
     </div>
 
     <div

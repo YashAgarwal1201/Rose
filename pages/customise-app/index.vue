@@ -134,7 +134,12 @@ const hasExistingSetup = computed(() => {
 const features = [
   { label: "To Do List", value: "todo", icon: ListTodo, disabled: false },
   { label: "Docs Generator", value: "docs", icon: FileText, disabled: true },
-  { label: "Sketch Notes", value: "sketch", icon: Signature, disabled: true },
+  {
+    label: "Handwritten Notes",
+    value: "sketch",
+    icon: Signature,
+    disabled: true,
+  },
   // { label: "Expense Calculator", value: "calculator", icon: Calculator, disabled: true },
 ];
 

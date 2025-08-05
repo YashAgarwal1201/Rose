@@ -48,12 +48,12 @@
 
             <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
 
-          <!-- <RouterLink to="/sketch-notes" :class="buttonStyles">
-              <Signature :size="16" />
-              <span>Sketch Notes</span>
-            </RouterLink>
+          <RouterLink to="/handwritten-notes" :class="buttonStyles">
+            <Signature :size="16" />
+            <span>Handwritten Notes</span>
+          </RouterLink>
 
-            <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div> -->
+          <div class="mx-2 my-1 p-0 max-w-full h-[1.5px] bg-black"></div>
 
           <RouterLink to="/customise-app" :class="buttonStyles">
             <Wrench :size="16" />

@@ -82,7 +82,7 @@
       <AccordionPanel :value="2" class="!border-none">
         <AccordionHeader class="!bg-transparent !rounded-2xl"
           ><h3 class="text-base font-medium text-slate-200 dark:text-slate-100">
-            Older Sketch Notes
+            Older Handwritten Notes
           </h3></AccordionHeader
         >
         <AccordionContent class="!bg-transparent"
