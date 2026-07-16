@@ -1,1 +1,0 @@
-import{av as r,y as o,z as s,A as n,am as a}from"./PtNISsP7.js";var i={name:"BlankIcon",extends:r};function l(t,e,p,c,d,m){return s(),o("svg",a({width:"14",height:"14",viewBox:"0 0 14 14",fill:"none",xmlns:"http://www.w3.org/2000/svg"},t.pti()),e[0]||(e[0]=[n("rect",{width:"1",height:"1",fill:"currentColor","fill-opacity":"0"},null,-1)]),16)}i.render=l;export{i as s};
