@@ -1,0 +1,3580 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: certs/**, public/**, **/*.png, **/*.jpg, **/*.jpeg, **/*.gif, **/*.webp, **/*.svg, **/*.ico, **/*.avif, **/.env, **/.env.*, **/*.yml, src/Data/**, **/*.scss, **/*.css
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+e2e/
+  tsconfig.json
+  vue.spec.ts
+src/
+  __tests__/
+    App.spec.ts
+  components/
+    Breadcrumbs.vue
+    ConfirmDialog.vue
+    ExplorerActions.vue
+    ExplorerGrid.vue
+    FolderTree.vue
+    FolderTreeDrawer.vue
+    MenuOverlay.vue
+    Sidebar.vue
+    ToastContainer.vue
+  composables/
+    useConfirm.ts
+    useExplorerViewMode.ts
+    useToast.ts
+  db/
+    index.ts
+    types.ts
+  router/
+    index.ts
+  stores/
+    counter.ts
+    folders.ts
+    theme.ts
+    todos.ts
+  types/
+    explorer.ts
+  utils/
+    formatRelativeTime.ts
+  views/
+    DocsView.vue
+    NotesView.vue
+    TodoListView.vue
+    TodosView.vue
+  App.vue
+  main.ts
+  registerSW.ts
+  vite-env.d.ts
+.editorconfig
+.gitattributes
+.gitignore
+.oxfmtrc.json
+.oxlintrc.json
+env.d.ts
+eslint.config.ts
+index.html
+package.json
+playwright.config.ts
+README.md
+repomix.config.json
+Roadmap.md
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+tsconfig.vitest.json
+vite.config.ts
+vitest.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="e2e/tsconfig.json">
+{
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": ["./**/*"]
+}
+</file>
+
+<file path="e2e/vue.spec.ts">
+import { test, expect } from '@playwright/test'
+
+// See here how to get started:
+// https://playwright.dev/docs/intro
+test('visits the app root url', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('h1')).toHaveText('You did it!')
+})
+</file>
+
+<file path="src/__tests__/App.spec.ts">
+import { describe, it, expect } from 'vitest'
+
+import { mount } from '@vue/test-utils'
+import App from '../App.vue'
+
+describe('App', () => {
+  it('mounts renders properly', () => {
+    const wrapper = mount(App)
+    expect(wrapper.text()).toContain('You did it!')
+  })
+})
+</file>
+
+<file path="src/components/Breadcrumbs.vue">
+<!-- src/components/Breadcrumbs.vue -->
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ChevronRightIcon, HomeIcon, MoreHorizontalIcon } from "@lucide/vue";
+import type { Crumb } from "../types/explorer";
+
+// const props =
+defineProps<{ crumbs: Crumb[] }>();
+const emit = defineEmits<{ navigate: [id: string | null] }>();
+
+const isPopoverOpen = ref(false);
+const popoverRef = ref<HTMLElement | null>(null);
+const triggerRef = ref<HTMLElement | null>(null);
+const popoverStyle = ref({ top: "0px", left: "0px" });
+
+async function openPopover() {
+  isPopoverOpen.value = true;
+  await nextTick();
+  positionPopover();
+}
+
+function positionPopover() {
+  if (!triggerRef.value) return;
+  const rect = triggerRef.value.getBoundingClientRect();
+  popoverStyle.value = {
+    top: `${rect.bottom + 6}px`,
+    left: `${rect.left}px`,
+  };
+}
+
+function togglePopover() {
+  if (isPopoverOpen.value) {
+    isPopoverOpen.value = false;
+  } else {
+    openPopover();
+  }
+}
+
+function selectCrumb(id: string | null) {
+  isPopoverOpen.value = false;
+  emit("navigate", id);
+}
+
+function handleOutsideClick(event: MouseEvent) {
+  const target = event.target as Node;
+  if (
+    isPopoverOpen.value &&
+    !popoverRef.value?.contains(target) &&
+    !triggerRef.value?.contains(target)
+  ) {
+    isPopoverOpen.value = false;
+  }
+}
+
+function handleEscape(event: KeyboardEvent) {
+  if (event.key === "Escape") isPopoverOpen.value = false;
+}
+
+function handleReposition() {
+  if (isPopoverOpen.value) positionPopover();
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleOutsideClick);
+  document.addEventListener("keydown", handleEscape);
+  window.addEventListener("resize", handleReposition);
+  window.addEventListener("scroll", handleReposition, true);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleOutsideClick);
+  document.removeEventListener("keydown", handleEscape);
+  window.removeEventListener("resize", handleReposition);
+  window.removeEventListener("scroll", handleReposition, true);
+});
+</script>
+
+<template>
+  <nav
+    class="flex items-center gap-0.5 text-sm mb-4 px-2 py-1.5 rounded-lg bg-rose-surface-alt/60 overflow-x-auto whitespace-nowrap no-scrollbar"
+  >
+    <button
+      class="flex items-center gap-1 px-2 py-1 rounded-md text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors shrink-0"
+      @click.stop="emit('navigate', null)"
+    >
+      <HomeIcon class="w-4 h-4" />
+    </button>
+
+    <!-- Small screens: collapsed view, entire trail is one tappable trigger -->
+    <template v-if="crumbs.length > 0">
+      <div
+        v-if="crumbs.length > 1"
+        ref="triggerRef"
+        class="flex items-center gap-0.5 sm:hidden cursor-pointer rounded-md hover:bg-rose-surface px-1 py-1 -mx-1 transition-colors"
+        @click="togglePopover"
+      >
+        <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
+        <span
+          class="flex items-center justify-center px-1.5 py-0.5 rounded-md text-rose-text-muted shrink-0"
+        >
+          <MoreHorizontalIcon class="w-4 h-4" />
+        </span>
+        <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
+        <span
+          class="px-2 py-1 rounded-md truncate max-w-40 bg-rose-surface-alt text-rose-text font-medium shrink-0"
+        >
+          {{ crumbs[crumbs.length - 1]?.name }}
+        </span>
+      </div>
+      <div v-else class="flex items-center gap-0.5 sm:hidden">
+        <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
+        <span
+          class="px-2 py-1 rounded-md truncate max-w-40 bg-rose-surface-alt text-rose-text font-medium shrink-0"
+        >
+          {{ crumbs[crumbs.length - 1]?.name }}
+        </span>
+      </div>
+    </template>
+
+    <!-- Larger screens: full trail -->
+    <template v-for="(crumb, index) in crumbs" :key="crumb.id ?? 'root'">
+      <div class="hidden sm:flex items-center gap-0.5">
+        <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
+        <button
+          class="px-2 py-1 rounded-md truncate max-w-32 md:max-w-40 shrink-0 transition-colors"
+          :class="
+            index === crumbs.length - 1
+              ? 'bg-rose-surface-alt text-rose-text font-medium'
+              : 'text-rose-text-muted hover:bg-rose-surface hover:text-rose-text'
+          "
+          @click="emit('navigate', crumb.id)"
+        >
+          {{ crumb.name }}
+        </button>
+      </div>
+    </template>
+  </nav>
+
+  <!-- Popover teleported to body so it's never clipped by the nav's overflow-x-auto -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition duration-150 ease-out"
+      enter-from-class="opacity-0 -translate-y-1 scale-95"
+      enter-to-class="opacity-100 translate-y-0 scale-100"
+      leave-active-class="transition duration-100 ease-in"
+      leave-from-class="opacity-100 translate-y-0 scale-100"
+      leave-to-class="opacity-0 -translate-y-1 scale-95"
+    >
+      <div
+        v-if="isPopoverOpen"
+        ref="popoverRef"
+        class="fixed min-w-40 max-w-56 bg-rose-surface border border-rose-border rounded-lg shadow-xl py-1 z-200"
+        :style="popoverStyle"
+      >
+        <button
+          v-for="crumb in crumbs.slice(0, -1)"
+          :key="crumb.id ?? 'root'"
+          class="flex items-center w-full text-left px-3 py-2 text-sm text-rose-text truncate hover:bg-rose-surface-alt transition-colors"
+          @click="selectCrumb(crumb.id)"
+        >
+          {{ crumb.name }}
+        </button>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+</style>
+</file>
+
+<file path="src/components/ConfirmDialog.vue">
+<!-- src/components/ConfirmDialog.vue -->
+<template>
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+        @click.self="handleCancel"
+      >
+        <div
+          class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+        >
+          <h3 v-if="options.title" class="text-xl font-semibold text-rose-text mb-2">
+            {{ options.title }}
+          </h3>
+          <p class="text-base text-rose-text-muted mb-6">{{ options.message }}</p>
+          <div class="flex justify-end gap-2">
+            <button
+              class="px-4 py-2 text-base rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors"
+              @click="handleCancel"
+            >
+              {{ options.cancelLabel || "Cancel" }}
+            </button>
+
+            <button
+              class="px-4 py-2 text-base rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors"
+              @click="handleConfirm"
+            >
+              {{ options.confirmLabel || "Confirm" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { useConfirm } from "../composables/useConfirm";
+
+const { isOpen, options, handleConfirm, handleCancel } = useConfirm();
+</script>
+</file>
+
+<file path="src/components/ExplorerActions.vue">
+<!-- src/components/ExplorerActions.vue -->
+<script setup lang="ts">
+import { ref } from "vue";
+import { FolderPlusIcon, PlusIcon, XIcon } from "@lucide/vue";
+
+defineProps<{ fileLabel: string }>();
+const emit = defineEmits<{ createFolder: []; createFile: [] }>();
+
+const fabOpen = ref(false);
+
+function handleFolderClick() {
+  fabOpen.value = false;
+  emit("createFolder");
+}
+function handleFileClick() {
+  fabOpen.value = false;
+  emit("createFile");
+}
+</script>
+
+<template>
+  <!-- Desktop: inline pill buttons -->
+  <div class="hidden md:flex items-center gap-2">
+    <button
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-surface-alt text-rose-text hover:bg-rose-border transition-colors text-sm"
+      @click="handleFolderClick"
+    >
+      <FolderPlusIcon class="w-4 h-4" /> New folder
+    </button>
+    <button
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors text-sm"
+      @click="handleFileClick"
+    >
+      <PlusIcon class="w-4 h-4" /> New {{ fileLabel }}
+    </button>
+  </div>
+
+  <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
+  <div class="md:hidden fixed right-4 bottom-[92px] z-30 flex flex-col items-end gap-3">
+    <Transition
+      enter-active-class="transition duration-150 ease-out"
+      enter-from-class="opacity-0 translate-y-2 scale-95"
+      enter-to-class="opacity-100 translate-y-0 scale-100"
+      leave-active-class="transition duration-100 ease-in"
+      leave-from-class="opacity-100 translate-y-0 scale-100"
+      leave-to-class="opacity-0 translate-y-2 scale-95"
+    >
+      <div v-if="fabOpen" class="flex flex-col items-end gap-2">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded-md bg-rose-surface text-rose-text text-sm shadow"
+            >New {{ fileLabel }}</span
+          >
+          <button
+            class="w-11 h-11 rounded-full bg-rose-primary text-white shadow-lg flex items-center justify-center"
+            @click="handleFileClick"
+          >
+            <PlusIcon class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded-md bg-rose-surface text-rose-text text-sm shadow"
+            >New folder</span
+          >
+          <button
+            class="w-11 h-11 rounded-full bg-rose-surface-alt text-rose-text shadow-lg flex items-center justify-center"
+            @click="handleFolderClick"
+          >
+            <FolderPlusIcon class="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </Transition>
+
+    <button
+      class="w-14 h-14 rounded-full bg-rose-primary text-white shadow-xl flex items-center justify-center transition-transform"
+      :class="fabOpen ? 'rotate-45' : ''"
+      @click="fabOpen = !fabOpen"
+    >
+      <XIcon v-if="fabOpen" class="w-6 h-6" />
+      <PlusIcon v-else class="w-6 h-6" />
+    </button>
+  </div>
+
+  <!-- Backdrop to close FAB on outside tap -->
+  <div v-if="fabOpen" class="md:hidden fixed inset-0 z-20" @click="fabOpen = false"></div>
+</template>
+</file>
+
+<file path="src/components/ExplorerGrid.vue">
+<!-- src/components/ExplorerGrid.vue -->
+<script setup lang="ts">
+import { computed, nextTick, ref } from "vue";
+import type { Component } from "vue";
+import {
+  FolderIcon,
+  // FolderPlusIcon,
+  // PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  LayoutGridIcon,
+  ListIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+} from "@lucide/vue";
+import { useConfirm } from "../composables/useConfirm";
+import { useToast } from "../composables/useToast";
+import { useExplorerViewMode } from "../composables/useExplorerViewMode";
+import { formatRelativeTime } from "../utils/formatRelativeTime";
+
+interface GridFolder {
+  id: string;
+  name: string;
+  itemCount?: number;
+  updatedAt?: number;
+  createdAt?: number;
+}
+interface GridFile {
+  id: string;
+  name: string;
+  itemCount?: number;
+  updatedAt?: number;
+  createdAt?: number;
+}
+interface DisplayItem {
+  kind: "folder" | "file";
+  id: string;
+  name: string;
+  itemCount?: number;
+  updatedAt?: number;
+  createdAt?: number;
+  isNew?: boolean;
+}
+
+const props = defineProps<{
+  folders: GridFolder[];
+  files: GridFile[];
+  fileIcon: Component;
+  fileLabel: string;
+}>();
+
+const emit = defineEmits<{
+  openFolder: [id: string];
+  openFile: [id: string];
+  createFolder: [name: string];
+  renameFolder: [id: string, name: string];
+  deleteFolder: [id: string];
+  createFile: [name: string];
+  renameFile: [id: string, name: string];
+  deleteFile: [id: string];
+}>();
+
+const { confirm } = useConfirm();
+const { showToast } = useToast();
+const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
+
+function typeLabel(kind: "folder" | "file"): string {
+  return kind === "folder"
+    ? "Folder"
+    : props.fileLabel[0]?.toUpperCase() + props.fileLabel?.slice(1);
+}
+
+function sortItems<T extends { name: string; updatedAt?: number }>(items: T[]): T[] {
+  const sorted = [...items].sort((a, b) => {
+    if (sortKey.value === "name") return a.name.localeCompare(b.name);
+    return (a.updatedAt ?? 0) - (b.updatedAt ?? 0);
+  });
+  return sortDir.value === "asc" ? sorted : sorted.reverse();
+}
+
+const sortedFolders = computed(() => sortItems(props.folders));
+const sortedFiles = computed(() => sortItems(props.files));
+
+const creatingType = ref<"folder" | "file" | null>(null);
+const newName = ref("");
+
+// function startCreate(type: "folder" | "file") {
+//   creatingType.value = type;
+//   newName.value = "";
+// }
+function confirmCreate() {
+  const name = newName.value.trim();
+  if (name) {
+    if (creatingType.value === "folder") emit("createFolder", name);
+    else if (creatingType.value === "file") emit("createFile", name);
+  }
+  creatingType.value = null;
+}
+function cancelCreate() {
+  creatingType.value = null;
+}
+
+const displayItems = computed<DisplayItem[]>(() => {
+  const folderItems: DisplayItem[] = sortedFolders.value.map((f) => ({
+    kind: "folder",
+    id: f.id,
+    name: f.name,
+    itemCount: f.itemCount,
+    updatedAt: f.updatedAt,
+    createdAt: f.createdAt,
+  }));
+  const fileItems: DisplayItem[] = sortedFiles.value.map((f) => ({
+    kind: "file",
+    id: f.id,
+    name: f.name,
+    itemCount: f.itemCount,
+    updatedAt: f.updatedAt,
+    createdAt: f.createdAt,
+  }));
+
+  const placeholder: DisplayItem | null = creatingType.value
+    ? { kind: creatingType.value, id: "__new__", name: "", isNew: true }
+    : null;
+
+  if (placeholder?.kind === "folder") return [placeholder, ...folderItems, ...fileItems];
+  if (placeholder?.kind === "file") return [...folderItems, placeholder, ...fileItems];
+  return [...folderItems, ...fileItems];
+});
+
+const isEmpty = computed(
+  () => props.folders.length === 0 && props.files.length === 0 && !creatingType.value,
+);
+
+const renamingId = ref<string | null>(null);
+const renamingKind = ref<"folder" | "file" | null>(null);
+const renamingName = ref("");
+const newItemInputRef = ref<HTMLInputElement | HTMLInputElement[] | null>(null);
+
+function focusAndScrollToNewInput() {
+  nextTick(() => {
+    const el = Array.isArray(newItemInputRef.value)
+      ? newItemInputRef.value[0]
+      : newItemInputRef.value;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.focus();
+  });
+}
+
+function startCreate(type: "folder" | "file") {
+  creatingType.value = type;
+  newName.value = "";
+  focusAndScrollToNewInput();
+}
+
+function startRename(kind: "folder" | "file", id: string, currentName: string, event: Event) {
+  event.stopPropagation();
+  renamingKind.value = kind;
+  renamingId.value = id;
+  renamingName.value = currentName;
+}
+function confirmRename() {
+  const name = renamingName.value.trim();
+  if (name && renamingId.value !== null) {
+    if (renamingKind.value === "folder") emit("renameFolder", renamingId.value, name);
+    else emit("renameFile", renamingId.value, name);
+  }
+  renamingId.value = null;
+}
+function cancelRename() {
+  renamingId.value = null;
+}
+
+async function handleDeleteFolder(id: string, name: string, event: Event) {
+  event.stopPropagation();
+  const confirmed = await confirm({
+    title: "Delete folder",
+    message: `Delete "${name}" and everything inside it? This can't be undone.`,
+    confirmLabel: "Delete",
+  });
+  if (!confirmed) return;
+  emit("deleteFolder", id);
+  showToast(`Deleted "${name}"`, "info");
+}
+
+async function handleDeleteFile(id: string, name: string, event: Event) {
+  event.stopPropagation();
+  const confirmed = await confirm({
+    title: `Delete ${props.fileLabel}`,
+    message: `Delete "${name}"? This can't be undone.`,
+    confirmLabel: "Delete",
+  });
+  if (!confirmed) return;
+  emit("deleteFile", id);
+  showToast(`Deleted "${name}"`, "info");
+}
+
+function handleOpen(item: DisplayItem) {
+  if (item.kind === "folder") emit("openFolder", item.id);
+  else emit("openFile", item.id);
+}
+function handleStartRename(item: DisplayItem, event: Event) {
+  startRename(item.kind, item.id, item.name, event);
+}
+function handleDelete(item: DisplayItem, event: Event) {
+  if (item.kind === "folder") handleDeleteFolder(item.id, item.name, event);
+  else handleDeleteFile(item.id, item.name, event);
+}
+function isRenaming(item: DisplayItem) {
+  return renamingId.value === item.id && renamingKind.value === item.kind;
+}
+
+defineExpose({ startCreate });
+</script>
+
+<template>
+  <div>
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
+      <!-- <div class="flex items-center gap-2">
+        <button
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-surface-alt text-rose-text hover:bg-rose-border transition-colors text-sm"
+          @click="startCreate('folder')"
+        >
+          <FolderPlusIcon class="w-4 h-4" /> New folder
+        </button>
+        <button
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors text-sm"
+          @click="startCreate('file')"
+        >
+          <PlusIcon class="w-4 h-4" /> New {{ fileLabel }}
+        </button>
+      </div> -->
+
+      <div class="flex items-center gap-1">
+        <button
+          class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
+          @click="setSortKey('name')"
+        >
+          Name
+          <ChevronUpIcon v-if="sortKey === 'name' && sortDir === 'asc'" class="w-3.5 h-3.5" />
+          <ChevronDownIcon v-else-if="sortKey === 'name'" class="w-3.5 h-3.5" />
+        </button>
+        <button
+          class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
+          @click="setSortKey('updatedAt')"
+        >
+          Modified
+          <ChevronUpIcon v-if="sortKey === 'updatedAt' && sortDir === 'asc'" class="w-3.5 h-3.5" />
+          <ChevronDownIcon v-else-if="sortKey === 'updatedAt'" class="w-3.5 h-3.5" />
+        </button>
+
+        <div class="w-px h-5 bg-rose-border mx-1"></div>
+
+        <button
+          class="p-1.5 rounded-md transition-colors"
+          :class="
+            viewMode === 'grid'
+              ? 'bg-rose-surface-alt text-rose-primary'
+              : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
+          "
+          title="Grid view"
+          @click="viewMode = 'grid'"
+        >
+          <LayoutGridIcon class="w-4 h-4" />
+        </button>
+        <button
+          class="p-1.5 rounded-md transition-colors"
+          :class="
+            viewMode === 'list'
+              ? 'bg-rose-surface-alt text-rose-primary'
+              : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
+          "
+          title="List view"
+          @click="
+            toggleViewMode();
+            viewMode = 'list';
+          "
+        >
+          <ListIcon class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
+    <div v-if="isEmpty" class="text-base text-rose-text-muted italic py-8 text-center">
+      This folder is empty.
+    </div>
+
+    <!-- Grid view -->
+    <div
+      v-else-if="viewMode === 'grid'"
+      class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
+    >
+      <div
+        v-for="item in displayItems"
+        :key="item.kind + '-' + item.id"
+        class="group relative flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-rose-surface-alt cursor-pointer transition-colors"
+        @click="!item.isNew && handleOpen(item)"
+      >
+        <component
+          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
+          class="w-12 h-12 shrink-0"
+          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
+        />
+
+        <input
+          v-if="item.isNew"
+          v-model="newName"
+          ref="newItemInputRef"
+          type="text"
+          autofocus
+          :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
+          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          @click.stop
+          @keyup.enter="confirmCreate"
+          @keyup.escape="cancelCreate"
+          @blur="confirmCreate"
+        />
+        <input
+          v-else-if="isRenaming(item)"
+          v-model="renamingName"
+          type="text"
+          autofocus
+          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          @click.stop
+          @keyup.enter="confirmRename"
+          @keyup.escape="cancelRename"
+          @blur="confirmRename"
+        />
+        <span v-else class="text-sm text-rose-text text-center truncate w-full">{{
+          item.name
+        }}</span>
+
+        <div
+          v-if="!item.isNew"
+          class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <button
+            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary"
+            @click="handleStartRename(item, $event)"
+          >
+            <PencilIcon class="w-3.5 h-3.5" />
+          </button>
+          <button
+            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary"
+            @click="handleDelete(item, $event)"
+          >
+            <TrashIcon class="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- List view -->
+    <div v-else class="flex flex-col">
+      <div
+        class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border"
+      >
+        <span class="flex-1">Name</span>
+        <span class="w-16 text-right shrink-0">Type</span>
+        <span class="w-20 text-right shrink-0">Items</span>
+        <span class="w-28 text-right shrink-0">Created</span>
+        <span class="w-32 text-right shrink-0">Modified</span>
+        <span class="w-14 shrink-0"></span>
+      </div>
+
+      <div
+        v-for="item in displayItems"
+        :key="item.kind + '-' + item.id"
+        class="group flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt cursor-pointer transition-colors"
+        @click="!item.isNew && handleOpen(item)"
+      >
+        <component
+          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
+          class="w-5 h-5 shrink-0"
+          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
+        />
+
+        <input
+          v-if="item.isNew"
+          v-model="newName"
+          ref="newItemInputRef"
+          type="text"
+          autofocus
+          :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
+          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          @click.stop
+          @keyup.enter="confirmCreate"
+          @keyup.escape="cancelCreate"
+          @blur="confirmCreate"
+        />
+        <input
+          v-else-if="isRenaming(item)"
+          v-model="renamingName"
+          type="text"
+          autofocus
+          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          @click.stop
+          @keyup.enter="confirmRename"
+          @keyup.escape="cancelRename"
+          @blur="confirmRename"
+        />
+        <span v-else class="flex-1 text-sm text-rose-text truncate">{{ item.name }}</span>
+
+        <template v-if="!item.isNew">
+          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate">
+            {{ typeLabel(item.kind) }}
+          </span>
+          <span class="w-20 text-right text-sm text-rose-text-muted shrink-0">
+            {{ item.itemCount ?? "—" }}
+          </span>
+          <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate">
+            {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
+          </span>
+          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate">
+            {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
+          </span>
+          <div
+            class="w-14 flex justify-end gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            ...
+          </div>
+        </template>
+        <template v-else>
+          <span class="w-16 shrink-0"></span>
+          <span class="w-20 shrink-0"></span>
+          <span class="w-28 shrink-0"></span>
+          <span class="w-32 shrink-0"></span>
+          <span class="w-14 shrink-0"></span>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
+</file>
+
+<file path="src/components/FolderTree.vue">
+<!-- src/components/FolderTree.vue -->
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import { ChevronRightIcon, ChevronDownIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
+import { useFoldersStore } from "../stores/folders";
+import { useConfirm } from "../composables/useConfirm";
+import { useToast } from "../composables/useToast";
+import type { FeatureType } from "../db/types";
+
+const props = defineProps<{
+  type: FeatureType;
+  activeFolderId: string | null;
+}>();
+
+const emit = defineEmits<{ select: [folderId: string | null] }>();
+
+const foldersStore = useFoldersStore();
+const { confirm } = useConfirm();
+const { showToast } = useToast();
+
+interface TreeNode {
+  id: string;
+  name: string;
+  depth: number;
+}
+
+const expanded = ref<Set<string>>(new Set());
+
+// function toggleExpand(id: string, event: Event) {
+//   event.stopPropagation();
+//   const next = new Set(expanded.value);
+//   next.has(id) ? next.delete(id) : next.add(id);
+//   expanded.value = next;
+// }
+
+function toggleExpand(id: string, event: Event) {
+  event.stopPropagation();
+
+  const next = new Set(expanded.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+
+  expanded.value = next;
+}
+
+function hasChildren(id: string): boolean {
+  return foldersStore.folders.some((f) => f.parentId === id && f.type === props.type);
+}
+
+const visibleNodes = computed<TreeNode[]>(() => {
+  const nodes: TreeNode[] = [];
+  function walk(parentId: string | null, depth: number) {
+    const children = foldersStore.folders
+      .filter((f) => f.parentId === parentId && f.type === props.type)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    for (const folder of children) {
+      nodes.push({ id: folder.id, name: folder.name, depth });
+      if (expanded.value.has(folder.id)) walk(folder.id, depth + 1);
+    }
+  }
+  walk(null, 0);
+  return nodes;
+});
+
+const creatingParentId = ref<string | null | undefined>(undefined);
+const newFolderName = ref("");
+
+function startCreating(parentId: string | null) {
+  creatingParentId.value = parentId;
+  newFolderName.value = "";
+}
+async function confirmCreate() {
+  const name = newFolderName.value.trim();
+  if (name && creatingParentId.value !== undefined) {
+    try {
+      await foldersStore.createFolder(name, creatingParentId.value, props.type);
+      if (creatingParentId.value) {
+        expanded.value = new Set(expanded.value).add(creatingParentId.value);
+      }
+      showToast(`Created folder "${name}"`, "success");
+    } catch (e) {
+      showToast((e as Error).message, "error");
+    }
+  }
+  creatingParentId.value = undefined;
+}
+function cancelCreate() {
+  creatingParentId.value = undefined;
+}
+
+async function handleDelete(id: string, name: string, event: Event) {
+  event.stopPropagation();
+  const confirmed = await confirm({
+    title: "Delete folder",
+    message: `Delete "${name}" and everything inside it? This can't be undone.`,
+    confirmLabel: "Delete",
+  });
+  if (!confirmed) return;
+  await foldersStore.deleteFolder(id);
+  showToast(`Deleted "${name}"`, "info");
+}
+</script>
+
+<template>
+  <div>
+    <ul class="space-y-0.5">
+      <li
+        v-for="node in visibleNodes"
+        :key="node.id"
+        class="rounded"
+        :class="node.id === activeFolderId ? 'bg-rose-surface-alt' : ''"
+      >
+        <div
+          class="flex items-center gap-1 px-2 py-1.5 cursor-pointer group"
+          :style="{ paddingLeft: `${0.5 + node.depth * 1.25}rem` }"
+          @click="emit('select', node.id)"
+        >
+          <button
+            v-if="hasChildren(node.id)"
+            class="text-rose-text-muted hover:text-rose-text shrink-0"
+            @click="toggleExpand(node.id, $event)"
+          >
+            <ChevronDownIcon v-if="expanded.has(node.id)" class="w-4 h-4" />
+            <ChevronRightIcon v-else class="w-4 h-4" />
+          </button>
+          <span v-else class="w-4 h-4 shrink-0"></span>
+
+          <FolderIcon class="w-4 h-4 text-rose-primary shrink-0" />
+          <span class="text-base text-rose-text truncate flex-1">{{ node.name }}</span>
+
+          <button
+            class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0"
+            title="New subfolder"
+            @click.stop="startCreating(node.id)"
+          >
+            <PlusIcon class="w-4 h-4" />
+          </button>
+          <button
+            class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0"
+            title="Delete folder"
+            @click="handleDelete(node.id, node.name, $event)"
+          >
+            <XIcon class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div
+          v-if="creatingParentId === node.id"
+          class="flex items-center gap-1 py-1"
+          :style="{ paddingLeft: `${0.5 + (node.depth + 1) * 1.25}rem` }"
+        >
+          <input
+            v-model="newFolderName"
+            type="text"
+            autofocus
+            placeholder="Folder name"
+            class="text-base px-2 py-1 rounded border border-rose-border bg-rose-surface text-rose-text focus:outline-none focus:ring-1 focus:ring-rose-primary w-36"
+            @click.stop
+            @keyup.enter="confirmCreate"
+            @keyup.escape="cancelCreate"
+          />
+          <button
+            class="text-sm text-rose-primary hover:text-rose-primary-hover"
+            @click.stop="confirmCreate"
+          >
+            ✓
+          </button>
+          <button
+            class="text-sm text-rose-text-muted hover:text-rose-text"
+            @click.stop="cancelCreate"
+          >
+            ✕
+          </button>
+        </div>
+      </li>
+    </ul>
+
+    <div v-if="creatingParentId === null" class="flex items-center gap-1 mt-1 px-2">
+      <input
+        v-model="newFolderName"
+        type="text"
+        autofocus
+        placeholder="Folder name"
+        class="text-base px-2 py-1 rounded border border-rose-border bg-rose-surface text-rose-text focus:outline-none focus:ring-1 focus:ring-rose-primary w-36"
+        @keyup.enter="confirmCreate"
+        @keyup.escape="cancelCreate"
+      />
+      <button
+        class="text-sm text-rose-primary hover:text-rose-primary-hover"
+        @click="confirmCreate"
+      >
+        ✓
+      </button>
+      <button class="text-sm text-rose-text-muted hover:text-rose-text" @click="cancelCreate">
+        ✕
+      </button>
+    </div>
+    <button
+      v-else
+      class="text-sm text-rose-primary hover:text-rose-primary-hover mt-1 px-2"
+      @click="startCreating(null)"
+    >
+      + New folder
+    </button>
+  </div>
+</template>
+</file>
+
+<file path="src/components/FolderTreeDrawer.vue">
+<!-- src/components/FolderTreeDrawer.vue -->
+<template>
+  <Transition
+    enter-active-class="transition-opacity duration-300"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-300"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+      @click="close"
+      aria-hidden="true"
+    ></div>
+  </Transition>
+
+  <Transition
+    enter-active-class="transition-transform duration-300 ease-in-out"
+    enter-from-class="-translate-x-full"
+    enter-to-class="translate-x-0"
+    leave-active-class="transition-transform duration-300 ease-in-out"
+    leave-from-class="translate-x-0"
+    leave-to-class="-translate-x-full"
+  >
+    <div
+      v-if="isOpen"
+      class="fixed top-0 left-0 h-full z-50 w-full max-w-xs bg-rose-surface shadow-2xl flex flex-col"
+    >
+      <div class="flex items-center justify-between px-4 py-4 shrink-0 border-b border-rose-border">
+        <h3 class="text-lg font-semibold text-rose-text">Folders</h3>
+        <button
+          class="p-2 hover:bg-rose-surface-alt rounded-full transition-colors"
+          @click="close"
+          aria-label="Close"
+        >
+          <XIcon class="w-5 h-5 text-rose-text" />
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4">
+        <slot />
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<script setup lang="ts">
+import { XIcon } from "@lucide/vue";
+
+defineProps<{ isOpen: boolean }>();
+const emit = defineEmits<{ close: [] }>();
+function close() {
+  emit("close");
+}
+</script>
+</file>
+
+<file path="src/components/MenuOverlay.vue">
+<!-- src/components/MenuOverlay.vue -->
+<template>
+  <Transition
+    enter-active-class="transition-opacity duration-300"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-300"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+      @click="close"
+      aria-hidden="true"
+    ></div>
+  </Transition>
+
+  <Transition
+    enter-active-class="transition-transform duration-300 ease-in-out"
+    enter-from-class="translate-x-full"
+    enter-to-class="translate-x-0"
+    leave-active-class="transition-transform duration-300 ease-in-out"
+    leave-from-class="translate-x-0"
+    leave-to-class="translate-x-full"
+  >
+    <div
+      v-if="isOpen"
+      class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl bg-rose-surface shadow-2xl flex flex-col"
+    >
+      <div class="flex items-center justify-between px-6 py-5 shrink-0">
+        <h3 class="text-xl font-semibold text-rose-text">Menu</h3>
+        <button
+          class="p-2 hover:bg-rose-surface-alt rounded-full transition-colors"
+          @click="close"
+          aria-label="Close menu"
+        >
+          <XIcon class="w-5 h-5 text-rose-text" />
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4">
+        <nav class="flex flex-col rounded-xl bg-rose-surface-alt p-4 border border-rose-border">
+          <div class="px-2 py-4 flex items-center gap-x-3 text-lg text-rose-text">
+            <PaletteIcon class="w-4 h-4 text-rose-text-muted shrink-0" />
+            <span>Theme</span>
+            <select
+              v-model="selectedMode"
+              class="ml-auto text-base bg-rose-surface border border-rose-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer"
+            >
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </nav>
+      </div>
+
+      <div class="px-6 py-4 shrink-0">
+        <p class="text-xs text-rose-text-muted font-mono">Rose — dev build</p>
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { XIcon, PaletteIcon } from "@lucide/vue";
+import { useThemeStore } from "../stores/theme";
+
+defineProps<{ isOpen: boolean }>();
+const emit = defineEmits<{ close: [] }>();
+
+const themeStore = useThemeStore();
+
+const selectedMode = computed({
+  get: () => themeStore.mode,
+  set: (value: "light" | "dark" | "system") => themeStore.setMode(value),
+});
+
+function close() {
+  emit("close");
+}
+</script>
+</file>
+
+<file path="src/components/Sidebar.vue">
+<!-- src/components/Sidebar.vue -->
+<template>
+  <aside
+    class="w-full md:w-24 h-[72px] md:h-screen z-40 bg-rose-surface border-t md:border-t-0 md:border-r border-rose-border flex flex-row md:flex-col items-center py-2 md:py-3 px-2 md:px-0"
+  >
+    <div
+      class="flex flex-row md:flex-col justify-around md:justify-center items-center gap-1 md:gap-3 w-full h-full"
+    >
+      <router-link
+        v-for="item in navItems"
+        :key="item.name"
+        :to="item.path"
+        :title="item.label"
+        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none"
+      >
+        <span
+          class="rounded-full py-1 px-3 transition-all duration-200"
+          :class="[
+            $route.path.startsWith(item.path)
+              ? 'bg-rose-primary text-white'
+              : 'group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text',
+          ]"
+        >
+          <component :is="item.icon" class="w-5 h-5 transition-colors duration-200" />
+        </span>
+        <span
+          class="truncate text-sm md:text-base font-medium mt-1 transition-all duration-200"
+          :class="[
+            $route.path.startsWith(item.path)
+              ? 'text-rose-primary font-bold'
+              : 'text-rose-text-muted group-hover:text-rose-text',
+          ]"
+        >
+          {{ item.label }}
+        </span>
+      </router-link>
+
+      <button
+        @click="$emit('toggleMenu')"
+        title="Menu"
+        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none"
+      >
+        <span
+          class="rounded-full py-1 px-3 transition-all duration-200 group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text"
+        >
+          <MenuIcon class="w-5 h-5 transition-colors duration-200" />
+        </span>
+        <span
+          class="truncate text-sm md:text-base font-medium mt-1 transition-all duration-200 text-rose-text-muted group-hover:text-rose-text"
+        >
+          Menu
+        </span>
+      </button>
+    </div>
+  </aside>
+</template>
+
+<script setup lang="ts">
+import { ListTodoIcon, PenLineIcon, FileTextIcon, MenuIcon } from "@lucide/vue";
+
+const navItems = [
+  { name: "todos", label: "Todos", path: "/todos/folder", icon: ListTodoIcon },
+  { name: "notes", label: "Notes", path: "/notes/folder", icon: PenLineIcon },
+  { name: "docs", label: "Docs", path: "/docs/folder", icon: FileTextIcon },
+];
+
+defineEmits(["toggleMenu"]);
+</script>
+</file>
+
+<file path="src/components/ToastContainer.vue">
+<!-- src/components/ToastContainer.vue -->
+<template>
+  <Teleport to="body">
+    <div
+      class="fixed bottom-4 right-4 z-100 flex flex-col gap-2 w-full max-w-sm px-4 md:px-0 pointer-events-none"
+    >
+      <TransitionGroup name="toast">
+        <div
+          v-for="toast in toasts"
+          :key="toast.id"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-rose-surface border border-rose-border pointer-events-auto"
+        >
+          <component
+            :is="iconFor(toast.type)"
+            class="w-5 h-5 shrink-0"
+            :class="colorFor(toast.type)"
+          />
+          <p class="text-base text-rose-text flex-1">{{ toast.message }}</p>
+          <button @click="dismissToast(toast.id)" class="text-rose-text-muted hover:text-rose-text">
+            <XIcon class="w-4 h-4" />
+          </button>
+        </div>
+      </TransitionGroup>
+    </div>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { CheckCircleIcon, XCircleIcon, InfoIcon, AlertTriangleIcon, XIcon } from "@lucide/vue";
+import { useToast, type ToastType } from "../composables/useToast";
+
+const { toasts, dismissToast } = useToast();
+
+function iconFor(type: ToastType) {
+  switch (type) {
+    case "success":
+      return CheckCircleIcon;
+    case "error":
+      return XCircleIcon;
+    case "warning":
+      return AlertTriangleIcon;
+    default:
+      return InfoIcon;
+  }
+}
+
+function colorFor(type: ToastType) {
+  switch (type) {
+    case "success":
+      return "text-green-500";
+    case "error":
+      return "text-red-500";
+    case "warning":
+      return "text-amber-500";
+    default:
+      return "text-rose-primary";
+  }
+}
+</script>
+
+<style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.25s ease;
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+</style>
+</file>
+
+<file path="src/composables/useConfirm.ts">
+// src/composables/useConfirm.ts
+import { ref } from "vue";
+
+interface ConfirmOptions {
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+}
+
+const isOpen = ref(false);
+const options = ref<ConfirmOptions>({ message: "" });
+let resolvePromise: ((value: boolean) => void) | null = null;
+
+function confirm(opts: ConfirmOptions | string): Promise<boolean> {
+  options.value = typeof opts === "string" ? { message: opts } : opts;
+  isOpen.value = true;
+  return new Promise((resolve) => {
+    resolvePromise = resolve;
+  });
+}
+
+function handleConfirm() {
+  isOpen.value = false;
+  resolvePromise?.(true);
+  resolvePromise = null;
+}
+
+function handleCancel() {
+  isOpen.value = false;
+  resolvePromise?.(false);
+  resolvePromise = null;
+}
+
+export function useConfirm() {
+  return { isOpen, options, confirm, handleConfirm, handleCancel };
+}
+</file>
+
+<file path="src/composables/useExplorerViewMode.ts">
+// src/composables/useExplorerViewMode.ts
+import { ref, watch } from "vue";
+
+export type ViewMode = "grid" | "list";
+export type SortKey = "name" | "updatedAt";
+export type SortDir = "asc" | "desc";
+
+const VIEW_MODE_KEY = "rose-explorer-view-mode";
+const SORT_KEY_KEY = "rose-explorer-sort-key";
+const SORT_DIR_KEY = "rose-explorer-sort-dir";
+
+const viewMode = ref<ViewMode>((localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || "grid");
+const sortKey = ref<SortKey>((localStorage.getItem(SORT_KEY_KEY) as SortKey) || "name");
+const sortDir = ref<SortDir>((localStorage.getItem(SORT_DIR_KEY) as SortDir) || "asc");
+
+watch(viewMode, (v) => localStorage.setItem(VIEW_MODE_KEY, v));
+watch(sortKey, (v) => localStorage.setItem(SORT_KEY_KEY, v));
+watch(sortDir, (v) => localStorage.setItem(SORT_DIR_KEY, v));
+
+export function useExplorerViewMode() {
+  function toggleViewMode() {
+    viewMode.value = viewMode.value === "grid" ? "list" : "grid";
+  }
+
+  function setSortKey(key: SortKey) {
+    if (sortKey.value === key) {
+      sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
+    } else {
+      sortKey.value = key;
+      sortDir.value = "asc";
+    }
+  }
+
+  return { viewMode, sortKey, sortDir, toggleViewMode, setSortKey };
+}
+</file>
+
+<file path="src/composables/useToast.ts">
+// src/composables/useToast.ts
+import { ref } from "vue";
+
+export type ToastType = "success" | "error" | "info" | "warning";
+
+export interface Toast {
+  id: number;
+  message: string;
+  type: ToastType;
+}
+
+const toasts = ref<Toast[]>([]);
+let nextId = 0;
+
+function showToast(message: string, type: ToastType = "info", duration = 3000) {
+  const id = nextId++;
+  toasts.value.push({ id, message, type });
+  setTimeout(() => dismissToast(id), duration);
+}
+
+function dismissToast(id: number) {
+  toasts.value = toasts.value.filter((t) => t.id !== id);
+}
+
+export function useToast() {
+  return { toasts, showToast, dismissToast };
+}
+</file>
+
+<file path="src/db/index.ts">
+// src/db/index.ts
+import Dexie, { type EntityTable } from "dexie";
+import type { Folder, TodoList, Todo } from "./types";
+
+const db = new Dexie("RoseDatabase") as Dexie & {
+  folders: EntityTable<Folder, "id">;
+  todoLists: EntityTable<TodoList, "id">;
+  todos: EntityTable<Todo, "id">;
+};
+
+db.version(1).stores({
+  folders: "++id, parentId, type",
+  todos: "++id, folderId, done",
+});
+
+db.version(2).stores({
+  folders: "++id, parentId, type",
+  todoLists: "++id, folderId",
+  todos: "++id, listId, done",
+});
+
+db.version(3).stores({
+  folders: "id, parentId, type",
+  todoLists: "id, folderId",
+  todos: "id, listId, done",
+});
+
+export default db;
+</file>
+
+<file path="src/db/types.ts">
+// src/db/types.ts
+
+export type FeatureType = "todo" | "note" | "doc";
+
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  type: FeatureType;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface TodoList {
+  id: string;
+  folderId: string | null;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface Todo {
+  id: string;
+  listId: string;
+  title: string;
+  done: boolean;
+  priority: "low" | "medium" | "high" | null;
+  dueDate: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+</file>
+
+<file path="src/router/index.ts">
+// src/router/index.ts
+import { createRouter, createWebHistory } from "vue-router";
+import TodosView from "../views/TodosView.vue";
+import TodoListView from "../views/TodoListView.vue";
+import NotesView from "../views/NotesView.vue";
+import DocsView from "../views/DocsView.vue";
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    { path: "/", redirect: "/todos/folder" },
+
+    {
+      path: "/todos/folder/:pathMatch(.*)*",
+      name: "todos-folder",
+      component: TodosView,
+      props: true,
+    },
+    {
+      path: "/todos/list/:pathMatch(.*)*",
+      name: "todos-list",
+      component: TodoListView,
+      props: true,
+    },
+
+    {
+      path: "/notes/folder/:pathMatch(.*)*",
+      name: "notes-folder",
+      component: NotesView,
+      props: true,
+    },
+    { path: "/docs/folder/:pathMatch(.*)*", name: "docs-folder", component: DocsView, props: true },
+  ],
+});
+
+export default router;
+</file>
+
+<file path="src/stores/counter.ts">
+import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
+
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(0)
+  const doubleCount = computed(() => count.value * 2)
+  function increment() {
+    count.value++
+  }
+
+  return { count, doubleCount, increment }
+})
+</file>
+
+<file path="src/stores/folders.ts">
+// src/stores/folders.ts
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import db from "../db";
+import type { Folder, FeatureType } from "../db/types";
+import { useTodosStore } from "./todos";
+
+export const useFoldersStore = defineStore("folders", () => {
+  const folders = ref<Folder[]>([]);
+
+  async function loadFolders(type: FeatureType) {
+    folders.value = await db.folders.where("type").equals(type).toArray();
+  }
+
+  // async function createFolder(name: string, parentId: string | null, type: FeatureType) {
+  //   const now = Date.now();
+  //   const folder: Folder = {
+  //     id: crypto.randomUUID(),
+  //     name,
+  //     parentId,
+  //     type,
+  //     createdAt: now,
+  //     updatedAt: now,
+  //   };
+  //   await db.folders.add(folder);
+  //   await loadFolders(type);
+  //   return folder.id;
+  // }
+
+  // async function renameFolder(id: string, name: string) {
+  //   await db.folders.update(id, { name, updatedAt: Date.now() });
+  //   const updated = folders.value.find((f) => f.id === id);
+  //   if (updated) await loadFolders(updated.type);
+  // }
+
+  async function createFolder(name: string, parentId: string | null, type: FeatureType) {
+    const trimmed = name.trim();
+    const duplicate = folders.value.find(
+      (f) =>
+        f.parentId === parentId &&
+        f.type === type &&
+        f.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A folder named "${trimmed}" already exists here.`);
+    }
+    const now = Date.now();
+    const folder: Folder = {
+      id: crypto.randomUUID(),
+      name: trimmed,
+      parentId,
+      type,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.folders.add(folder);
+    await loadFolders(type);
+    return folder.id;
+  }
+
+  async function renameFolder(id: string, name: string) {
+    const trimmed = name.trim();
+    const target = folders.value.find((f) => f.id === id);
+    if (!target) return;
+    const duplicate = folders.value.find(
+      (f) =>
+        f.id !== id &&
+        f.parentId === target.parentId &&
+        f.type === target.type &&
+        f.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A folder named "${trimmed}" already exists here.`);
+    }
+    await db.folders.update(id, { name: trimmed, updatedAt: Date.now() });
+    await loadFolders(target.type);
+  }
+
+  async function deleteFolder(id: string) {
+    const target = folders.value.find((f) => f.id === id);
+    if (!target) return;
+    const descendants = folders.value.filter((f) => f.parentId === id);
+    for (const child of descendants) {
+      await deleteFolder(child.id);
+    }
+    if (target.type === "todo") {
+      const todosStore = useTodosStore();
+      await todosStore.deleteTodoListsByFolder(target.id);
+    }
+    await db.folders.delete(id);
+    await loadFolders(target.type);
+  }
+
+  async function moveFolder(id: string, newParentId: string | null) {
+    await db.folders.update(id, { parentId: newParentId, updatedAt: Date.now() });
+    const target = folders.value.find((f) => f.id === id);
+    if (target) await loadFolders(target.type);
+  }
+
+  return { folders, loadFolders, createFolder, renameFolder, deleteFolder, moveFolder };
+});
+</file>
+
+<file path="src/stores/theme.ts">
+// src/stores/theme.ts
+import { defineStore } from "pinia";
+import { ref } from "vue";
+
+type ThemeMode = "light" | "dark" | "system";
+
+const STORAGE_KEY = "rose-theme-mode";
+
+function getSystemPrefersDark(): boolean {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function applyTheme(mode: ThemeMode) {
+  const isDark = mode === "dark" || (mode === "system" && getSystemPrefersDark());
+  document.documentElement.classList.toggle("dark", isDark);
+}
+
+export const useThemeStore = defineStore("theme", () => {
+  const mode = ref<ThemeMode>((localStorage.getItem(STORAGE_KEY) as ThemeMode) || "system");
+
+  function setMode(newMode: ThemeMode) {
+    mode.value = newMode;
+    localStorage.setItem(STORAGE_KEY, newMode);
+    applyTheme(newMode);
+  }
+
+  function init() {
+    applyTheme(mode.value);
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (mode.value === "system") applyTheme("system");
+    });
+  }
+
+  return { mode, setMode, init };
+});
+</file>
+
+<file path="src/stores/todos.ts">
+// src/stores/todos.ts
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import db from "../db";
+import type { TodoList, Todo } from "../db/types";
+
+export const useTodosStore = defineStore("todos", () => {
+  const todoLists = ref<TodoList[]>([]);
+  const todos = ref<Todo[]>([]);
+
+  async function loadTodoLists() {
+    todoLists.value = await db.todoLists.toArray();
+  }
+
+  async function createTodoList(name: string, folderId: string | null) {
+    const trimmed = name.trim();
+    const duplicate = todoLists.value.find(
+      (l) => l.folderId === folderId && l.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (duplicate) throw new Error(`A list named "${trimmed}" already exists here.`);
+    const now = Date.now();
+    const list: TodoList = {
+      id: crypto.randomUUID(),
+      name: trimmed,
+      folderId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.todoLists.add(list);
+    await loadTodoLists();
+    return list.id;
+  }
+
+  async function renameTodoList(id: string, name: string) {
+    const trimmed = name.trim();
+    const target = todoLists.value.find((l) => l.id === id);
+    if (!target) return;
+    const duplicate = todoLists.value.find(
+      (l) =>
+        l.id !== id &&
+        l.folderId === target.folderId &&
+        l.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (duplicate) throw new Error(`A list named "${trimmed}" already exists here.`);
+    await db.todoLists.update(id, { name: trimmed, updatedAt: Date.now() });
+    await loadTodoLists();
+  }
+
+  async function deleteTodoList(id: string) {
+    await deleteTodosByList(id);
+    await db.todoLists.delete(id);
+    await loadTodoLists();
+  }
+
+  async function getTodoList(id: string): Promise<TodoList | undefined> {
+    return db.todoLists.get(id);
+  }
+
+  async function deleteTodoListsByFolder(folderId: string) {
+    const targets = await db.todoLists.where("folderId").equals(folderId).toArray();
+    for (const list of targets) {
+      await deleteTodosByList(list.id);
+    }
+    await db.todoLists.bulkDelete(targets.map((l) => l.id));
+  }
+
+  async function getTodoCountForList(listId: string): Promise<number> {
+    return db.todos.where("listId").equals(listId).count();
+  }
+
+  async function loadTodos(listId: string) {
+    todos.value = await db.todos.where("listId").equals(listId).toArray();
+  }
+
+  async function createTodo(title: string, listId: string) {
+    const now = Date.now();
+    const todo: Todo = {
+      id: crypto.randomUUID(),
+      title,
+      listId,
+      done: false,
+      priority: null,
+      dueDate: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.todos.add(todo);
+    await loadTodos(listId);
+    return todo.id;
+  }
+
+  async function toggleDone(id: string) {
+    const todo = todos.value.find((t) => t.id === id);
+    if (!todo) return;
+    await db.todos.update(id, { done: !todo.done, updatedAt: Date.now() });
+    await loadTodos(todo.listId);
+  }
+
+  async function updateTodo(
+    id: string,
+    changes: Partial<Pick<Todo, "title" | "priority" | "dueDate">>,
+  ) {
+    await db.todos.update(id, { ...changes, updatedAt: Date.now() });
+    const todo = todos.value.find((t) => t.id === id);
+    if (todo) await loadTodos(todo.listId);
+  }
+
+  async function deleteTodo(id: string) {
+    const todo = todos.value.find((t) => t.id === id);
+    if (!todo) return;
+    await db.todos.delete(id);
+    await loadTodos(todo.listId);
+  }
+
+  async function deleteTodosByList(listId: string) {
+    const targets = await db.todos.where("listId").equals(listId).toArray();
+    await db.todos.bulkDelete(targets.map((t) => t.id));
+  }
+
+  return {
+    todoLists,
+    todos,
+    loadTodoLists,
+    createTodoList,
+    renameTodoList,
+    deleteTodoList,
+    getTodoList,
+    deleteTodoListsByFolder,
+    getTodoCountForList,
+    loadTodos,
+    createTodo,
+    toggleDone,
+    updateTodo,
+    deleteTodo,
+    deleteTodosByList,
+  };
+});
+</file>
+
+<file path="src/types/explorer.ts">
+// src/types/explorer.ts
+export interface Crumb {
+  id: string | null;
+  name: string;
+}
+</file>
+
+<file path="src/utils/formatRelativeTime.ts">
+// src/utils/formatRelativeTime.ts
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ["year", 1000 * 60 * 60 * 24 * 365],
+  ["month", 1000 * 60 * 60 * 24 * 30],
+  ["week", 1000 * 60 * 60 * 24 * 7],
+  ["day", 1000 * 60 * 60 * 24],
+  ["hour", 1000 * 60 * 60],
+  ["minute", 1000 * 60],
+];
+
+export function formatRelativeTime(timestamp: number): string {
+  const diff = timestamp - Date.now();
+  const absDiff = Math.abs(diff);
+
+  for (const [unit, ms] of UNITS) {
+    if (absDiff >= ms) {
+      return rtf.format(Math.round(diff / ms), unit);
+    }
+  }
+  return "just now";
+}
+</file>
+
+<file path="src/views/DocsView.vue">
+<!-- src/views/DocsView.vue -->
+<script setup lang="ts"></script>
+
+<template>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold text-rose-text">Docs</h1>
+  </div>
+</template>
+</file>
+
+<file path="src/views/NotesView.vue">
+<!-- src/views/NotesView.vue -->
+<script setup lang="ts"></script>
+
+<template>
+  <div class="p-6">
+    <h1 class="text-2xl font-bold text-rose-text">Notes</h1>
+  </div>
+</template>
+</file>
+
+<file path="src/views/TodoListView.vue">
+<!-- src/views/TodoListView.vue -->
+<!-- src/views/TodoListView.vue -->
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useTodosStore } from "../stores/todos";
+import { useFoldersStore } from "../stores/folders";
+import { useConfirm } from "../composables/useConfirm";
+import { useToast } from "../composables/useToast";
+import {
+  ArrowLeftIcon,
+  PlusIcon,
+  TrashIcon,
+  PencilIcon,
+  MoreVerticalIcon,
+  InfoIcon,
+  XIcon,
+  CalendarIcon,
+} from "@lucide/vue";
+import { formatRelativeTime } from "../utils/formatRelativeTime";
+import type { TodoList, Todo } from "../db/types";
+
+const props = defineProps<{ pathMatch?: string[] }>();
+const router = useRouter();
+const todosStore = useTodosStore();
+const foldersStore = useFoldersStore();
+const { confirm } = useConfirm();
+const { showToast } = useToast();
+
+const segments = computed(() => props.pathMatch ?? []);
+
+function resolveFolderId(segs: string[]): string | null | undefined {
+  let cursor: string | null = null;
+  for (const segment of segs) {
+    const match = foldersStore.folders.find(
+      (f) =>
+        f.parentId === cursor &&
+        f.type === "todo" &&
+        f.name.toLowerCase() === segment.toLowerCase(),
+    );
+    if (!match) return undefined;
+    cursor = match.id;
+  }
+  return cursor;
+}
+
+function buildFolderPath(folderId: string | null): string[] {
+  const path: string[] = [];
+  let cursor = folderId;
+  while (cursor !== null) {
+    const folder = foldersStore.folders.find((f) => f.id === cursor);
+    if (!folder) break;
+    path.unshift(folder.name);
+    cursor = folder.parentId;
+  }
+  return path;
+}
+
+const currentList = ref<TodoList | undefined>(undefined);
+
+async function loadList() {
+  await foldersStore.loadFolders("todo");
+
+  const segs = segments.value;
+  if (segs.length === 0) {
+    showToast("List not found.", "error");
+    router.replace("/todos/folder");
+    return;
+  }
+  const folderSegments = segs.slice(0, -1);
+  const listName = segs[segs.length - 1];
+  const folderId = resolveFolderId(folderSegments);
+
+  if (folderId === undefined) {
+    showToast("That list no longer exists.", "error");
+    router.replace("/todos/folder");
+    return;
+  }
+
+  await todosStore.loadTodoLists();
+  const match = todosStore.todoLists.find(
+    (l) => l.folderId === folderId && l.name.toLowerCase() === listName?.toLowerCase(),
+  );
+
+  if (!match) {
+    showToast("That list no longer exists.", "error");
+    router.replace({ name: "todos-folder", params: { pathMatch: buildFolderPath(folderId) } });
+    return;
+  }
+
+  currentList.value = match;
+  await todosStore.loadTodos(match.id);
+}
+
+onMounted(loadList);
+watch(() => props.pathMatch, loadList);
+
+function goBack() {
+  if (!currentList.value) {
+    router.push("/todos/folder");
+    return;
+  }
+  router.push({
+    name: "todos-folder",
+    params: { pathMatch: buildFolderPath(currentList.value.folderId) },
+  });
+}
+
+const isRenaming = ref(false);
+const renameValue = ref("");
+
+function startRenameList() {
+  isRenaming.value = true;
+  renameValue.value = currentList.value?.name ?? "";
+}
+async function confirmRenameList() {
+  const name = renameValue.value.trim();
+  if (name && currentList.value?.id) {
+    try {
+      await todosStore.renameTodoList(currentList.value.id, name);
+      const updated = await todosStore.getTodoList(currentList.value.id);
+      currentList.value = updated;
+      if (updated) {
+        router.replace({
+          name: "todos-list",
+          params: { pathMatch: [...buildFolderPath(updated.folderId), updated.name] },
+        });
+      }
+    } catch (e) {
+      showToast((e as Error).message, "error");
+    }
+  }
+  isRenaming.value = false;
+}
+function cancelRenameList() {
+  isRenaming.value = false;
+}
+
+const newTodoTitle = ref("");
+
+async function handleCreateTodo() {
+  if (!currentList.value) return;
+  const title = newTodoTitle.value.trim();
+  if (!title) return;
+  await todosStore.createTodo(title, currentList.value.id);
+  newTodoTitle.value = "";
+}
+
+async function handleDeleteTodo(id: string, title: string) {
+  const confirmed = await confirm({
+    title: "Delete todo",
+    message: `Delete "${title}"?`,
+    confirmLabel: "Delete",
+  });
+  if (!confirmed) return;
+  await todosStore.deleteTodo(id);
+  showToast(`Deleted "${title}"`, "info");
+}
+
+const editingId = ref<string | null>(null);
+const editingTitle = ref("");
+
+function startEdit(id: string, currentTitle: string) {
+  editingId.value = id;
+  editingTitle.value = currentTitle;
+}
+async function confirmEdit() {
+  if (editingId.value === null) return;
+  const title = editingTitle.value.trim();
+  if (title) await todosStore.updateTodo(editingId.value, { title });
+  editingId.value = null;
+}
+function cancelEdit() {
+  editingId.value = null;
+}
+
+// --- Per-todo action popover (priority, due date, edit, delete) ---
+const openMenuTodoId = ref<string | null>(null);
+const menuStyle = ref({ top: "0px", left: "0px" });
+
+function openTodoMenu(id: string, event: MouseEvent) {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  menuStyle.value = {
+    top: `${rect.bottom + 6}px`,
+    left: `${Math.min(rect.left, window.innerWidth - 220)}px`,
+  };
+  openMenuTodoId.value = openMenuTodoId.value === id ? null : id;
+}
+function closeTodoMenu() {
+  openMenuTodoId.value = null;
+}
+
+const priorityOptions: { value: Todo["priority"]; label: string }[] = [
+  { value: null, label: "None" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+
+async function setPriority(id: string, priority: Todo["priority"]) {
+  await todosStore.updateTodo(id, { priority });
+}
+
+async function setDueDate(id: string, value: string) {
+  const timestamp = value ? new Date(value).getTime() : null;
+  await todosStore.updateTodo(id, { dueDate: timestamp });
+}
+
+function dateInputValue(dueDate: number | null): string {
+  if (!dueDate) return "";
+  return new Date(dueDate).toISOString().slice(0, 10);
+}
+
+function handleMenuEdit(todo: Todo) {
+  closeTodoMenu();
+  startEdit(todo.id, todo.title);
+}
+async function handleMenuDelete(todo: Todo) {
+  closeTodoMenu();
+  await handleDeleteTodo(todo.id, todo.title);
+}
+
+function handleOutsideMenuClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  if (!target.closest("[data-todo-menu]") && !target.closest("[data-todo-menu-trigger]")) {
+    closeTodoMenu();
+  }
+}
+
+// --- List info / properties panel ---
+const isInfoOpen = ref(false);
+
+const totalCount = computed(() => todosStore.todos.length);
+const completedCount = computed(() => todosStore.todos.filter((t) => t.done).length);
+const pendingCount = computed(() => totalCount.value - completedCount.value);
+
+onMounted(() => {
+  document.addEventListener("click", handleOutsideMenuClick);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleOutsideMenuClick);
+});
+</script>
+
+<template>
+  <div class="flex flex-col h-full">
+    <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6">
+      <button
+        class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors mb-4"
+        @click="goBack"
+      >
+        <ArrowLeftIcon class="w-4 h-4" /> Back to folder
+      </button>
+
+      <div class="flex items-center gap-2 mb-6 group">
+        <input
+          v-if="isRenaming"
+          v-model="renameValue"
+          type="text"
+          autofocus
+          class="text-2xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none"
+          @keyup.enter="confirmRenameList"
+          @keyup.escape="cancelRenameList"
+          @blur="confirmRenameList"
+        />
+        <template v-else>
+          <h1 class="text-2xl font-bold text-rose-text truncate">{{ currentList?.name }}</h1>
+          <button
+            class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
+            @click="startRenameList"
+          >
+            <PencilIcon class="w-4 h-4" />
+          </button>
+        </template>
+
+        <button
+          class="ml-auto text-rose-text-muted hover:text-rose-primary transition-colors shrink-0"
+          title="List info"
+          @click="isInfoOpen = true"
+        >
+          <InfoIcon class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2 mb-4">
+        <input
+          v-model="newTodoTitle"
+          type="text"
+          placeholder="Add a todo..."
+          class="flex-1 px-4 py-2.5 rounded-lg bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus:ring-1 focus:ring-rose-primary"
+          @keyup.enter="handleCreateTodo"
+        />
+        <button
+          class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0"
+          @click="handleCreateTodo"
+        >
+          <PlusIcon class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div
+        v-if="todosStore.todos.length === 0"
+        class="text-base text-rose-text-muted italic py-12 text-center"
+      >
+        No todos yet. Add one to get started.
+      </div>
+
+      <div v-else class="flex flex-col gap-1.5">
+        <div
+          v-for="todo in todosStore.todos"
+          :key="todo.id"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg bg-rose-surface hover:bg-rose-surface-alt transition-colors"
+        >
+          <button
+            class="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+            :class="
+              todo.done
+                ? 'bg-rose-primary border-rose-primary'
+                : 'border-rose-border hover:border-rose-primary'
+            "
+            @click="todosStore.toggleDone(todo.id)"
+          >
+            <svg v-if="todo.done" viewBox="0 0 20 20" fill="none" class="w-3 h-3 text-white">
+              <path
+                d="M4 10l4 4 8-8"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <input
+            v-if="editingId === todo.id"
+            v-model="editingTitle"
+            type="text"
+            autofocus
+            class="flex-1 text-base px-2 py-1 rounded border border-rose-primary bg-rose-bg text-rose-text focus:outline-none"
+            @keyup.enter="confirmEdit"
+            @keyup.escape="cancelEdit"
+            @blur="confirmEdit"
+          />
+          <span
+            v-else
+            class="flex-1 text-base truncate"
+            :class="todo.done ? 'text-rose-text-muted line-through' : 'text-rose-text'"
+            @click="startEdit(todo.id, todo.title)"
+          >
+            {{ todo.title }}
+          </span>
+
+          <span v-if="todo.dueDate" class="hidden sm:inline text-xs text-rose-text-muted shrink-0">
+            {{ formatRelativeTime(todo.dueDate) }}
+          </span>
+
+          <span
+            v-if="todo.priority"
+            class="text-xs px-2 py-0.5 rounded-full shrink-0"
+            :class="{
+              'bg-red-500/15 text-red-400': todo.priority === 'high',
+              'bg-amber-500/15 text-amber-400': todo.priority === 'medium',
+              'bg-sky-500/15 text-sky-400': todo.priority === 'low',
+            }"
+          >
+            {{ todo.priority }}
+          </span>
+
+          <button
+            data-todo-menu-trigger
+            class="p-1.5 rounded text-rose-text-muted hover:text-rose-primary shrink-0"
+            @click.stop="openTodoMenu(todo.id, $event)"
+          >
+            <MoreVerticalIcon class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="md:hidden fixed bottom-[76px] left-0 right-0 px-4 py-3 bg-rose-bg border-t border-rose-border flex items-center gap-2 z-20"
+    >
+      <input
+        v-model="newTodoTitle"
+        type="text"
+        placeholder="Add a todo..."
+        class="flex-1 px-4 py-2.5 rounded-lg bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus:ring-1 focus:ring-rose-primary"
+        @keyup.enter="handleCreateTodo"
+      />
+      <button
+        class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0"
+        @click="handleCreateTodo"
+      >
+        <PlusIcon class="w-5 h-5" />
+      </button>
+    </div>
+
+    <!-- Per-todo action popover -->
+    <Teleport to="body">
+      <div
+        v-if="openMenuTodoId"
+        data-todo-menu
+        class="fixed w-52 bg-rose-surface border border-rose-border rounded-lg shadow-xl z-200 py-2"
+        :style="menuStyle"
+      >
+        <div class="px-3 pb-2 mb-1 border-b border-rose-border">
+          <p class="text-xs text-rose-text-muted mb-1.5">Priority</p>
+          <div class="flex gap-1">
+            <button
+              v-for="opt in priorityOptions"
+              :key="opt.label"
+              class="flex-1 text-xs py-1 rounded-md transition-colors"
+              :class="
+                todosStore.todos.find((t) => t.id === openMenuTodoId)?.priority === opt.value
+                  ? 'bg-rose-primary text-white'
+                  : 'bg-rose-surface-alt text-rose-text-muted hover:text-rose-text'
+              "
+              @click="setPriority(openMenuTodoId!, opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="px-3 pb-2 mb-1 border-b border-rose-border">
+          <p class="text-xs text-rose-text-muted mb-1.5 flex items-center gap-1">
+            <CalendarIcon class="w-3.5 h-3.5" /> Due date
+          </p>
+          <input
+            type="date"
+            class="w-full text-sm px-2 py-1 rounded border border-rose-border bg-rose-bg text-rose-text focus:outline-none"
+            :value="
+              dateInputValue(todosStore.todos.find((t) => t.id === openMenuTodoId)?.dueDate ?? null)
+            "
+            @change="setDueDate(openMenuTodoId!, ($event.target as HTMLInputElement).value)"
+          />
+        </div>
+
+        <button
+          class="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors"
+          @click="handleMenuEdit(todosStore.todos.find((t) => t.id === openMenuTodoId)!)"
+        >
+          <PencilIcon class="w-4 h-4" /> Edit
+        </button>
+        <button
+          class="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-rose-surface-alt transition-colors"
+          @click="handleMenuDelete(todosStore.todos.find((t) => t.id === openMenuTodoId)!)"
+        >
+          <TrashIcon class="w-4 h-4" /> Delete
+        </button>
+      </div>
+    </Teleport>
+
+    <!-- List properties / info panel -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isInfoOpen"
+          class="fixed inset-0 z-210 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+          @click.self="isInfoOpen = false"
+        >
+          <div
+            class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-rose-text">List properties</h3>
+              <button class="text-rose-text-muted hover:text-rose-text" @click="isInfoOpen = false">
+                <XIcon class="w-5 h-5" />
+              </button>
+            </div>
+            <dl class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Name</dt>
+                <dd class="text-rose-text font-medium truncate max-w-48">
+                  {{ currentList?.name }}
+                </dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Total items</dt>
+                <dd class="text-rose-text font-medium">{{ totalCount }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Completed</dt>
+                <dd class="text-rose-text font-medium">{{ completedCount }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Pending</dt>
+                <dd class="text-rose-text font-medium">{{ pendingCount }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Created</dt>
+                <dd class="text-rose-text font-medium">
+                  {{ currentList?.createdAt ? formatRelativeTime(currentList.createdAt) : "—" }}
+                </dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-rose-text-muted">Last modified</dt>
+                <dd class="text-rose-text font-medium">
+                  {{ currentList?.updatedAt ? formatRelativeTime(currentList.updatedAt) : "—" }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+  </div>
+</template>
+</file>
+
+<file path="src/views/TodosView.vue">
+<!-- src/views/TodosView.vue -->
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import FolderTree from "../components/FolderTree.vue";
+import ExplorerGrid from "../components/ExplorerGrid.vue";
+import Breadcrumbs from "../components/Breadcrumbs.vue";
+import type { Crumb } from "../types/explorer";
+import { useFoldersStore } from "../stores/folders";
+import { useTodosStore } from "../stores/todos";
+import { useToast } from "../composables/useToast";
+import { FoldersIcon, ListTodoIcon } from "@lucide/vue";
+import FolderTreeDrawer from "../components/FolderTreeDrawer.vue";
+
+import ExplorerActions from "../components/ExplorerActions.vue";
+
+const props = defineProps<{ pathMatch?: string[] }>();
+const router = useRouter();
+const foldersStore = useFoldersStore();
+const todosStore = useTodosStore();
+const { showToast } = useToast();
+
+const segments = computed(() => props.pathMatch ?? []);
+
+function resolveFolderId(segs: string[]): string | null | undefined {
+  let cursor: string | null = null;
+  for (const segment of segs) {
+    const match = foldersStore.folders.find(
+      (f) =>
+        f.parentId === cursor &&
+        f.type === "todo" &&
+        f.name.toLowerCase() === segment.toLowerCase(),
+    );
+    if (!match) return undefined;
+    cursor = match.id;
+  }
+  return cursor;
+}
+
+function buildFolderPath(folderId: string | null): string[] {
+  const path: string[] = [];
+  let cursor = folderId;
+  while (cursor !== null) {
+    const folder = foldersStore.folders.find((f) => f.id === cursor);
+    if (!folder) break;
+    path.unshift(folder.name);
+    cursor = folder.parentId;
+  }
+  return path;
+}
+
+const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
+
+const isDrawerOpen = ref(false);
+const listItemCounts = ref<Record<string, number>>({});
+const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
+
+async function loadListItemCounts() {
+  const entries = await Promise.all(
+    visibleLists.value.map(
+      async (l) => [l.id, await todosStore.getTodoCountForList(l.id)] as const,
+    ),
+  );
+  listItemCounts.value = Object.fromEntries(entries);
+}
+
+async function loadCurrentFolder() {
+  await foldersStore.loadFolders("todo");
+  await todosStore.loadTodoLists();
+  const resolved = resolveFolderId(segments.value);
+  if (resolved === undefined) {
+    showToast("That folder no longer exists.", "error");
+    router.replace("/todos/folder");
+    return;
+  }
+  await loadListItemCounts();
+}
+
+onMounted(loadCurrentFolder);
+watch(() => props.pathMatch, loadCurrentFolder);
+
+const subfolders = computed(() => {
+  if (currentFolderId.value === undefined) return [];
+  return foldersStore.folders.filter((f) => f.parentId === currentFolderId.value);
+});
+
+const visibleLists = computed(() => {
+  if (currentFolderId.value === undefined) return [];
+  return todosStore.todoLists.filter((l) => l.folderId === currentFolderId.value);
+});
+
+function countChildrenOf(folderId: string): number {
+  const subfolderCount = foldersStore.folders.filter((f) => f.parentId === folderId).length;
+  const listCount = todosStore.todoLists.filter((l) => l.folderId === folderId).length;
+  return subfolderCount + listCount;
+}
+
+const crumbs = computed<Crumb[]>(() => {
+  if (currentFolderId.value === undefined || currentFolderId.value === null) return [];
+  const chain: Crumb[] = [];
+  let cursor: string | null = currentFolderId.value;
+  while (cursor !== null) {
+    const folder = foldersStore.folders.find((f) => f.id === cursor);
+    if (!folder) break;
+    chain.unshift({ id: folder.id, name: folder.name });
+    cursor = folder.parentId;
+  }
+  return chain;
+});
+
+function navigateToFolder(id: string | null) {
+  router.push({ name: "todos-folder", params: { pathMatch: buildFolderPath(id) } });
+}
+
+function openList(id: string) {
+  const list = todosStore.todoLists.find((l) => l.id === id);
+  if (!list) return;
+  router.push({
+    name: "todos-list",
+    params: { pathMatch: [...buildFolderPath(list.folderId), list.name] },
+  });
+}
+
+async function handleCreateFolder(name: string) {
+  try {
+    await foldersStore.createFolder(name, currentFolderId.value ?? null, "todo");
+  } catch (e) {
+    showToast((e as Error).message, "error");
+  }
+}
+async function handleRenameFolder(id: string, name: string) {
+  try {
+    await foldersStore.renameFolder(id, name);
+    if (id === currentFolderId.value) navigateToFolder(id);
+  } catch (e) {
+    showToast((e as Error).message, "error");
+  }
+}
+async function handleDeleteFolder(id: string) {
+  await foldersStore.deleteFolder(id);
+}
+async function handleCreateFile(name: string) {
+  try {
+    await todosStore.createTodoList(name, currentFolderId.value ?? null);
+    await loadListItemCounts();
+  } catch (e) {
+    showToast((e as Error).message, "error");
+  }
+}
+async function handleRenameFile(id: string, name: string) {
+  try {
+    await todosStore.renameTodoList(id, name);
+  } catch (e) {
+    showToast((e as Error).message, "error");
+  }
+}
+async function handleDeleteFile(id: string) {
+  await todosStore.deleteTodoList(id);
+  await loadListItemCounts();
+}
+function handleMobileSelect(id: string | null) {
+  navigateToFolder(id);
+  isDrawerOpen.value = false;
+}
+</script>
+
+<template>
+  <div class="flex h-full">
+    <aside class="hidden md:block w-64 border-r border-rose-border p-4 overflow-y-auto shrink-0">
+      <h2 class="text-lg font-semibold text-rose-text mb-3">Folders</h2>
+      <FolderTree
+        type="todo"
+        :active-folder-id="currentFolderId ?? null"
+        @select="navigateToFolder"
+      />
+    </aside>
+
+    <FolderTreeDrawer :is-open="isDrawerOpen" @close="isDrawerOpen = false">
+      <FolderTree
+        type="todo"
+        :active-folder-id="currentFolderId ?? null"
+        @select="handleMobileSelect"
+      />
+    </FolderTreeDrawer>
+
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <h1 class="text-2xl font-bold text-rose-text">Todos</h1>
+        <!-- <button
+          class="md:hidden flex items-center gap-2 px-3 py-2 rounded-md bg-rose-surface-alt text-rose-text text-base shrink-0"
+          @click="isDrawerOpen = true"
+        >
+          <FolderIcon class="w-4 h-4" /> Folders
+        </button> -->
+
+        <div class="flex items-center gap-2">
+          <button
+            class="md:hidden flex items-center gap-2 px-3 py-2 rounded-md bg-rose-surface-alt text-rose-text text-base shrink-0"
+            @click="isDrawerOpen = true"
+          >
+            <FoldersIcon class="w-4 h-4" />
+          </button>
+          <ExplorerActions
+            file-label="list"
+            @create-folder="explorerGridRef?.startCreate('folder')"
+            @create-file="explorerGridRef?.startCreate('file')"
+          />
+        </div>
+      </div>
+      <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" />
+      <ExplorerGrid
+        ref="explorerGridRef"
+        :folders="
+          subfolders.map((f) => ({
+            id: f.id,
+            name: f.name,
+            itemCount: countChildrenOf(f.id),
+            updatedAt: f.updatedAt,
+            createdAt: f.createdAt,
+          }))
+        "
+        :files="
+          visibleLists.map((l) => ({
+            id: l.id,
+            name: l.name,
+            itemCount: listItemCounts[l.id] ?? 0,
+            updatedAt: l.updatedAt,
+            createdAt: l.createdAt,
+          }))
+        "
+        :file-icon="ListTodoIcon"
+        file-label="list"
+        @open-folder="navigateToFolder"
+        @open-file="openList"
+        @create-folder="handleCreateFolder"
+        @rename-folder="handleRenameFolder"
+        @delete-folder="handleDeleteFolder"
+        @create-file="handleCreateFile"
+        @rename-file="handleRenameFile"
+        @delete-file="handleDeleteFile"
+      />
+    </main>
+  </div>
+</template>
+</file>
+
+<file path="src/App.vue">
+<!-- src/App.vue -->
+<template>
+  <div
+    class="flex flex-col-reverse md:flex-row h-screen overflow-hidden bg-rose-bg text-rose-text antialiased"
+  >
+    <div class="w-full md:w-24 h-[72px] md:h-full shrink-0">
+      <Sidebar @toggle-menu="isMenuOpen = true" />
+    </div>
+
+    <main class="grow h-full relative overflow-y-auto">
+      <RouterView v-slot="{ Component }">
+        <Transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
+    </main>
+
+    <MenuOverlay :is-open="isMenuOpen" @close="isMenuOpen = false" />
+    <ToastContainer />
+    <ConfirmDialog />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { RouterView } from "vue-router";
+import Sidebar from "./components/Sidebar.vue";
+import MenuOverlay from "./components/MenuOverlay.vue";
+import ToastContainer from "./components/ToastContainer.vue";
+import ConfirmDialog from "./components/ConfirmDialog.vue";
+
+import { onMounted, onUnmounted } from "vue";
+import { useToast } from "./composables/useToast";
+
+const { showToast } = useToast();
+const isMenuOpen = ref(false);
+
+function onSWUpdate() {
+  showToast("App updated — refresh to get the latest version.", "info", 8000);
+}
+
+onMounted(() => window.addEventListener("sw-update-available", onSWUpdate));
+onUnmounted(() => window.removeEventListener("sw-update-available", onSWUpdate));
+</script>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
+</file>
+
+<file path="src/main.ts">
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import App from "./App.vue";
+import router from "./router";
+import "./styles/tailwind.css";
+import { useThemeStore } from "./stores/theme";
+import { registerSW } from "./registerSW.ts";
+
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
+app.mount("#app");
+registerSW();
+useThemeStore().init();
+</file>
+
+<file path="src/registerSW.ts">
+// // src/registerSW.ts
+
+// export function registerSW() {
+//   if (!("serviceWorker" in navigator)) return;
+//   if (import.meta.env.DEV) return;
+
+//   window.addEventListener("load", () => {
+//     navigator.serviceWorker
+//       .register("/sw.js", { scope: "/" })
+//       .then((registration) => {
+//         // Poll for updates every 60 seconds while the app is open
+//         setInterval(() => registration.update(), 60_000);
+
+//         registration.addEventListener("updatefound", () => {
+//           const newWorker = registration.installing;
+//           if (!newWorker) return;
+
+//           newWorker.addEventListener("statechange", () => {
+//             // A new SW is installed and ready; notify the user
+//             if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+//               // Dispatch a custom event — App.vue listens for this
+//               window.dispatchEvent(new CustomEvent("sw-update-available"));
+//             }
+//           });
+//         });
+//       })
+//       .catch((err) => console.error("[SW] Registration failed:", err));
+//   });
+// }
+
+// src/registerSW.ts
+export function registerSW() {
+  if (!("serviceWorker" in navigator)) return;
+
+  if (import.meta.env.DEV) {
+    // Dev mode: proactively unregister any previously-installed SW and
+    // clear its caches, so stale precache entries never intercept HMR
+    // traffic on this device — even if the dev SW got stuck before this fix.
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister();
+      }
+    });
+
+    if ("caches" in window) {
+      caches.keys().then((keys) => {
+        for (const key of keys) {
+          caches.delete(key);
+        }
+      });
+    }
+
+    return;
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((err) => {
+      console.error("Service worker registration failed:", err);
+    });
+  });
+}
+</file>
+
+<file path="src/vite-env.d.ts">
+/// <reference types="vite/client" />
+
+declare const __APP_VERSION__: string;
+</file>
+
+<file path=".editorconfig">
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
+charset = utf-8
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+max_line_length = 100
+</file>
+
+<file path=".gitattributes">
+* text=auto eol=lf
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+.eslintcache
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
+
+# Vite
+*.timestamp-*-*.mjs
+
+test-results/
+playwright-report/
+
+certs/
+</file>
+
+<file path=".oxfmtrc.json">
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true
+}
+</file>
+
+<file path=".oxlintrc.json">
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "vue", "vitest"],
+  "env": {
+    "browser": true
+  },
+  "categories": {
+    "correctness": "error"
+  }
+}
+</file>
+
+<file path="env.d.ts">
+/// <reference types="vite/client" />
+</file>
+
+<file path="eslint.config.ts">
+import { globalIgnores } from 'eslint/config'
+import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
+import pluginVue from 'eslint-plugin-vue'
+import pluginPlaywright from 'eslint-plugin-playwright'
+import pluginVitest from '@vitest/eslint-plugin'
+import pluginOxlint from 'eslint-plugin-oxlint'
+import skipFormatting from 'eslint-config-prettier/flat'
+
+// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
+// import { configureVueProject } from '@vue/eslint-config-typescript'
+// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
+// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
+
+export default defineConfigWithVueTs(
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{vue,ts,mts,tsx}'],
+  },
+
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+
+  ...pluginVue.configs['flat/essential'],
+  vueTsConfigs.recommended,
+
+  {
+    ...pluginPlaywright.configs['flat/recommended'],
+    files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+  },
+
+  {
+    ...pluginVitest.configs.recommended,
+    files: ['src/**/__tests__/*'],
+  },
+
+  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
+
+  skipFormatting,
+)
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA: manifest + theme color -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f43f5e" />
+
+    <!-- PWA: iOS/Android standalone app support -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Rose" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+    <title>Rose</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "rose",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "test:e2e": "playwright test",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "run-s \"lint:*\"",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "format": "oxfmt src/"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.24.0",
+    "@tiptap/pm": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
+    "@tiptap/vue-3": "^3.27.3",
+    "dexie": "^4.4.4",
+    "fabric": "^7.4.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.38",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@testing-library/vue": "^8.1.0",
+    "@tsconfig/node24": "^24.0.4",
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "^24.13.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "@vitest/eslint-plugin": "^1.6.20",
+    "@vue/eslint-config-typescript": "^14.8.0",
+    "@vue/test-utils": "^2.4.11",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "~1.69.0",
+    "eslint-plugin-playwright": "^2.10.4",
+    "eslint-plugin-vue": "~10.9.2",
+    "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
+    "npm-run-all2": "^9.0.2",
+    "oxfmt": "^0.54.0",
+    "oxlint": "~1.69.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~6.0.0",
+    "vite": "^8.0.16",
+    "vite-plugin-vue-devtools": "^8.1.2",
+    "vitest": "^4.1.9",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.5"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  },
+  "volta": {
+    "node": "24.18.0"
+  }
+}
+</file>
+
+<file path="playwright.config.ts">
+import process from 'node:process'
+import { defineConfig, devices } from '@playwright/test'
+
+/**
+ * Read environment variables from file.
+ * https://github.com/motdotla/dotenv
+ */
+// require('dotenv').config();
+
+/**
+ * See https://playwright.dev/docs/test-configuration.
+ */
+export default defineConfig({
+  testDir: './e2e',
+  /* Maximum time one test can run for. */
+  timeout: 30 * 1000,
+  expect: {
+    /**
+     * Maximum time expect() should wait for the condition to be met.
+     * For example in `await expect(locator).toHaveText();`
+     */
+    timeout: 5000,
+  },
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 0,
+  /* Opt out of parallel tests on CI. */
+  workers: process.env.CI ? 1 : undefined,
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  reporter: 'html',
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  use: {
+    /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
+    actionTimeout: 0,
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    baseURL: process.env.CI ? 'http://localhost:4173' : 'http://localhost:5173',
+
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
+
+    /* Only on CI systems run the tests headless */
+    headless: !!process.env.CI,
+  },
+
+  /* Configure projects for major browsers */
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+      },
+    },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+      },
+    },
+
+    /* Test against mobile viewports. */
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: {
+    //     ...devices['Pixel 5'],
+    //   },
+    // },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: {
+    //     ...devices['iPhone 12'],
+    //   },
+    // },
+
+    /* Test against branded browsers. */
+    // {
+    //   name: 'Microsoft Edge',
+    //   use: {
+    //     channel: 'msedge',
+    //   },
+    // },
+    // {
+    //   name: 'Google Chrome',
+    //   use: {
+    //     channel: 'chrome',
+    //   },
+    // },
+  ],
+
+  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
+  // outputDir: 'test-results/',
+
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    /**
+     * Use the dev server by default for faster feedback loop.
+     * Use the preview server on CI for more realistic testing.
+     * Playwright will re-use the local server if there is already a dev-server running.
+     */
+    command: process.env.CI ? 'npm run preview' : 'npm run dev',
+    port: process.env.CI ? 4173 : 5173,
+    reuseExistingServer: !process.env.CI,
+  },
+})
+</file>
+
+<file path="README.md">
+# 🌹 Rose
+
+A local-first, client-side productivity app combining todos, handwritten sketching, and lightweight document creation — organized into folders, themeable, and backed entirely by IndexedDB. No backend, no server, no accounts.
+
+## Why "Rose"
+
+Color palette and visual identity are inspired by the rose flower — deep reds/pinks for accents, soft neutrals for surfaces, in both light and dark variants.
+
+## Features (Planned)
+
+- **Todos** — nested folders, list view + inline edit, priorities, due dates
+- **Notes** — freehand sketching/handwriting via canvas, with pointer-based palm rejection (pen vs. touch vs. mouse)
+- **Docs** — lightweight rich-text document creation
+- **Shared UX patterns** across all three: list view, edit view, folder navigation
+- **Theming** — system / light / dark, rose-based color tokens
+- **Persistence** — 100% client-side via IndexedDB (Dexie.js), no data ever leaves the browser
+
+## Tech Stack
+
+| Concern                   | Choice                                                             |
+| ------------------------- | ------------------------------------------------------------------ |
+| Framework                 | Vue 3 + TypeScript + Vite                                          |
+| Routing                   | Vue Router                                                         |
+| State                     | Pinia                                                              |
+| Persistence               | Dexie.js (IndexedDB wrapper)                                       |
+| Sketching/Handwriting     | Fabric.js                                                          |
+| Rich text (Docs, Phase 3) | TipTap                                                             |
+| Styling                   | Tailwind CSS (v4, Vite plugin) + CSS custom properties for theming |
+| Unit/Component testing    | Vitest + Vue Testing Library + @vue/test-utils                     |
+| E2E testing               | Playwright                                                         |
+| Linting/Formatting        | ESLint, Prettier, oxlint, oxfmt                                    |
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+## Testing
+
+```bash
+npm run test:unit     # Vitest
+npm run test:e2e      # Playwright
+```
+
+## Project Structure (target)
+
+```
+src/
+  db/            # Dexie schema + database instance
+  stores/        # Pinia stores
+  features/
+    todos/
+    notes/
+    docs/
+  components/    # Shared UI (folder tree, theme toggle, layout shell)
+  router/
+  styles/        # Theme tokens, Tailwind config
+```
+
+## Data Ownership & Backup
+
+Rose stores everything in your browser's IndexedDB. There is no cloud sync by default. **Clearing browser data will delete your data.** A JSON export/import feature is planned (see ROADMAP.md) — until then, treat this as you would any local-only app: back up manually if the data matters.
+
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for the phased development plan and checklist.
+</file>
+
+<file path="repomix.config.json">
+{
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "certs/**",
+      "public/**",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "**/*.webp",
+      "**/*.svg",
+      "**/*.ico",
+      "**/*.avif",
+      "**/.env",
+      "**/.env.*",
+      "**/*.yml",
+      "src/Data/**",
+      "**/*.scss",
+      "**/*.css"
+    ]
+  }
+}
+</file>
+
+<file path="Roadmap.md">
+# Rose — Roadmap & Checklist
+
+Development is organized into phases. Each phase should be shippable/usable on its own before moving to the next — this keeps the project honest and avoids a half-finished sprawl across all three features at once.
+
+---
+
+## Phase 0 — Project Foundation
+
+- [x] Scaffold Vue 3 + TS + Vite project (`npm create vue@latest`)
+- [x] Install core libraries (dexie, fabric, tiptap, tailwind)
+- [x] Install testing tools (Vitest, Playwright, Testing Library)
+- [x] Set up folder structure (`src/db`, `src/stores`, `src/features/*`, `src/components`)
+- [x] Configure Tailwind v4 via Vite plugin
+- [x] Set up base routing shell (`/todos`, `/notes`, `/docs`)
+- [x] Set up Pinia store structure (one store per feature + one for UI/theme state)
+- [ ] Confirm ESLint/Prettier/oxlint all run cleanly on the empty scaffold
+- [ ] First commit + `.gitignore` sanity check (node_modules, dist, .env etc.)
+
+## Phase 1 — Todos + Folders (V1 core)
+
+- [x] Design Dexie schema for `folders` and `todos` tables
+- [x] Dexie database instance + versioning setup (`src/db/index.ts`)
+- [x] Pinia store wrapping Dexie CRUD (create/read/update/delete/reorder)
+- [x] Folder tree component (nested folders, create/rename/delete/move)
+- [x] Todo list view (per folder, with sub-folder navigation)
+- [x] Todo inline edit (title, done toggle, priority, due date)
+- [x] Basic in-feature search/filter (by title, done/not-done)
+- [x] Empty states (no folders yet, empty folder, no todos)
+- [x] Theme system: CSS custom property tokens for rose palette
+- [x] Theme toggle: light / dark / system, persisted (localStorage) — `useThemeStore` + `MenuOverlay.vue`
+- [x] Folder/list duplicate-name validation with user-facing error toasts
+- [x] Explorer grid/list view toggle with sort by name/modified date (`ExplorerGrid.vue`, `useExplorerViewMode.ts`)
+- [x] Reusable confirm dialog + toast notification system (`useConfirm`, `useToast`, `ConfirmDialog.vue`, `ToastContainer.vue`)
+- [x] Breadcrumb navigation with mobile popover trail (`Breadcrumbs.vue`)
+- [x] Mobile folder tree drawer + speed-dial create actions (`FolderTreeDrawer.vue`, `ExplorerActions.vue`)
+- [x] Todo list "properties" info panel (counts, created/modified timestamps)
+- [x] Fix relative-time formatting bug (premature unit rounding in `formatRelativeTime.ts`)
+- [x] Surface "Created" date and item type (folder/list) columns in Explorer list view
+- [ ] Unit tests: Dexie store logic (add/update/delete/move folder & todo)
+- [ ] Component tests: folder tree interactions, todo list rendering
+- [ ] E2E test: create folder → add todo → mark done → refresh page → data persists
+- [ ] **Checkpoint: Rose is a usable todo app on its own**
+
+## Phase 2 — Notes (Sketching/Handwriting)
+
+- [ ] Dexie schema for `notes` table (folderId, title, canvasJSON, thumbnail, timestamps)
+- [ ] Fabric.js canvas component (basic freehand drawing)
+- [ ] Pointer event handling: detect `pointerType` (pen/touch/mouse), suppress touch input while pen is active (palm rejection)
+- [ ] Toolbar: pen, eraser, color, stroke width, undo/redo
+- [ ] Save canvas state to Dexie (`canvas.toJSON()`) on change (debounced)
+- [ ] Load canvas state back on note open (`canvas.loadFromJSON()`)
+- [ ] Thumbnail generation for notes list view (`canvas.toDataURL()` at low res)
+- [ ] Notes list view + folder integration (reuse folder tree component / `ExplorerGrid.vue`)
+- [ ] Test on at least one real touch+stylus device (iPad/Surface/Android tablet) — palm rejection behavior can't be fully validated in a desktop browser alone
+- [ ] Unit/component tests for note store logic and canvas save/load round-trip
+- [ ] **Checkpoint: Rose supports todos + handwritten notes**
+
+## Phase 3 — Docs
+
+- [ ] Dexie schema for `docs` table (folderId, title, contentJSON, timestamps)
+- [ ] TipTap editor component with StarterKit extensions (bold, italic, headings, lists, etc.)
+- [ ] Save/load document content to/from Dexie
+- [ ] Docs list view + folder integration (reuse `ExplorerGrid.vue`)
+- [ ] Basic formatting toolbar
+- [ ] Unit/component tests for doc store logic and editor content round-trip
+- [ ] **Checkpoint: All three core features are live**
+
+## Phase 4 — Cross-Cutting Polish
+
+- [x] PWA setup (installable, offline shell) — `registerSW.ts` in place
+- [ ] JSON export/import (full backup & restore of all Dexie data) — important given zero cloud sync
+- [ ] Global search across todos/notes/docs (at least by title)
+- [x] Responsive layout pass across desktop and mobile widths (bottom nav sidebar, mobile drawers, FAB actions)
+- [ ] Responsive layout validation on tablet widths
+- [ ] Accessibility pass (keyboard nav for folder tree, focus states, ARIA labels)
+- [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance
+- [ ] Final design pass on rose color palette across light/dark
+
+## Backlog / Ideas (not committed to a phase yet)
+
+- [ ] Drag-and-drop reordering across folders
+- [ ] Tags in addition to folders
+- [ ] Keyboard shortcuts (new item, search, toggle theme)
+- [ ] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
+
+---
+
+### How to use this file
+
+Check items off as you go (`- [x]`). Add new items under the relevant phase as they come up — don't let scope creep into "Backlog" silently disappear; revisit it at the start of each phase to decide what's actually in scope.
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    // Extra safety for array and object lookups, but may have false positives.
+    "noUncheckedIndexedAccess": true,
+
+    // Path mapping for cleaner imports.
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
+    // Specified here to keep it out of the root directory.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+  }
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
+    }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+// TSConfig for modules that run in Node.js environment via either transpilation or type-stripping.
+{
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": [
+    "vite.config.*",
+    "vitest.config.*",
+    "cypress.config.*",
+    "playwright.config.*",
+    "eslint.config.*"
+  ],
+  "compilerOptions": {
+    // Most tools use transpilation instead of Node.js's native type-stripping.
+    // Bundler mode provides a smoother developer experience.
+    "module": "preserve",
+    "moduleResolution": "bundler",
+
+    // Include Node.js types and avoid accidentally including other `@types/*` packages.
+    "types": ["node"],
+
+    // Disable emitting output during `vue-tsc --build`, which is used for type-checking only.
+    "noEmit": true,
+
+    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
+    // Specified here to keep it out of the root directory.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
+  }
+}
+</file>
+
+<file path="tsconfig.vitest.json">
+{
+  "extends": "./tsconfig.app.json",
+
+  // Override to include only test files and clear exclusions.
+  // Application code imported in tests is automatically included via module resolution.
+  "include": ["src/**/__tests__/*", "env.d.ts"],
+  "exclude": [],
+
+  "compilerOptions": {
+    // Vitest runs in a different environment than the application code.
+    // Adjust lib and types accordingly.
+    "lib": [],
+    "types": ["node", "jsdom"],
+
+    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
+    // Specified here to keep it out of the root directory.
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vitest.tsbuildinfo"
+  }
+}
+</file>
+
+<file path="vite.config.ts">
+import { readFileSync } from "node:fs";
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig, type Plugin } from "vite";
+import vue from "@vitejs/plugin-vue";
+import tailwindcss from "@tailwindcss/vite";
+
+function getBuildVersion() {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const year = now.getFullYear();
+  return `v0.${day}.${month}.${year}`;
+}
+
+// Injects the emitted asset list into public/sw.js at build time.
+// Only runs on `vite build`; never touches dev server behavior.
+function swManifestPlugin(): Plugin {
+  return {
+    name: "sw-manifest",
+    apply: "build",
+    generateBundle(_, bundle) {
+      const assets = Object.keys(bundle)
+        .filter((name) => !name.endsWith(".map"))
+        .map((name) => `/${name}`);
+      const precacheList = JSON.stringify(["/", "/index.html", ...assets]);
+
+      const swChunk = bundle["sw.js"] as { code?: string } | undefined;
+      if (swChunk?.code) {
+        swChunk.code = swChunk.code.replace("__PRECACHE_MANIFEST__", precacheList);
+      }
+    },
+  };
+}
+
+export default defineConfig(({ command }) => {
+  const isDev = command === "serve";
+
+  return {
+    plugins: [vue(), tailwindcss(), swManifestPlugin()],
+    define: {
+      __APP_VERSION__: JSON.stringify(getBuildVersion()),
+    },
+    server: {
+      port: 5176,
+      ...(isDev && {
+        https: {
+          key: readFileSync("certs/localhost-key.pem"),
+          cert: readFileSync("certs/localhost.pem"),
+        },
+      }),
+    },
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
+  };
+});
+</file>
+
+<file path="vitest.config.ts">
+import { fileURLToPath } from 'node:url'
+import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
+import viteConfig from './vite.config'
+
+export default mergeConfig(
+  viteConfig,
+  defineConfig({
+    test: {
+      environment: 'jsdom',
+      exclude: [...configDefaults.exclude, 'e2e/**'],
+      root: fileURLToPath(new URL('./', import.meta.url)),
+    },
+  }),
+)
+</file>
+
+</files>

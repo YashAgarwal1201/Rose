@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  /* Rose palette — light mode */
+  --rose-primary: #b3405a; /* deep rose — primary actions/accents */
+  --rose-primary-hover: #96324a;
+  --rose-secondary: #e8b4bc; /* soft petal pink — secondary accents */
+  --rose-bg: #fdf7f8; /* app background */
+  --rose-surface: #ffffff; /* card/panel background */
+  --rose-surface-alt: #f6ecee; /* subtle alt surface, e.g. hover rows */
+  --rose-border: #e6d3d7;
+  --rose-text: #2b1a1e;
+  --rose-text-muted: #7a6367;
+}
+
+.dark {
+  /* Rose palette — dark mode */
+  --rose-primary: #e8748d;
+  --rose-primary-hover: #ef8fa3;
+  --rose-secondary: #5c3540;
+  --rose-bg: #1b1416;
+  --rose-surface: #241a1d;
+  --rose-surface-alt: #2e2124;
+  --rose-border: #3d2b2f;
+  --rose-text: #f3e6e8;
+  --rose-text-muted: #b39ba0;
+}
+
+@theme {
+  --color-rose-primary: var(--rose-primary);
+  --color-rose-primary-hover: var(--rose-primary-hover);
+  --color-rose-secondary: var(--rose-secondary);
+  --color-rose-bg: var(--rose-bg);
+  --color-rose-surface: var(--rose-surface);
+  --color-rose-surface-alt: var(--rose-surface-alt);
+  --color-rose-border: var(--rose-border);
+  --color-rose-text: var(--rose-text);
+  --color-rose-text-muted: var(--rose-text-muted);
+}
