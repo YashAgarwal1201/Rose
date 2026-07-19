@@ -30,6 +30,10 @@ export default defineConfigWithVueTs(
   {
     ...pluginVitest.configs.recommended,
     files: ["src/**/__tests__/*"],
+    rules: {
+      ...pluginVitest.configs.recommended.rules,
+      "vitest/require-hook": "off", // ← add this
+    },
   },
 
   {

@@ -46,7 +46,17 @@ e2e/
   vue.spec.ts
 src/
   __tests__/
-    App.spec.ts
+    components/
+      ExplorerGrid.component.test.ts
+      FolderTree.component.test.ts
+    stores/
+      folders.store.test.ts
+      todos.store.test.ts
+    utils/
+      formatRelativeTime.unit.test.ts
+    App.test.ts
+    repomix-output.xml
+    setup.ts
   components/
     Breadcrumbs.vue
     ConfirmDialog.vue
@@ -67,13 +77,13 @@ src/
   router/
     index.ts
   stores/
-    counter.ts
     folders.ts
     theme.ts
     todos.ts
   types/
     explorer.ts
   utils/
+    constants.ts
     formatRelativeTime.ts
   views/
     DocsView.vue
@@ -90,23 +100,2647 @@ src/
 .oxfmtrc.json
 .oxlintrc.json
 env.d.ts
+eslint-report.json
 eslint.config.ts
 index.html
+oxlint-report.json
 package.json
 playwright.config.ts
 README.md
-repomix.config.json
 Roadmap.md
 tsconfig.app.json
 tsconfig.json
 tsconfig.node.json
 tsconfig.vitest.json
+vercel.json
 vite.config.ts
 vitest.config.ts
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/__tests__/components/ExplorerGrid.component.test.ts">
+// src/__tests__/components/ExplorerGrid.component.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { ref } from "vue";
+import { ListIcon } from "@lucide/vue";
+import ExplorerGrid from "../../components/ExplorerGrid.vue";
+
+const mockViewMode = ref<"grid" | "list">("grid");
+const mockSortKey = ref<"name" | "updatedAt">("name");
+const mockSortDir = ref<"asc" | "desc">("asc");
+const mockSetSortKey = vi.fn((key: "name" | "updatedAt") => {
+  if (mockSortKey.value === key) {
+    mockSortDir.value = mockSortDir.value === "asc" ? "desc" : "asc";
+  } else {
+    mockSortKey.value = key;
+    mockSortDir.value = "asc";
+  }
+});
+const mockToggleViewMode = vi.fn(() => {
+  mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
+});
+
+vi.mock("../../composables/useExplorerViewMode", () => ({
+  useExplorerViewMode: () => ({
+    setSortKey: mockSetSortKey,
+    sortDir: mockSortDir,
+    sortKey: mockSortKey,
+    toggleViewMode: mockToggleViewMode,
+    viewMode: mockViewMode,
+  }),
+}));
+
+const mockConfirm = vi.fn().mockResolvedValue(false);
+
+vi.mock("../../composables/useConfirm", () => ({
+  useConfirm: () => ({ confirm: mockConfirm }),
+}));
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+const FOLDERS = [
+  { id: "f1", name: "Zebra", updatedAt: 300, createdAt: 100 },
+  { id: "f2", name: "Alpha", updatedAt: 100, createdAt: 200 },
+  { id: "f3", name: "Mango", updatedAt: 200, createdAt: 300 },
+];
+const FILES = [{ id: "l1", name: "Work", updatedAt: 150, createdAt: 150 }];
+
+function mountGrid(folders = FOLDERS, files = FILES) {
+  return mount(ExplorerGrid, {
+    props: { fileIcon: ListIcon, fileLabel: "list", files, folders },
+  });
+}
+
+describe("ExplorerGrid", () => {
+  beforeEach(() => {
+    mockViewMode.value = "grid";
+    mockSortKey.value = "name";
+    mockSortDir.value = "asc";
+    mockSetSortKey.mockClear();
+    mockToggleViewMode.mockClear();
+    mockConfirm.mockReset();
+    mockConfirm.mockResolvedValue(false);
+  });
+
+  describe("empty state", () => {
+    it("renders the empty state message when no folders or files exist", () => {
+      const wrapper = mountGrid([], []);
+      expect(wrapper.text()).toContain("This folder is empty.");
+    });
+
+    it("does not render the empty state when folders exist", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).not.toContain("This folder is empty.");
+    });
+  });
+
+  describe("grid view", () => {
+    it("renders folder names in grid view by default", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Zebra");
+      expect(wrapper.text()).toContain("Alpha");
+      expect(wrapper.text()).toContain("Mango");
+    });
+
+    it("renders file names in grid view", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Work");
+    });
+  });
+
+  describe("list view", () => {
+    beforeEach(() => {
+      mockViewMode.value = "list";
+    });
+
+    it("renders column headers in list view", () => {
+      const wrapper = mountGrid();
+      const text = wrapper.text();
+      expect(text).toContain("Name");
+      expect(text).toContain("Type");
+      expect(text).toContain("Items");
+      expect(text).toContain("Created");
+      expect(text).toContain("Modified");
+    });
+
+    it("renders folder type label as 'Folder'", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Folder");
+    });
+
+    it("renders file type label from fileLabel prop", () => {
+      const wrapper = mountGrid();
+      // fileLabel="list" → typeLabel capitalises to "List"
+      expect(wrapper.text()).toContain("List");
+    });
+  });
+
+  describe("sort by name", () => {
+    it("renders folders in ascending alphabetical order by default", () => {
+      const wrapper = mountGrid();
+      const spans = wrapper
+        .findAll(".text-sm.text-rose-text")
+        .map((el) => el.text())
+        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+      expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
+    });
+
+    it("calls setSortKey('name') when Name button is clicked", async () => {
+      const wrapper = mountGrid();
+      const sortButtons = wrapper.findAll(
+        "div.flex.flex-wrap button[class*='text-rose-text-muted']",
+      );
+      await sortButtons[0]!.trigger("click");
+      expect(mockSetSortKey).toHaveBeenCalledWith("name");
+    });
+  });
+
+  describe("sort by modified date", () => {
+    it("calls setSortKey('updatedAt') when Modified button is clicked", async () => {
+      const wrapper = mountGrid();
+      const sortButtons = wrapper.findAll(
+        "div.flex.flex-wrap button[class*='text-rose-text-muted']",
+      );
+      await sortButtons[1]!.trigger("click");
+      expect(mockSetSortKey).toHaveBeenCalledWith("updatedAt");
+    });
+
+    it("renders folders sorted by updatedAt asc when sortKey is updatedAt", () => {
+      mockSortKey.value = "updatedAt";
+      mockSortDir.value = "asc";
+      const wrapper = mountGrid();
+      const spans = wrapper
+        .findAll(".text-sm.text-rose-text")
+        .map((el) => el.text())
+        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+      // Alpha=100, Mango=200, Zebra=300
+      expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
+    });
+  });
+
+  describe("view toggle", () => {
+    it("calls toggleViewMode when the list view button is clicked", async () => {
+      const wrapper = mountGrid();
+      await wrapper.find("button[title='List view']").trigger("click");
+      expect(mockToggleViewMode).toHaveBeenCalled();
+    });
+
+    it("calls no toggleViewMode when grid view button is already active and clicked", async () => {
+      const wrapper = mountGrid();
+      await wrapper.find("button[title='Grid view']").trigger("click");
+      expect(mockToggleViewMode).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("rename", () => {
+    it("shows a rename input after clicking the pencil (rename) button", async () => {
+      const wrapper = mountGrid();
+      // Action buttons are inside .absolute div: first = pencil, second = trash
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[0]!.trigger("click");
+      const input = wrapper.find("input[type='text']:not([placeholder])");
+      expect(input.exists()).toBe(true);
+    });
+
+    it("emits renameFolder with the new name on Enter", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[0]!.trigger("click");
+      const input = wrapper.find("input[type='text']:not([placeholder])");
+      await input.setValue("Renamed");
+      await input.trigger("keyup.enter");
+      expect(wrapper.emitted("renameFolder")?.[0]).toStrictEqual(["f2", "Renamed"]);
+    });
+  });
+
+  describe("delete", () => {
+    it("calls confirm() when the trash button is clicked", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+    });
+
+    it("emits deleteFolder when confirm returns true", async () => {
+      mockConfirm.mockResolvedValueOnce(true);
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.emitted("deleteFolder")).toBeTruthy();
+    });
+
+    it("does not emit deleteFolder when confirm returns false", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.emitted("deleteFolder")).toBeFalsy();
+    });
+  });
+
+  describe("create", () => {
+    it("shows a new folder input when startCreate('folder') is called", async () => {
+      const wrapper = mountGrid();
+      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
+    });
+
+    it("emits createFolder with the typed name on Enter", async () => {
+      const wrapper = mountGrid();
+      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await wrapper.vm.$nextTick();
+      const input = wrapper.find("input[placeholder='Folder name']");
+      await input.setValue("My New Folder");
+      await input.trigger("keyup.enter");
+      expect(wrapper.emitted("createFolder")?.[0]).toStrictEqual(["My New Folder"]);
+    });
+  });
+});
+</file>
+
+<file path="src/__tests__/components/FolderTree.component.test.ts">
+// src/__tests__/components/FolderTree.component.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import FolderTree from "../../components/FolderTree.vue";
+
+vi.mock("../../stores/folders", () => ({
+  useFoldersStore: () => ({
+    folders: [
+      { id: "f1", name: "Alpha", parentId: null, type: "todo", createdAt: 1, updatedAt: 1 },
+      { id: "f2", name: "Beta", parentId: null, type: "todo", createdAt: 2, updatedAt: 2 },
+      { id: "f3", name: "Child", parentId: "f1", type: "todo", createdAt: 3, updatedAt: 3 },
+    ],
+    createFolder: vi.fn(),
+    deleteFolder: vi.fn(),
+  }),
+}));
+
+const mockConfirm = vi.fn().mockResolvedValue(false);
+
+vi.mock("../../composables/useConfirm", () => ({
+  useConfirm: () => ({ confirm: mockConfirm }),
+}));
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+function mountTree(activeFolderId: string | null = null) {
+  return mount(FolderTree, {
+    props: { activeFolderId, type: "todo" },
+  });
+}
+
+describe("FolderTree", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    mockConfirm.mockReset();
+    mockConfirm.mockResolvedValue(false);
+  });
+
+  describe("rendering", () => {
+    it("renders root folder names from store state", () => {
+      const wrapper = mountTree();
+      expect(wrapper.text()).toContain("Alpha");
+      expect(wrapper.text()).toContain("Beta");
+    });
+
+    it("does not render child folders before parent is expanded", () => {
+      const wrapper = mountTree();
+      expect(wrapper.text()).not.toContain("Child");
+    });
+
+    it("applies active highlight class to the active folder", () => {
+      const wrapper = mountTree("f1");
+      const activeLi = wrapper.findAll("li").find((li) => li.text().includes("Alpha"));
+      expect(activeLi?.classes()).toContain("bg-rose-surface-alt");
+    });
+
+    it("renders the expand chevron only for folders that have children", () => {
+      const wrapper = mountTree();
+      // f1 has child f3, f2 does not — only one chevron button
+      const chevronBtns = wrapper
+        .findAll("ul > li div.cursor-pointer button")
+        .filter((btn) => !btn.classes().includes("opacity-0"));
+      expect(chevronBtns).toHaveLength(1);
+    });
+  });
+
+  describe("expand/collapse", () => {
+    it("shows child folder after clicking the expand chevron", async () => {
+      const wrapper = mountTree();
+      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      await chevron.trigger("click");
+      expect(wrapper.text()).toContain("Child");
+    });
+
+    it("hides child folder after collapsing an expanded parent", async () => {
+      const wrapper = mountTree();
+      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      await chevron.trigger("click");
+      await chevron.trigger("click");
+      expect(wrapper.text()).not.toContain("Child");
+    });
+  });
+
+  describe("create folder", () => {
+    it("shows the New folder button initially", () => {
+      const wrapper = mountTree();
+      expect(wrapper.find("button.text-rose-primary").text()).toContain("New folder");
+    });
+
+    it("shows root-level name input after clicking New folder", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button.text-rose-primary").trigger("click");
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
+    });
+
+    it("hides the input after pressing Escape", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button.text-rose-primary").trigger("click");
+      await wrapper.find("input[placeholder='Folder name']").trigger("keyup.escape");
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(false);
+    });
+  });
+
+  describe("delete folder", () => {
+    it("calls confirm() when the delete button is clicked", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button[title='Delete folder']").trigger("click");
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+    });
+
+    it("does not call store.deleteFolder when confirm returns false", async () => {
+      const { useFoldersStore } = await import("../../stores/folders");
+      const store = useFoldersStore();
+      const wrapper = mountTree();
+      await wrapper.find("button[title='Delete folder']").trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(store.deleteFolder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("select emit", () => {
+    it("emits select with the folder id when a folder row is clicked", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("li div.cursor-pointer").trigger("click");
+      expect(wrapper.emitted("select")?.[0]).toStrictEqual(["f1"]);
+    });
+  });
+});
+</file>
+
+<file path="src/__tests__/stores/folders.store.test.ts">
+// src/__tests__/stores/folders.store.test.ts
+import { beforeEach, describe, expect, it } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { createPinia, setActivePinia } from "pinia";
+import db from "../../db";
+import { useFoldersStore } from "../../stores/folders";
+import { useTodosStore } from "../../stores/todos";
+
+// beforeEach(async () => {
+//   setActivePinia(createPinia());
+//   await db.folders.clear(); // folders.store.test.ts only
+//   await db.todoLists.clear();
+//   await db.todos.clear();
+// });
+
+async function freshDb(): Promise<void> {
+  db.close();
+  globalThis.indexedDB = new IDBFactory();
+  await db.open();
+}
+
+describe("foldersStore", () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    await db.folders.clear();
+    await db.todoLists.clear();
+    await db.todos.clear();
+  });
+
+  describe("loadFolders", () => {
+    it("loads folders of the given type into state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Work", null, "todo");
+      await store.loadFolders("todo");
+      expect(store.folders).toHaveLength(1);
+      expect(store.folders[0]?.name).toBe("Work");
+    });
+
+    it("returns an empty array when no folders exist for that type", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.loadFolders("todo");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("createFolder", () => {
+    it("creates a folder and reflects it in state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Personal", null, "todo");
+      expect(store.folders).toHaveLength(1);
+      expect(store.folders[0]?.name).toBe("Personal");
+    });
+
+    it("persists the folder in the DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Saved", null, "todo");
+      const rows = await db.folders.toArray();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.name).toBe("Saved");
+    });
+
+    it("throws when a duplicate name exists under the same parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Dup", null, "todo");
+      await expect(store.createFolder("Dup", null, "todo")).rejects.toThrow("already exists");
+    });
+
+    it("is case-insensitive for duplicate detection", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Alpha", null, "todo");
+      await expect(store.createFolder("ALPHA", null, "todo")).rejects.toThrow("already exists");
+    });
+
+    it("allows the same name under a different parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      await store.createFolder("Child", parentId, "todo");
+      await store.createFolder("Child", null, "todo");
+      expect(store.folders).toHaveLength(3);
+    });
+
+    it("trims whitespace from the folder name", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("  Trimmed  ", null, "todo");
+      expect(store.folders[0]?.name).toBe("Trimmed");
+    });
+  });
+
+  describe("renameFolder", () => {
+    it("renames a folder successfully", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Old", null, "todo");
+      await store.renameFolder(folderId, "New");
+      const renamed = store.folders.find((folder) => folder.id === folderId);
+      expect(renamed?.name).toBe("New");
+    });
+
+    it("updates updatedAt on rename", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Before", null, "todo");
+      const original = store.folders.find((folder) => folder.id === folderId);
+      const createdAt = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.renameFolder(folderId, "After");
+      const row = await db.folders.get(folderId);
+      expect(row?.updatedAt).toBeGreaterThan(createdAt);
+    });
+
+    it("throws when renaming to a duplicate name in the same parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Foo", null, "todo");
+      const barId = await store.createFolder("Bar", null, "todo");
+      await expect(store.renameFolder(barId, "Foo")).rejects.toThrow("already exists");
+    });
+
+    it("does nothing when the folder id does not exist", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.renameFolder("nonexistent-id", "Anything");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("deleteFolder", () => {
+    it("deletes a leaf folder from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Leaf", null, "todo");
+      await store.deleteFolder(folderId);
+      expect(store.folders).toHaveLength(0);
+      const row = await db.folders.get(folderId);
+      expect(row).toBeUndefined();
+    });
+
+    it("deletes a folder and all its descendants", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      await store.createFolder("Child", parentId, "todo");
+      await store.deleteFolder(parentId);
+      expect(store.folders).toHaveLength(0);
+    });
+
+    it("cascade-deletes todo lists inside a deleted folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const foldersStore = useFoldersStore();
+      const todosStore = useTodosStore();
+      const folderId = await foldersStore.createFolder("F", null, "todo");
+      await todosStore.createTodoList("List A", folderId);
+      await foldersStore.deleteFolder(folderId);
+      const lists = await db.todoLists.toArray();
+      expect(lists).toHaveLength(0);
+    });
+
+    it("cascade-deletes todos inside lists of a deleted folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const foldersStore = useFoldersStore();
+      const todosStore = useTodosStore();
+      const folderId = await foldersStore.createFolder("F", null, "todo");
+      const listId = await todosStore.createTodoList("List", folderId);
+      await todosStore.loadTodos(listId);
+      await todosStore.createTodo("Task", listId);
+      await foldersStore.deleteFolder(folderId);
+      const allTodos = await db.todos.toArray();
+      expect(allTodos).toHaveLength(0);
+    });
+
+    it("does nothing when folder id does not exist", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.deleteFolder("ghost-id");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("moveFolder", () => {
+    it("moves a folder to a new parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", null, "todo");
+      await store.moveFolder(childId, parentId);
+      const moved = store.folders.find((folder) => folder.id === childId);
+      expect(moved?.parentId).toBe(parentId);
+    });
+
+    it("moves a folder to root (null parent)", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", parentId, "todo");
+      await store.moveFolder(childId, null);
+      const moved = store.folders.find((folder) => folder.id === childId);
+      expect(moved?.parentId).toBeNull();
+    });
+
+    it("throws when moving a folder into itself", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Solo", null, "todo");
+      await expect(store.moveFolder(folderId, folderId)).rejects.toThrow(
+        "Cannot move a folder into itself",
+      );
+    });
+
+    it("throws when moving a folder into one of its own descendants", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", parentId, "todo");
+      await expect(store.moveFolder(parentId, childId)).rejects.toThrow(
+        "Cannot move a folder into itself",
+      );
+    });
+  });
+});
+</file>
+
+<file path="src/__tests__/stores/todos.store.test.ts">
+// src/__tests__/stores/todos.store.test.ts
+import { beforeEach, describe, expect, it } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { createPinia, setActivePinia } from "pinia";
+import db from "../../db";
+import { useTodosStore } from "../../stores/todos";
+
+// beforeEach(async () => {
+//   setActivePinia(createPinia());
+//   await db.folders.clear(); // folders.store.test.ts only
+//   await db.todoLists.clear();
+//   await db.todos.clear();
+// });
+
+async function freshDb(): Promise<void> {
+  db.close();
+  globalThis.indexedDB = new IDBFactory();
+  await db.open();
+}
+
+describe("todosStore", () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    await db.todoLists.clear();
+    await db.todos.clear();
+  });
+
+  describe("createTodoList", () => {
+    it("creates a list and reflects it in state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Shopping", null);
+      expect(store.todoLists).toHaveLength(1);
+      expect(store.todoLists[0]?.name).toBe("Shopping");
+    });
+
+    it("persists the list to the DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Groceries", null);
+      const rows = await db.todoLists.toArray();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.name).toBe("Groceries");
+    });
+
+    it("sets folderId on the created list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("InFolder", "folder-abc");
+      expect(store.todoLists[0]?.folderId).toBe("folder-abc");
+    });
+
+    it("throws on duplicate name within the same folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Dup", null);
+      await expect(store.createTodoList("Dup", null)).rejects.toThrow("already exists");
+    });
+
+    it("is case-insensitive for duplicate detection", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Work", null);
+      await expect(store.createTodoList("WORK", null)).rejects.toThrow("already exists");
+    });
+
+    it("allows duplicate names in different folders", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Same", "folder-1");
+      await store.createTodoList("Same", "folder-2");
+      expect(store.todoLists).toHaveLength(2);
+    });
+  });
+
+  describe("renameTodoList", () => {
+    it("renames a list successfully", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Old Name", null);
+      await store.renameTodoList(listId, "New Name");
+      const renamed = store.todoLists.find((list) => list.id === listId);
+      expect(renamed?.name).toBe("New Name");
+    });
+
+    it("trims whitespace from new name", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Untrimmed", null);
+      await store.renameTodoList(listId, "  Trimmed  ");
+      const renamed = store.todoLists.find((list) => list.id === listId);
+      expect(renamed?.name).toBe("Trimmed");
+    });
+
+    it("throws when renaming to a duplicate name in the same folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Taken", null);
+      const otherId = await store.createTodoList("Other", null);
+      await expect(store.renameTodoList(otherId, "Taken")).rejects.toThrow("already exists");
+    });
+  });
+
+  describe("deleteTodoList", () => {
+    it("deletes the list from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("ToDelete", null);
+      await store.deleteTodoList(listId);
+      expect(store.todoLists).toHaveLength(0);
+      const row = await db.todoLists.get(listId);
+      expect(row).toBeUndefined();
+    });
+
+    it("cascade-deletes all todos belonging to the deleted list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("WithTodos", null);
+      await store.loadTodos(listId);
+      await store.createTodo("Task 1", listId);
+      await store.createTodo("Task 2", listId);
+      await store.deleteTodoList(listId);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+  });
+
+  describe("getTodoList", () => {
+    it("returns the list for a known id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Known", null);
+      const result = await store.getTodoList(listId);
+      expect(result?.name).toBe("Known");
+    });
+
+    it("returns undefined for an unknown id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const result = await store.getTodoList("no-such-id");
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("createTodo", () => {
+    it("creates a todo with correct defaults", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("List", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Buy milk", listId);
+      const created = store.todos.find((todo) => todo.id === todoId);
+      expect(created?.title).toBe("Buy milk");
+      expect(created?.done).toBeFalsy();
+      expect(created?.priority).toBeNull();
+      expect(created?.dueDate).toBeNull();
+    });
+
+    it("populates todos state when the list is currently active", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Active", null);
+      await store.loadTodos(listId);
+      await store.createTodo("Do thing", listId);
+      expect(store.todos).toHaveLength(1);
+    });
+
+    it("does not update todos state when a different list is active", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("List A", null);
+      const listB = await store.createTodoList("List B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("Not visible", listB);
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("toggleDone", () => {
+    it("flips done from false to true", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Flip me", listId);
+      await store.toggleDone(todoId);
+      const toggled = store.todos.find((todo) => todo.id === todoId);
+      expect(toggled?.done).toBeTruthy();
+    });
+
+    it("flips done from true back to false", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Flip twice", listId);
+      await store.toggleDone(todoId);
+      await store.toggleDone(todoId);
+      const toggled = store.todos.find((todo) => todo.id === todoId);
+      expect(toggled?.done).toBeFalsy();
+    });
+
+    it("updates updatedAt when toggled", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Timestamp test", listId);
+      const original = store.todos.find((todo) => todo.id === todoId);
+      const createdAt = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.toggleDone(todoId);
+      const row = await db.todos.get(todoId);
+      expect(row?.updatedAt).toBeGreaterThan(createdAt);
+    });
+
+    it("does nothing for a non-existent todo id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.toggleDone("ghost-todo-id");
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("updateTodo", () => {
+    it("updates the title", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Original", listId);
+      await store.updateTodo(todoId, { title: "Updated" });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.title).toBe("Updated");
+    });
+
+    it("updates priority", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      await store.updateTodo(todoId, { priority: "high" });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.priority).toBe("high");
+    });
+
+    it("updates dueDate", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      const due = Date.now() + 86_400_000;
+      await store.updateTodo(todoId, { dueDate: due });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.dueDate).toBe(due);
+    });
+
+    it("bumps updatedAt on every update", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      const original = store.todos.find((todo) => todo.id === todoId);
+      const before = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.updateTodo(todoId, { title: "Changed" });
+      const row = await db.todos.get(todoId);
+      expect(row?.updatedAt).toBeGreaterThan(before);
+    });
+  });
+
+  describe("deleteTodo", () => {
+    it("removes the todo from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Remove me", listId);
+      await store.deleteTodo(todoId);
+      expect(store.todos).toHaveLength(0);
+      const row = await db.todos.get(todoId);
+      expect(row).toBeUndefined();
+    });
+
+    it("does nothing for a non-existent id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.deleteTodo("no-id");
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("getTodoCountForList", () => {
+    it("returns 0 for an empty list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Empty", null);
+      const count = await store.getTodoCountForList(listId);
+      expect(count).toBe(0);
+    });
+
+    it("returns the correct count after adding todos", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Counted", null);
+      await store.loadTodos(listId);
+      await store.createTodo("One", listId);
+      await store.createTodo("Two", listId);
+      const count = await store.getTodoCountForList(listId);
+      expect(count).toBe(2);
+    });
+
+    it("only counts todos for the given list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("A", null);
+      const listB = await store.createTodoList("B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("For A", listA);
+      const count = await store.getTodoCountForList(listB);
+      expect(count).toBe(0);
+    });
+  });
+
+  describe("deleteTodosByList", () => {
+    it("deletes all todos for the given list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Purge", null);
+      await store.loadTodos(listId);
+      await store.createTodo("X", listId);
+      await store.createTodo("Y", listId);
+      await store.deleteTodosByList(listId);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("does not delete todos from other lists", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("A", null);
+      const listB = await store.createTodoList("B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("Keep me", listA);
+      await store.deleteTodosByList(listB);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(1);
+    });
+  });
+
+  describe("deleteTodoListsByFolder", () => {
+    it("deletes all lists belonging to a folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("In folder", "folder-1");
+      await store.createTodoList("Also in folder", "folder-1");
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todoLists.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("also deletes all todos within those lists", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("In folder", "folder-1");
+      await store.loadTodos(listId);
+      await store.createTodo("Nested todo", listId);
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("does not affect lists in other folders", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Safe", "folder-2");
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todoLists.toArray();
+      expect(remaining).toHaveLength(1);
+    });
+  });
+});
+</file>
+
+<file path="src/__tests__/utils/formatRelativeTime.unit.test.ts">
+import { describe, expect, it } from "vitest";
+import { formatRelativeTime } from "../../utils/formatRelativeTime";
+import {
+  MS_PER_DAY,
+  MS_PER_HOUR,
+  MS_PER_MINUTE,
+  MS_PER_MONTH,
+  MS_PER_WEEK,
+  MS_PER_YEAR,
+} from "../../utils/constants";
+
+function past(ms: number): number {
+  return Date.now() - ms;
+}
+
+function future(ms: number): number {
+  return Date.now() + ms;
+}
+
+describe("formatRelativeTime", () => {
+  describe("just now", () => {
+    it("returns 'just now' for 0ms difference", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(Date.now())).toBe("just now");
+    });
+
+    it("returns 'just now' for 30 seconds ago", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(30_000))).toBe("just now");
+    });
+
+    it("returns 'just now' for 59 seconds ago", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE - 1))).toBe("just now");
+    });
+  });
+
+  describe("minutes", () => {
+    it("returns '1 minute ago' at exactly 1 minute", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE))).toBe("1 minute ago");
+    });
+
+    it("returns '1 minute ago' at 90 seconds — regression guard", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 1.5))).toBe("1 minute ago");
+    });
+
+    it("returns '5 minutes ago' at 5 minutes", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 5))).toBe("5 minutes ago");
+    });
+
+    it("returns '59 minutes ago' at 59 minutes", () => {
+      expect.hasAssertions();
+      // Use exactly 59 minutes — NOT MS_PER_HOUR - 1 (which Math.rounds to 60)
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 59))).toBe("59 minutes ago");
+    });
+  });
+
+  describe("hours", () => {
+    it("returns '1 hour ago' at exactly 1 hour", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_HOUR))).toBe("1 hour ago");
+    });
+
+    it("returns '1 hour ago' at 90 minutes", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_HOUR * 1.5))).toBe("1 hour ago");
+    });
+
+    it("returns '23 hours ago' at 23 hours", () => {
+      expect.hasAssertions();
+      // Use exactly 23 hours — NOT MS_PER_DAY - 1 (Math.rounds to 24)
+      expect(formatRelativeTime(past(MS_PER_HOUR * 23))).toBe("23 hours ago");
+    });
+  });
+
+  describe("days", () => {
+    it("returns 'yesterday' at exactly 1 day", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_DAY))).toBe("yesterday");
+    });
+
+    it("returns '2 days ago' at 2 days", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_DAY * 2))).toBe("2 days ago");
+    });
+
+    it("returns '6 days ago' at 6 days", () => {
+      expect.hasAssertions();
+      // Use exactly 6 days — NOT MS_PER_WEEK - 1 (Math.rounds to 7)
+      expect(formatRelativeTime(past(MS_PER_DAY * 6))).toBe("6 days ago");
+    });
+  });
+
+  describe("weeks", () => {
+    it("returns 'last week' at exactly 1 week", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_WEEK))).toBe("last week");
+    });
+
+    it("returns '3 weeks ago' at 3 weeks", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_WEEK * 3))).toBe("3 weeks ago");
+    });
+  });
+
+  describe("months", () => {
+    it("returns 'last month' at exactly 1 month", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MONTH))).toBe("last month");
+    });
+
+    it("returns '3 months ago' at 3 months", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MONTH * 3))).toBe("3 months ago");
+    });
+  });
+
+  describe("years", () => {
+    it("returns 'last year' at exactly 1 year", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_YEAR))).toBe("last year");
+    });
+
+    it("returns '2 years ago' at 2 years", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_YEAR * 2))).toBe("2 years ago");
+    });
+  });
+
+  describe("future", () => {
+    it("returns 'in 1 minute' for 1 minute in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_MINUTE))).toBe("in 1 minute");
+    });
+
+    it("returns 'in 1 hour' for 1 hour in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_HOUR))).toBe("in 1 hour");
+    });
+
+    it("returns 'tomorrow' for 1 day in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_DAY))).toBe("tomorrow");
+    });
+  });
+});
+</file>
+
+<file path="src/__tests__/repomix-output.xml">
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+components/
+  ExplorerGrid.component.test.ts
+  FolderTree.component.test.ts
+stores/
+  folders.store.test.ts
+  todos.store.test.ts
+utils/
+  formatRelativeTime.unit.test.ts
+App.test.ts
+setup.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="components/ExplorerGrid.component.test.ts">
+// src/__tests__/components/ExplorerGrid.component.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { ref } from "vue";
+import { ListIcon } from "@lucide/vue";
+import ExplorerGrid from "../../components/ExplorerGrid.vue";
+
+// --- mock useExplorerViewMode with controllable refs ---
+const mockViewMode = ref<"grid" | "list">("grid");
+const mockSortKey = ref<"name" | "updatedAt">("name");
+const mockSortDir = ref<"asc" | "desc">("asc");
+const mockSetSortKey = vi.fn((key: "name" | "updatedAt") => {
+  if (mockSortKey.value === key) {
+    mockSortDir.value = mockSortDir.value === "asc" ? "desc" : "asc";
+  } else {
+    mockSortKey.value = key;
+    mockSortDir.value = "asc";
+  }
+});
+const mockToggleViewMode = vi.fn(() => {
+  mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
+});
+
+vi.mock(import("../../composables/useExplorerViewMode"), () => ({
+  useExplorerViewMode: () => ({
+    setSortKey: mockSetSortKey,
+    sortDir: mockSortDir,
+    sortKey: mockSortKey,
+    toggleViewMode: mockToggleViewMode,
+    viewMode: mockViewMode,
+  }),
+}));
+
+const mockConfirm = vi.fn().mockResolvedValue(false);
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+// --- test data ---
+const FOLDERS = [
+  { id: "f1", name: "Zebra", updatedAt: 300, createdAt: 100 },
+  { id: "f2", name: "Alpha", updatedAt: 100, createdAt: 200 },
+  { id: "f3", name: "Mango", updatedAt: 200, createdAt: 300 },
+];
+const FILES = [{ id: "l1", name: "Work", updatedAt: 150, createdAt: 150 }];
+
+function mountGrid(folders = FOLDERS, files = FILES) {
+  return mount(ExplorerGrid, {
+    props: { fileIcon: ListIcon, fileLabel: "list", files, folders },
+  });
+}
+
+describe("ExplorerGrid", () => {
+  beforeEach(() => {
+    mockViewMode.value = "grid";
+    mockSortKey.value = "name";
+    mockSortDir.value = "asc";
+    mockSetSortKey.mockClear();
+    mockToggleViewMode.mockClear();
+    mockConfirm.mockReset();
+    mockConfirm.mockResolvedValue(false);
+  });
+
+  describe("empty state", () => {
+    it("renders the empty state message when no folders or files exist", () => {
+      const wrapper = mountGrid([], []);
+      expect(wrapper.text()).toContain("This folder is empty.");
+    });
+
+    it("does not render the empty state when folders exist", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).not.toContain("This folder is empty.");
+    });
+  });
+
+  describe("grid view", () => {
+    it("renders folder names in grid view by default", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Zebra");
+      expect(wrapper.text()).toContain("Alpha");
+      expect(wrapper.text()).toContain("Mango");
+    });
+
+    it("renders file names in grid view", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Work");
+    });
+  });
+
+  describe("list view", () => {
+    beforeEach(() => {
+      mockViewMode.value = "list";
+    });
+
+    it("renders column headers in list view", () => {
+      const wrapper = mountGrid();
+      const text = wrapper.text();
+      expect(text).toContain("Name");
+      expect(text).toContain("Type");
+      expect(text).toContain("Items");
+      expect(text).toContain("Created");
+      expect(text).toContain("Modified");
+    });
+
+    it("renders folder type label as 'Folder'", () => {
+      const wrapper = mountGrid();
+      expect(wrapper.text()).toContain("Folder");
+    });
+
+    it("renders file type label from fileLabel prop", () => {
+      const wrapper = mountGrid();
+      // fileLabel="list" → typeLabel capitalises to "List"
+      expect(wrapper.text()).toContain("List");
+    });
+  });
+
+  describe("sort by name", () => {
+    it("renders folders in ascending alphabetical order by default", () => {
+      const wrapper = mountGrid();
+      const spans = wrapper
+        .findAll(".text-sm.text-rose-text")
+        .map((el) => el.text())
+        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+      expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
+    });
+
+    it("calls setSortKey('name') when Name button is clicked", async () => {
+      const wrapper = mountGrid();
+      // Name button is the first sort button in the toolbar
+      const sortButtons = wrapper.findAll(
+        "div.flex.flex-wrap button[class*='text-rose-text-muted']",
+      );
+      await sortButtons[0]!.trigger("click");
+      expect(mockSetSortKey).toHaveBeenCalledWith("name");
+    });
+  });
+
+  describe("sort by modified date", () => {
+    it("calls setSortKey('updatedAt') when Modified button is clicked", async () => {
+      const wrapper = mountGrid();
+      const sortButtons = wrapper.findAll(
+        "div.flex.flex-wrap button[class*='text-rose-text-muted']",
+      );
+      await sortButtons[1]!.trigger("click");
+      expect(mockSetSortKey).toHaveBeenCalledWith("updatedAt");
+    });
+
+    it("renders folders sorted by updatedAt asc when sortKey is updatedAt", () => {
+      mockSortKey.value = "updatedAt";
+      mockSortDir.value = "asc";
+      const wrapper = mountGrid();
+      const spans = wrapper
+        .findAll(".text-sm.text-rose-text")
+        .map((el) => el.text())
+        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+      // Alpha=100, Mango=200, Zebra=300
+      expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
+    });
+  });
+
+  describe("view toggle", () => {
+    it("calls toggleViewMode when the list view button is clicked", async () => {
+      const wrapper = mountGrid();
+      await wrapper.find("button[title='List view']").trigger("click");
+      expect(mockToggleViewMode).toHaveBeenCalledWith();
+    });
+
+    it("calls no toggleViewMode when grid view button is already active and clicked", async () => {
+      const wrapper = mountGrid();
+      await wrapper.find("button[title='Grid view']").trigger("click");
+      expect(mockToggleViewMode).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("rename", () => {
+    it("shows a rename input after clicking the pencil (rename) button", async () => {
+      const wrapper = mountGrid();
+      // Action buttons are inside .absolute div: first = pencil, second = trash
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[0]!.trigger("click");
+      const input = wrapper.find("input[type='text']:not([placeholder])");
+      expect(input.exists()).toBe(true);
+    });
+
+    it("emits renameFolder with the new name on Enter", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[0]!.trigger("click");
+      const input = wrapper.find("input[type='text']:not([placeholder])");
+      await input.setValue("Renamed");
+      await input.trigger("keyup.enter");
+      expect(wrapper.emitted("renameFolder")?.[0]).toStrictEqual(["f2", "Renamed"]);
+    });
+  });
+
+  describe("delete", () => {
+    it("calls confirm() when the trash button is clicked", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+    });
+
+    it("emits deleteFolder when confirm returns true", async () => {
+      mockConfirm.mockResolvedValueOnce(true);
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.emitted("deleteFolder")).toBeTruthy();
+    });
+
+    it("does not emit deleteFolder when confirm returns false", async () => {
+      const wrapper = mountGrid();
+      const actionButtons = wrapper.findAll(".group .absolute button");
+      await actionButtons[1]!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.emitted("deleteFolder")).toBeFalsy();
+    });
+  });
+
+  describe("create", () => {
+    it("shows a new folder input when startCreate('folder') is called", async () => {
+      const wrapper = mountGrid();
+      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
+    });
+
+    it("emits createFolder with the typed name on Enter", async () => {
+      const wrapper = mountGrid();
+      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await wrapper.vm.$nextTick();
+      const input = wrapper.find("input[placeholder='Folder name']");
+      await input.setValue("My New Folder");
+      await input.trigger("keyup.enter");
+      expect(wrapper.emitted("createFolder")?.[0]).toStrictEqual(["My New Folder"]);
+    });
+  });
+});
+</file>
+
+<file path="components/FolderTree.component.test.ts">
+// src/__tests__/components/FolderTree.component.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import FolderTree from "../../components/FolderTree.vue";
+
+vi.mock("../../stores/folders", () => ({
+  useFoldersStore: () => ({
+    folders: [
+      { id: "f1", name: "Alpha", parentId: null, type: "todo", createdAt: 1, updatedAt: 1 },
+      { id: "f2", name: "Beta", parentId: null, type: "todo", createdAt: 2, updatedAt: 2 },
+      { id: "f3", name: "Child", parentId: "f1", type: "todo", createdAt: 3, updatedAt: 3 },
+    ],
+    createFolder: vi.fn(),
+    deleteFolder: vi.fn(),
+  }),
+}));
+
+const mockConfirm = vi.fn().mockResolvedValue(false);
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+vi.mock("../../composables/useToast", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
+function mountTree(activeFolderId: string | null = null) {
+  return mount(FolderTree, {
+    props: { activeFolderId, type: "todo" },
+  });
+}
+
+describe("FolderTree", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    mockConfirm.mockReset();
+    mockConfirm.mockResolvedValue(false);
+  });
+
+  describe("rendering", () => {
+    it("renders root folder names from store state", () => {
+      const wrapper = mountTree();
+      expect(wrapper.text()).toContain("Alpha");
+      expect(wrapper.text()).toContain("Beta");
+    });
+
+    it("does not render child folders before parent is expanded", () => {
+      const wrapper = mountTree();
+      expect(wrapper.text()).not.toContain("Child");
+    });
+
+    it("applies active highlight class to the active folder", () => {
+      const wrapper = mountTree("f1");
+      const activeLi = wrapper.findAll("li").find((li) => li.text().includes("Alpha"));
+      expect(activeLi?.classes()).toContain("bg-rose-surface-alt");
+    });
+
+    it("renders the expand chevron only for folders that have children", () => {
+      const wrapper = mountTree();
+      // f1 has child f3, f2 does not — only one chevron button
+      const chevronBtns = wrapper
+        .findAll("ul > li div.cursor-pointer button")
+        .filter((btn) => !btn.classes().includes("opacity-0"));
+      expect(chevronBtns).toHaveLength(1);
+      expect(chevronBtns).toHaveLength(1);
+    });
+  });
+
+  describe("expand/collapse", () => {
+    it("shows child folder after clicking the expand chevron", async () => {
+      const wrapper = mountTree();
+      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      await chevron.trigger("click");
+      expect(wrapper.text()).toContain("Child");
+    });
+
+    it("hides child folder after collapsing an expanded parent", async () => {
+      const wrapper = mountTree();
+      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      await chevron.trigger("click");
+      await chevron.trigger("click");
+      expect(wrapper.text()).not.toContain("Child");
+    });
+  });
+
+  describe("create folder", () => {
+    it("shows the New folder button initially", () => {
+      const wrapper = mountTree();
+      expect(wrapper.find("button.text-rose-primary").text()).toContain("New folder");
+    });
+
+    it("shows root-level name input after clicking New folder", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button.text-rose-primary").trigger("click");
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBeTruthy();
+    });
+
+    it("hides the input after pressing Escape", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button.text-rose-primary").trigger("click");
+      await wrapper.find("input[placeholder='Folder name']").trigger("keyup.escape");
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBeFalsy();
+    });
+  });
+
+  describe("delete folder", () => {
+    it("calls confirm() when the delete button is clicked", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("button[title='Delete folder']").trigger("click");
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+    });
+
+    it("does not call store.deleteFolder when confirm returns false", async () => {
+      const { useFoldersStore } = await import("../../stores/folders");
+      const store = useFoldersStore();
+      const wrapper = mountTree();
+      await wrapper.find("button[title='Delete folder']").trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(store.deleteFolder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("select emit", () => {
+    it("emits select with the folder id when a folder row is clicked", async () => {
+      const wrapper = mountTree();
+      await wrapper.find("li div.cursor-pointer").trigger("click");
+      expect(wrapper.emitted("select")?.[0]).toStrictEqual(["f1"]);
+    });
+  });
+});
+</file>
+
+<file path="stores/folders.store.test.ts">
+// src/__tests__/stores/folders.store.test.ts
+import { beforeEach, describe, expect, it } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { createPinia, setActivePinia } from "pinia";
+import db from "../../db";
+import { useFoldersStore } from "../../stores/folders";
+import { useTodosStore } from "../../stores/todos";
+
+// beforeEach(async () => {
+//   setActivePinia(createPinia());
+//   await db.folders.clear(); // folders.store.test.ts only
+//   await db.todoLists.clear();
+//   await db.todos.clear();
+// });
+
+async function freshDb(): Promise<void> {
+  db.close();
+  globalThis.indexedDB = new IDBFactory();
+  await db.open();
+}
+
+describe("foldersStore", () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    await db.folders.clear();
+    await db.todoLists.clear();
+    await db.todos.clear();
+  });
+
+  describe("loadFolders", () => {
+    it("loads folders of the given type into state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Work", null, "todo");
+      await store.loadFolders("todo");
+      expect(store.folders).toHaveLength(1);
+      expect(store.folders[0]?.name).toBe("Work");
+    });
+
+    it("returns an empty array when no folders exist for that type", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.loadFolders("todo");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("createFolder", () => {
+    it("creates a folder and reflects it in state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Personal", null, "todo");
+      expect(store.folders).toHaveLength(1);
+      expect(store.folders[0]?.name).toBe("Personal");
+    });
+
+    it("persists the folder in the DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Saved", null, "todo");
+      const rows = await db.folders.toArray();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.name).toBe("Saved");
+    });
+
+    it("throws when a duplicate name exists under the same parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Dup", null, "todo");
+      await expect(store.createFolder("Dup", null, "todo")).rejects.toThrow("already exists");
+    });
+
+    it("is case-insensitive for duplicate detection", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Alpha", null, "todo");
+      await expect(store.createFolder("ALPHA", null, "todo")).rejects.toThrow("already exists");
+    });
+
+    it("allows the same name under a different parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      await store.createFolder("Child", parentId, "todo");
+      await store.createFolder("Child", null, "todo");
+      expect(store.folders).toHaveLength(3);
+    });
+
+    it("trims whitespace from the folder name", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("  Trimmed  ", null, "todo");
+      expect(store.folders[0]?.name).toBe("Trimmed");
+    });
+  });
+
+  describe("renameFolder", () => {
+    it("renames a folder successfully", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Old", null, "todo");
+      await store.renameFolder(folderId, "New");
+      const renamed = store.folders.find((folder) => folder.id === folderId);
+      expect(renamed?.name).toBe("New");
+    });
+
+    it("updates updatedAt on rename", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Before", null, "todo");
+      const original = store.folders.find((folder) => folder.id === folderId);
+      const createdAt = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.renameFolder(folderId, "After");
+      const row = await db.folders.get(folderId);
+      expect(row?.updatedAt).toBeGreaterThan(createdAt);
+    });
+
+    it("throws when renaming to a duplicate name in the same parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.createFolder("Foo", null, "todo");
+      const barId = await store.createFolder("Bar", null, "todo");
+      await expect(store.renameFolder(barId, "Foo")).rejects.toThrow("already exists");
+    });
+
+    it("does nothing when the folder id does not exist", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.renameFolder("nonexistent-id", "Anything");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("deleteFolder", () => {
+    it("deletes a leaf folder from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Leaf", null, "todo");
+      await store.deleteFolder(folderId);
+      expect(store.folders).toHaveLength(0);
+      const row = await db.folders.get(folderId);
+      expect(row).toBeUndefined();
+    });
+
+    it("deletes a folder and all its descendants", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      await store.createFolder("Child", parentId, "todo");
+      await store.deleteFolder(parentId);
+      expect(store.folders).toHaveLength(0);
+    });
+
+    it("cascade-deletes todo lists inside a deleted folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const foldersStore = useFoldersStore();
+      const todosStore = useTodosStore();
+      const folderId = await foldersStore.createFolder("F", null, "todo");
+      await todosStore.createTodoList("List A", folderId);
+      await foldersStore.deleteFolder(folderId);
+      const lists = await db.todoLists.toArray();
+      expect(lists).toHaveLength(0);
+    });
+
+    it("cascade-deletes todos inside lists of a deleted folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const foldersStore = useFoldersStore();
+      const todosStore = useTodosStore();
+      const folderId = await foldersStore.createFolder("F", null, "todo");
+      const listId = await todosStore.createTodoList("List", folderId);
+      await todosStore.loadTodos(listId);
+      await todosStore.createTodo("Task", listId);
+      await foldersStore.deleteFolder(folderId);
+      const allTodos = await db.todos.toArray();
+      expect(allTodos).toHaveLength(0);
+    });
+
+    it("does nothing when folder id does not exist", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.deleteFolder("ghost-id");
+      expect(store.folders).toHaveLength(0);
+    });
+  });
+
+  describe("moveFolder", () => {
+    it("moves a folder to a new parent", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", null, "todo");
+      await store.moveFolder(childId, parentId);
+      const moved = store.folders.find((folder) => folder.id === childId);
+      expect(moved?.parentId).toBe(parentId);
+    });
+
+    it("moves a folder to root (null parent)", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", parentId, "todo");
+      await store.moveFolder(childId, null);
+      const moved = store.folders.find((folder) => folder.id === childId);
+      expect(moved?.parentId).toBeNull();
+    });
+
+    it("throws when moving a folder into itself", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("Solo", null, "todo");
+      await expect(store.moveFolder(folderId, folderId)).rejects.toThrow(
+        "Cannot move a folder into itself",
+      );
+    });
+
+    it("throws when moving a folder into one of its own descendants", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const parentId = await store.createFolder("Parent", null, "todo");
+      const childId = await store.createFolder("Child", parentId, "todo");
+      await expect(store.moveFolder(parentId, childId)).rejects.toThrow(
+        "Cannot move a folder into itself",
+      );
+    });
+  });
+});
+</file>
+
+<file path="stores/todos.store.test.ts">
+// src/__tests__/stores/todos.store.test.ts
+import { beforeEach, describe, expect, it } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { createPinia, setActivePinia } from "pinia";
+import db from "../../db";
+import { useTodosStore } from "../../stores/todos";
+
+// beforeEach(async () => {
+//   setActivePinia(createPinia());
+//   await db.folders.clear(); // folders.store.test.ts only
+//   await db.todoLists.clear();
+//   await db.todos.clear();
+// });
+
+async function freshDb(): Promise<void> {
+  db.close();
+  globalThis.indexedDB = new IDBFactory();
+  await db.open();
+}
+
+describe("todosStore", () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    await db.todoLists.clear();
+    await db.todos.clear();
+  });
+
+  describe("createTodoList", () => {
+    it("creates a list and reflects it in state", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Shopping", null);
+      expect(store.todoLists).toHaveLength(1);
+      expect(store.todoLists[0]?.name).toBe("Shopping");
+    });
+
+    it("persists the list to the DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Groceries", null);
+      const rows = await db.todoLists.toArray();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.name).toBe("Groceries");
+    });
+
+    it("sets folderId on the created list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("InFolder", "folder-abc");
+      expect(store.todoLists[0]?.folderId).toBe("folder-abc");
+    });
+
+    it("throws on duplicate name within the same folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Dup", null);
+      await expect(store.createTodoList("Dup", null)).rejects.toThrow("already exists");
+    });
+
+    it("is case-insensitive for duplicate detection", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Work", null);
+      await expect(store.createTodoList("WORK", null)).rejects.toThrow("already exists");
+    });
+
+    it("allows duplicate names in different folders", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Same", "folder-1");
+      await store.createTodoList("Same", "folder-2");
+      expect(store.todoLists).toHaveLength(2);
+    });
+  });
+
+  describe("renameTodoList", () => {
+    it("renames a list successfully", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Old Name", null);
+      await store.renameTodoList(listId, "New Name");
+      const renamed = store.todoLists.find((list) => list.id === listId);
+      expect(renamed?.name).toBe("New Name");
+    });
+
+    it("trims whitespace from new name", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Untrimmed", null);
+      await store.renameTodoList(listId, "  Trimmed  ");
+      const renamed = store.todoLists.find((list) => list.id === listId);
+      expect(renamed?.name).toBe("Trimmed");
+    });
+
+    it("throws when renaming to a duplicate name in the same folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Taken", null);
+      const otherId = await store.createTodoList("Other", null);
+      await expect(store.renameTodoList(otherId, "Taken")).rejects.toThrow("already exists");
+    });
+  });
+
+  describe("deleteTodoList", () => {
+    it("deletes the list from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("ToDelete", null);
+      await store.deleteTodoList(listId);
+      expect(store.todoLists).toHaveLength(0);
+      const row = await db.todoLists.get(listId);
+      expect(row).toBeUndefined();
+    });
+
+    it("cascade-deletes all todos belonging to the deleted list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("WithTodos", null);
+      await store.loadTodos(listId);
+      await store.createTodo("Task 1", listId);
+      await store.createTodo("Task 2", listId);
+      await store.deleteTodoList(listId);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+  });
+
+  describe("getTodoList", () => {
+    it("returns the list for a known id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Known", null);
+      const result = await store.getTodoList(listId);
+      expect(result?.name).toBe("Known");
+    });
+
+    it("returns undefined for an unknown id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const result = await store.getTodoList("no-such-id");
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("createTodo", () => {
+    it("creates a todo with correct defaults", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("List", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Buy milk", listId);
+      const created = store.todos.find((todo) => todo.id === todoId);
+      expect(created?.title).toBe("Buy milk");
+      expect(created?.done).toBeFalsy();
+      expect(created?.priority).toBeNull();
+      expect(created?.dueDate).toBeNull();
+    });
+
+    it("populates todos state when the list is currently active", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Active", null);
+      await store.loadTodos(listId);
+      await store.createTodo("Do thing", listId);
+      expect(store.todos).toHaveLength(1);
+    });
+
+    it("does not update todos state when a different list is active", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("List A", null);
+      const listB = await store.createTodoList("List B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("Not visible", listB);
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("toggleDone", () => {
+    it("flips done from false to true", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Flip me", listId);
+      await store.toggleDone(todoId);
+      const toggled = store.todos.find((todo) => todo.id === todoId);
+      expect(toggled?.done).toBeTruthy();
+    });
+
+    it("flips done from true back to false", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Flip twice", listId);
+      await store.toggleDone(todoId);
+      await store.toggleDone(todoId);
+      const toggled = store.todos.find((todo) => todo.id === todoId);
+      expect(toggled?.done).toBeFalsy();
+    });
+
+    it("updates updatedAt when toggled", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Timestamp test", listId);
+      const original = store.todos.find((todo) => todo.id === todoId);
+      const createdAt = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.toggleDone(todoId);
+      const row = await db.todos.get(todoId);
+      expect(row?.updatedAt).toBeGreaterThan(createdAt);
+    });
+
+    it("does nothing for a non-existent todo id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.toggleDone("ghost-todo-id");
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("updateTodo", () => {
+    it("updates the title", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Original", listId);
+      await store.updateTodo(todoId, { title: "Updated" });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.title).toBe("Updated");
+    });
+
+    it("updates priority", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      await store.updateTodo(todoId, { priority: "high" });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.priority).toBe("high");
+    });
+
+    it("updates dueDate", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      const due = Date.now() + 86_400_000;
+      await store.updateTodo(todoId, { dueDate: due });
+      const updated = store.todos.find((todo) => todo.id === todoId);
+      expect(updated?.dueDate).toBe(due);
+    });
+
+    it("bumps updatedAt on every update", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Task", listId);
+      const original = store.todos.find((todo) => todo.id === todoId);
+      const before = original?.updatedAt ?? 0;
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      await store.updateTodo(todoId, { title: "Changed" });
+      const row = await db.todos.get(todoId);
+      expect(row?.updatedAt).toBeGreaterThan(before);
+    });
+  });
+
+  describe("deleteTodo", () => {
+    it("removes the todo from state and DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("L", null);
+      await store.loadTodos(listId);
+      const todoId = await store.createTodo("Remove me", listId);
+      await store.deleteTodo(todoId);
+      expect(store.todos).toHaveLength(0);
+      const row = await db.todos.get(todoId);
+      expect(row).toBeUndefined();
+    });
+
+    it("does nothing for a non-existent id", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.deleteTodo("no-id");
+      expect(store.todos).toHaveLength(0);
+    });
+  });
+
+  describe("getTodoCountForList", () => {
+    it("returns 0 for an empty list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Empty", null);
+      const count = await store.getTodoCountForList(listId);
+      expect(count).toBe(0);
+    });
+
+    it("returns the correct count after adding todos", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Counted", null);
+      await store.loadTodos(listId);
+      await store.createTodo("One", listId);
+      await store.createTodo("Two", listId);
+      const count = await store.getTodoCountForList(listId);
+      expect(count).toBe(2);
+    });
+
+    it("only counts todos for the given list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("A", null);
+      const listB = await store.createTodoList("B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("For A", listA);
+      const count = await store.getTodoCountForList(listB);
+      expect(count).toBe(0);
+    });
+  });
+
+  describe("deleteTodosByList", () => {
+    it("deletes all todos for the given list", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("Purge", null);
+      await store.loadTodos(listId);
+      await store.createTodo("X", listId);
+      await store.createTodo("Y", listId);
+      await store.deleteTodosByList(listId);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("does not delete todos from other lists", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listA = await store.createTodoList("A", null);
+      const listB = await store.createTodoList("B", null);
+      await store.loadTodos(listA);
+      await store.createTodo("Keep me", listA);
+      await store.deleteTodosByList(listB);
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(1);
+    });
+  });
+
+  describe("deleteTodoListsByFolder", () => {
+    it("deletes all lists belonging to a folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("In folder", "folder-1");
+      await store.createTodoList("Also in folder", "folder-1");
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todoLists.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("also deletes all todos within those lists", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("In folder", "folder-1");
+      await store.loadTodos(listId);
+      await store.createTodo("Nested todo", listId);
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todos.toArray();
+      expect(remaining).toHaveLength(0);
+    });
+
+    it("does not affect lists in other folders", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Safe", "folder-2");
+      await store.deleteTodoListsByFolder("folder-1");
+      const remaining = await db.todoLists.toArray();
+      expect(remaining).toHaveLength(1);
+    });
+  });
+});
+</file>
+
+<file path="utils/formatRelativeTime.unit.test.ts">
+import { describe, expect, it } from "vitest";
+import { formatRelativeTime } from "../../utils/formatRelativeTime";
+import {
+  MS_PER_DAY,
+  MS_PER_HOUR,
+  MS_PER_MINUTE,
+  MS_PER_MONTH,
+  MS_PER_WEEK,
+  MS_PER_YEAR,
+} from "../../utils/constants";
+
+function past(ms: number): number {
+  return Date.now() - ms;
+}
+
+function future(ms: number): number {
+  return Date.now() + ms;
+}
+
+describe("formatRelativeTime", () => {
+  describe("just now", () => {
+    it("returns 'just now' for 0ms difference", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(Date.now())).toBe("just now");
+    });
+
+    it("returns 'just now' for 30 seconds ago", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(30_000))).toBe("just now");
+    });
+
+    it("returns 'just now' for 59 seconds ago", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE - 1))).toBe("just now");
+    });
+  });
+
+  describe("minutes", () => {
+    it("returns '1 minute ago' at exactly 1 minute", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE))).toBe("1 minute ago");
+    });
+
+    it("returns '1 minute ago' at 90 seconds — regression guard", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 1.5))).toBe("1 minute ago");
+    });
+
+    it("returns '5 minutes ago' at 5 minutes", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 5))).toBe("5 minutes ago");
+    });
+
+    it("returns '59 minutes ago' at 59 minutes", () => {
+      expect.hasAssertions();
+      // Use exactly 59 minutes — NOT MS_PER_HOUR - 1 (which Math.rounds to 60)
+      expect(formatRelativeTime(past(MS_PER_MINUTE * 59))).toBe("59 minutes ago");
+    });
+  });
+
+  describe("hours", () => {
+    it("returns '1 hour ago' at exactly 1 hour", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_HOUR))).toBe("1 hour ago");
+    });
+
+    it("returns '1 hour ago' at 90 minutes", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_HOUR * 1.5))).toBe("1 hour ago");
+    });
+
+    it("returns '23 hours ago' at 23 hours", () => {
+      expect.hasAssertions();
+      // Use exactly 23 hours — NOT MS_PER_DAY - 1 (Math.rounds to 24)
+      expect(formatRelativeTime(past(MS_PER_HOUR * 23))).toBe("23 hours ago");
+    });
+  });
+
+  describe("days", () => {
+    it("returns 'yesterday' at exactly 1 day", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_DAY))).toBe("yesterday");
+    });
+
+    it("returns '2 days ago' at 2 days", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_DAY * 2))).toBe("2 days ago");
+    });
+
+    it("returns '6 days ago' at 6 days", () => {
+      expect.hasAssertions();
+      // Use exactly 6 days — NOT MS_PER_WEEK - 1 (Math.rounds to 7)
+      expect(formatRelativeTime(past(MS_PER_DAY * 6))).toBe("6 days ago");
+    });
+  });
+
+  describe("weeks", () => {
+    it("returns 'last week' at exactly 1 week", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_WEEK))).toBe("last week");
+    });
+
+    it("returns '3 weeks ago' at 3 weeks", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_WEEK * 3))).toBe("3 weeks ago");
+    });
+  });
+
+  describe("months", () => {
+    it("returns 'last month' at exactly 1 month", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MONTH))).toBe("last month");
+    });
+
+    it("returns '3 months ago' at 3 months", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_MONTH * 3))).toBe("3 months ago");
+    });
+  });
+
+  describe("years", () => {
+    it("returns 'last year' at exactly 1 year", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_YEAR))).toBe("last year");
+    });
+
+    it("returns '2 years ago' at 2 years", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(past(MS_PER_YEAR * 2))).toBe("2 years ago");
+    });
+  });
+
+  describe("future", () => {
+    it("returns 'in 1 minute' for 1 minute in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_MINUTE))).toBe("in 1 minute");
+    });
+
+    it("returns 'in 1 hour' for 1 hour in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_HOUR))).toBe("in 1 hour");
+    });
+
+    it("returns 'tomorrow' for 1 day in the future", () => {
+      expect.hasAssertions();
+      expect(formatRelativeTime(future(MS_PER_DAY))).toBe("tomorrow");
+    });
+  });
+});
+</file>
+
+<file path="App.test.ts">
+import { describe, expect, it } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createMemoryHistory, createRouter } from "vue-router";
+import { createPinia } from "pinia";
+import App from "../App.vue";
+
+describe("app mount", () => {
+  it("renders the sidebar navigation", () => {
+    expect.hasAssertions();
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: "/", component: { template: "<div />" } }],
+    });
+    const pinia = createPinia();
+    const wrapper = mount(App, {
+      global: { plugins: [router, pinia] },
+    });
+    expect(wrapper.find("aside").exists()).toBe(true);
+  });
+});
+</file>
+
+<file path="setup.ts">
+// src/__tests__/setup.ts
+import { vi } from "vitest";
+import "fake-indexeddb/auto"; // ← use the auto-install version instead
+
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+</file>
+
+</files>
+</file>
+
+<file path="src/__tests__/setup.ts">
+// src/__tests__/setup.ts
+import { vi } from "vitest";
+import "fake-indexeddb/auto"; // ← use the auto-install version instead
+
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+</file>
 
 <file path="e2e/tsconfig.json">
 {
@@ -116,45 +2750,52 @@ This section contains the contents of the repository's files.
 </file>
 
 <file path="e2e/vue.spec.ts">
-import { test, expect } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-// See here how to get started:
-// https://playwright.dev/docs/intro
-test('visits the app root url', async ({ page }) => {
-  await page.goto('/')
-  await expect(page.locator('h1')).toHaveText('You did it!')
-})
+test("visits the app root url", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("h1")).toHaveText("You did it!");
+});
 </file>
 
-<file path="src/__tests__/App.spec.ts">
-import { describe, it, expect } from 'vitest'
+<file path="src/__tests__/App.test.ts">
+import { describe, expect, it } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createMemoryHistory, createRouter } from "vue-router";
+import { createPinia } from "pinia";
+import App from "../App.vue";
 
-import { mount } from '@vue/test-utils'
-import App from '../App.vue'
-
-describe('App', () => {
-  it('mounts renders properly', () => {
-    const wrapper = mount(App)
-    expect(wrapper.text()).toContain('You did it!')
-  })
-})
+describe("app mount", () => {
+  it("renders the sidebar navigation", () => {
+    expect.hasAssertions();
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: "/", component: { template: "<div />" } }],
+    });
+    const pinia = createPinia();
+    const wrapper = mount(App, {
+      global: { plugins: [router, pinia] },
+    });
+    expect(wrapper.find("aside").exists()).toBe(true);
+  });
+});
 </file>
 
 <file path="src/components/Breadcrumbs.vue">
 <!-- src/components/Breadcrumbs.vue -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import { ChevronRightIcon, HomeIcon, MoreHorizontalIcon } from "@lucide/vue";
 import type { Crumb } from "../types/explorer";
 
-// const props =
+// Const props =
 defineProps<{ crumbs: Crumb[] }>();
 const emit = defineEmits<{ navigate: [id: string | null] }>();
 
 const isPopoverOpen = ref(false);
 const popoverRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
-const popoverStyle = ref({ top: "0px", left: "0px" });
+const popoverStyle = ref({ left: "0px", top: "0px" });
 
 async function openPopover() {
   isPopoverOpen.value = true;
@@ -163,11 +2804,11 @@ async function openPopover() {
 }
 
 function positionPopover() {
-  if (!triggerRef.value) return;
+  if (!triggerRef.value) {return;}
   const rect = triggerRef.value.getBoundingClientRect();
   popoverStyle.value = {
-    top: `${rect.bottom + 6}px`,
     left: `${rect.left}px`,
+    top: `${rect.bottom + 6}px`,
   };
 }
 
@@ -196,11 +2837,11 @@ function handleOutsideClick(event: MouseEvent) {
 }
 
 function handleEscape(event: KeyboardEvent) {
-  if (event.key === "Escape") isPopoverOpen.value = false;
+  if (event.key === "Escape") {isPopoverOpen.value = false;}
 }
 
 function handleReposition() {
-  if (isPopoverOpen.value) positionPopover();
+  if (isPopoverOpen.value) {positionPopover();}
 }
 
 onMounted(() => {
@@ -462,18 +3103,15 @@ function handleFileClick() {
 <file path="src/components/ExplorerGrid.vue">
 <!-- src/components/ExplorerGrid.vue -->
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
-import type { Component } from "vue";
+import { type Component, computed, nextTick, ref } from "vue";
 import {
+  ChevronDownIcon,
+  ChevronUpIcon,
   FolderIcon,
-  // FolderPlusIcon,
-  // PlusIcon,
-  PencilIcon,
-  TrashIcon,
   LayoutGridIcon,
   ListIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
+  PencilIcon,
+  TrashIcon,
 } from "@lucide/vue";
 import { useConfirm } from "../composables/useConfirm";
 import { useToast } from "../composables/useToast";
@@ -503,8 +3141,14 @@ interface DisplayItem {
   createdAt?: number;
   isNew?: boolean;
 }
+interface RenameOptions {
+  kind: "folder" | "file";
+  id: string;
+  currentName: string;
+  event: Event;
+}
 
-const props = defineProps<{
+const { folders, files, fileIcon, fileLabel } = defineProps<{
   folders: GridFolder[];
   files: GridFile[];
   fileIcon: Component;
@@ -526,84 +3170,71 @@ const { confirm } = useConfirm();
 const { showToast } = useToast();
 const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
 
-function typeLabel(kind: "folder" | "file"): string {
-  return kind === "folder"
-    ? "Folder"
-    : props.fileLabel[0]?.toUpperCase() + props.fileLabel?.slice(1);
-}
-
-function sortItems<T extends { name: string; updatedAt?: number }>(items: T[]): T[] {
-  const sorted = [...items].sort((a, b) => {
-    if (sortKey.value === "name") return a.name.localeCompare(b.name);
-    return (a.updatedAt ?? 0) - (b.updatedAt ?? 0);
-  });
-  return sortDir.value === "asc" ? sorted : sorted.reverse();
-}
-
-const sortedFolders = computed(() => sortItems(props.folders));
-const sortedFiles = computed(() => sortItems(props.files));
-
 const creatingType = ref<"folder" | "file" | null>(null);
 const newName = ref("");
-
-// function startCreate(type: "folder" | "file") {
-//   creatingType.value = type;
-//   newName.value = "";
-// }
-function confirmCreate() {
-  const name = newName.value.trim();
-  if (name) {
-    if (creatingType.value === "folder") emit("createFolder", name);
-    else if (creatingType.value === "file") emit("createFile", name);
-  }
-  creatingType.value = null;
-}
-function cancelCreate() {
-  creatingType.value = null;
-}
-
-const displayItems = computed<DisplayItem[]>(() => {
-  const folderItems: DisplayItem[] = sortedFolders.value.map((f) => ({
-    kind: "folder",
-    id: f.id,
-    name: f.name,
-    itemCount: f.itemCount,
-    updatedAt: f.updatedAt,
-    createdAt: f.createdAt,
-  }));
-  const fileItems: DisplayItem[] = sortedFiles.value.map((f) => ({
-    kind: "file",
-    id: f.id,
-    name: f.name,
-    itemCount: f.itemCount,
-    updatedAt: f.updatedAt,
-    createdAt: f.createdAt,
-  }));
-
-  const placeholder: DisplayItem | null = creatingType.value
-    ? { kind: creatingType.value, id: "__new__", name: "", isNew: true }
-    : null;
-
-  if (placeholder?.kind === "folder") return [placeholder, ...folderItems, ...fileItems];
-  if (placeholder?.kind === "file") return [...folderItems, placeholder, ...fileItems];
-  return [...folderItems, ...fileItems];
-});
-
-const isEmpty = computed(
-  () => props.folders.length === 0 && props.files.length === 0 && !creatingType.value,
-);
-
 const renamingId = ref<string | null>(null);
 const renamingKind = ref<"folder" | "file" | null>(null);
 const renamingName = ref("");
 const newItemInputRef = ref<HTMLInputElement | HTMLInputElement[] | null>(null);
 
+function sortItems<Item extends { name: string; updatedAt?: number }>(items: Item[]): Item[] {
+  const sorted = [...items].toSorted((itemA, itemB) => {
+    if (sortKey.value === "name") {
+      return itemA.name.localeCompare(itemB.name);
+    }
+    return (itemA.updatedAt ?? 0) - (itemB.updatedAt ?? 0);
+  });
+  return sortDir.value === "asc" ? sorted : sorted.toReversed();
+}
+
+const sortedFolders = computed(() => sortItems(folders));
+const sortedFiles = computed(() => sortItems(files));
+
+const displayItems = computed<DisplayItem[]>(() => {
+  const folderItems: DisplayItem[] = sortedFolders.value.map((f) => ({
+    createdAt: f.createdAt,
+    id: f.id,
+    itemCount: f.itemCount,
+    kind: "folder",
+    name: f.name,
+    updatedAt: f.updatedAt,
+  }));
+  const fileItems: DisplayItem[] = sortedFiles.value.map((f) => ({
+    createdAt: f.createdAt,
+    id: f.id,
+    itemCount: f.itemCount,
+    kind: "file",
+    name: f.name,
+    updatedAt: f.updatedAt,
+  }));
+
+  const placeholder: DisplayItem | null = creatingType.value
+    ? { id: "__new__", isNew: true, kind: creatingType.value, name: "" }
+    : null;
+
+  if (placeholder?.kind === "folder") {
+    return [placeholder, ...folderItems, ...fileItems];
+  }
+  if (placeholder?.kind === "file") {
+    return [...folderItems, placeholder, ...fileItems];
+  }
+  return [...folderItems, ...fileItems];
+});
+
+const isEmpty = computed(() => folders.length === 0 && files.length === 0 && !creatingType.value);
+
+function typeLabel(kind: "folder" | "file"): string {
+  return kind === "folder" ? "Folder" : fileLabel[0]?.toUpperCase() + fileLabel?.slice(1);
+}
+
 function focusAndScrollToNewInput() {
-  nextTick(() => {
+  nextTick().then(() => {
     const el = Array.isArray(newItemInputRef.value)
       ? newItemInputRef.value[0]
       : newItemInputRef.value;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.focus();
   });
@@ -615,20 +3246,41 @@ function startCreate(type: "folder" | "file") {
   focusAndScrollToNewInput();
 }
 
-function startRename(kind: "folder" | "file", id: string, currentName: string, event: Event) {
+function confirmCreate() {
+  const name = newName.value.trim();
+  if (name) {
+    if (creatingType.value === "folder") {
+      emit("createFolder", name);
+    } else if (creatingType.value === "file") {
+      emit("createFile", name);
+    }
+  }
+  creatingType.value = null;
+}
+
+function cancelCreate() {
+  creatingType.value = null;
+}
+
+function startRename({ kind, id, currentName, event }: RenameOptions) {
   event.stopPropagation();
   renamingKind.value = kind;
   renamingId.value = id;
   renamingName.value = currentName;
 }
+
 function confirmRename() {
   const name = renamingName.value.trim();
   if (name && renamingId.value !== null) {
-    if (renamingKind.value === "folder") emit("renameFolder", renamingId.value, name);
-    else emit("renameFile", renamingId.value, name);
+    if (renamingKind.value === "folder") {
+      emit("renameFolder", renamingId.value, name);
+    } else {
+      emit("renameFile", renamingId.value, name);
+    }
   }
   renamingId.value = null;
 }
+
 function cancelRename() {
   renamingId.value = null;
 }
@@ -636,11 +3288,13 @@ function cancelRename() {
 async function handleDeleteFolder(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    title: "Delete folder",
-    message: `Delete "${name}" and everything inside it? This can't be undone.`,
     confirmLabel: "Delete",
+    message: `Delete "${name}" and everything inside it? This can't be undone.`,
+    title: "Delete folder",
   });
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
   emit("deleteFolder", id);
   showToast(`Deleted "${name}"`, "info");
 }
@@ -648,33 +3302,43 @@ async function handleDeleteFolder(id: string, name: string, event: Event) {
 async function handleDeleteFile(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    title: `Delete ${props.fileLabel}`,
-    message: `Delete "${name}"? This can't be undone.`,
     confirmLabel: "Delete",
+    message: `Delete "${name}"? This can't be undone.`,
+    title: `Delete ${fileLabel}`,
   });
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
   emit("deleteFile", id);
   showToast(`Deleted "${name}"`, "info");
 }
 
 function handleOpen(item: DisplayItem) {
-  if (item.kind === "folder") emit("openFolder", item.id);
-  else emit("openFile", item.id);
+  if (item.kind === "folder") {
+    emit("openFolder", item.id);
+  } else {
+    emit("openFile", item.id);
+  }
 }
+
 function handleStartRename(item: DisplayItem, event: Event) {
-  startRename(item.kind, item.id, item.name, event);
+  startRename({ currentName: item.name, event, id: item.id, kind: item.kind });
 }
+
 function handleDelete(item: DisplayItem, event: Event) {
-  if (item.kind === "folder") handleDeleteFolder(item.id, item.name, event);
-  else handleDeleteFile(item.id, item.name, event);
+  if (item.kind === "folder") {
+    handleDeleteFolder(item.id, item.name, event);
+  } else {
+    handleDeleteFile(item.id, item.name, event);
+  }
 }
+
 function isRenaming(item: DisplayItem) {
   return renamingId.value === item.id && renamingKind.value === item.kind;
 }
 
 defineExpose({ startCreate });
 </script>
-
 <template>
   <div>
     <!-- Toolbar -->
@@ -900,13 +3564,13 @@ defineExpose({ startCreate });
 <!-- src/components/FolderTree.vue -->
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronRightIcon, ChevronDownIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
+import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
 import { useFoldersStore } from "../stores/folders";
 import { useConfirm } from "../composables/useConfirm";
 import { useToast } from "../composables/useToast";
 import type { FeatureType } from "../db/types";
 
-const props = defineProps<{
+const { type, activeFolderId } = defineProps<{
   type: FeatureType;
   activeFolderId: string | null;
 }>();
@@ -924,65 +3588,64 @@ interface TreeNode {
 }
 
 const expanded = ref<Set<string>>(new Set());
-
-// function toggleExpand(id: string, event: Event) {
-//   event.stopPropagation();
-//   const next = new Set(expanded.value);
-//   next.has(id) ? next.delete(id) : next.add(id);
-//   expanded.value = next;
-// }
+const creatingParentId = ref<string | null | undefined>(undefined);
+const newFolderName = ref("");
 
 function toggleExpand(id: string, event: Event) {
   event.stopPropagation();
 
   const next = new Set(expanded.value);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
 
   expanded.value = next;
 }
 
 function hasChildren(id: string): boolean {
-  return foldersStore.folders.some((f) => f.parentId === id && f.type === props.type);
+  return foldersStore.folders.some((folder) => folder.parentId === id && folder.type === type);
 }
 
 const visibleNodes = computed<TreeNode[]>(() => {
   const nodes: TreeNode[] = [];
   function walk(parentId: string | null, depth: number) {
     const children = foldersStore.folders
-      .filter((f) => f.parentId === parentId && f.type === props.type)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((folder) => folder.parentId === parentId && folder.type === type)
+      .toSorted((folderA, folderB) => folderA.name.localeCompare(folderB.name));
     for (const folder of children) {
-      nodes.push({ id: folder.id, name: folder.name, depth });
-      if (expanded.value.has(folder.id)) walk(folder.id, depth + 1);
+      nodes.push({ depth, id: folder.id, name: folder.name });
+      if (expanded.value.has(folder.id)) {
+        walk(folder.id, depth + 1);
+      }
     }
   }
   walk(null, 0);
   return nodes;
 });
 
-const creatingParentId = ref<string | null | undefined>(undefined);
-const newFolderName = ref("");
-
 function startCreating(parentId: string | null) {
   creatingParentId.value = parentId;
   newFolderName.value = "";
 }
+
 async function confirmCreate() {
   const name = newFolderName.value.trim();
   if (name && creatingParentId.value !== undefined) {
     try {
-      await foldersStore.createFolder(name, creatingParentId.value, props.type);
+      await foldersStore.createFolder(name, creatingParentId.value, type);
       if (creatingParentId.value) {
         expanded.value = new Set(expanded.value).add(creatingParentId.value);
       }
       showToast(`Created folder "${name}"`, "success");
-    } catch (e) {
-      showToast((e as Error).message, "error");
+    } catch (error) {
+      showToast((error as Error).message, "error");
     }
   }
   creatingParentId.value = undefined;
 }
+
 function cancelCreate() {
   creatingParentId.value = undefined;
 }
@@ -990,16 +3653,17 @@ function cancelCreate() {
 async function handleDelete(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    title: "Delete folder",
-    message: `Delete "${name}" and everything inside it? This can't be undone.`,
     confirmLabel: "Delete",
+    message: `Delete "${name}" and everything inside it? This can't be undone.`,
+    title: "Delete folder",
   });
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
   await foldersStore.deleteFolder(id);
   showToast(`Deleted "${name}"`, "info");
 }
 </script>
-
 <template>
   <div>
     <ul class="space-y-0.5">
@@ -1232,7 +3896,7 @@ function close() {
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { XIcon, PaletteIcon } from "@lucide/vue";
+import { PaletteIcon, XIcon } from "@lucide/vue";
 import { useThemeStore } from "../stores/theme";
 
 defineProps<{ isOpen: boolean }>();
@@ -1264,13 +3928,14 @@ function close() {
         v-for="item in navItems"
         :key="item.name"
         :to="item.path"
-        :title="item.label"
+        :aria-label="item.label"
+        :aria-current="isActive(item.path) ? 'page' : undefined"
         class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none"
       >
         <span
           class="rounded-full py-1 px-3 transition-all duration-200"
           :class="[
-            $route.path.startsWith(item.path)
+            isActive(item.path)
               ? 'bg-rose-primary text-white'
               : 'group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text',
           ]"
@@ -1280,7 +3945,7 @@ function close() {
         <span
           class="truncate text-sm md:text-base font-medium mt-1 transition-all duration-200"
           :class="[
-            $route.path.startsWith(item.path)
+            isActive(item.path)
               ? 'text-rose-primary font-bold'
               : 'text-rose-text-muted group-hover:text-rose-text',
           ]"
@@ -1290,9 +3955,10 @@ function close() {
       </router-link>
 
       <button
-        @click="$emit('toggleMenu')"
-        title="Menu"
+        type="button"
+        aria-label="Menu"
         class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none"
+        @click="emit('toggleMenu')"
       >
         <span
           class="rounded-full py-1 px-3 transition-all duration-200 group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text"
@@ -1310,15 +3976,22 @@ function close() {
 </template>
 
 <script setup lang="ts">
-import { ListTodoIcon, PenLineIcon, FileTextIcon, MenuIcon } from "@lucide/vue";
+import { useRoute } from "vue-router";
+import { FileTextIcon, ListTodoIcon, MenuIcon, PenLineIcon } from "@lucide/vue";
+
+const route = useRoute();
 
 const navItems = [
-  { name: "todos", label: "Todos", path: "/todos/folder", icon: ListTodoIcon },
-  { name: "notes", label: "Notes", path: "/notes/folder", icon: PenLineIcon },
-  { name: "docs", label: "Docs", path: "/docs/folder", icon: FileTextIcon },
+  { icon: ListTodoIcon, label: "Todos", name: "todos", path: "/todos/folder" },
+  { icon: PenLineIcon, label: "Notes", name: "notes", path: "/notes/folder" },
+  { icon: FileTextIcon, label: "Docs", name: "docs", path: "/docs/folder" },
 ];
 
-defineEmits(["toggleMenu"]);
+const emit = defineEmits<{ toggleMenu: [] }>();
+
+function isActive(path: string): boolean {
+  return route.path.split("/")[1] === path.split("/")[1];
+}
 </script>
 </file>
 
@@ -1351,34 +4024,42 @@ defineEmits(["toggleMenu"]);
 </template>
 
 <script setup lang="ts">
-import { CheckCircleIcon, XCircleIcon, InfoIcon, AlertTriangleIcon, XIcon } from "@lucide/vue";
-import { useToast, type ToastType } from "../composables/useToast";
+import { AlertTriangleIcon, CheckCircleIcon, InfoIcon, XCircleIcon, XIcon } from "@lucide/vue";
+import { type ToastType, useToast } from "../composables/useToast";
 
 const { toasts, dismissToast } = useToast();
 
 function iconFor(type: ToastType) {
   switch (type) {
-    case "success":
+    case "success": {
       return CheckCircleIcon;
-    case "error":
+    }
+    case "error": {
       return XCircleIcon;
-    case "warning":
+    }
+    case "warning": {
       return AlertTriangleIcon;
-    default:
+    }
+    default: {
       return InfoIcon;
+    }
   }
 }
 
 function colorFor(type: ToastType) {
   switch (type) {
-    case "success":
+    case "success": {
       return "text-green-500";
-    case "error":
+    }
+    case "error": {
       return "text-red-500";
-    case "warning":
+    }
+    case "warning": {
       return "text-amber-500";
-    default:
+    }
+    default: {
       return "text-rose-primary";
+    }
   }
 }
 </script>
@@ -1400,7 +4081,7 @@ function colorFor(type: ToastType) {
 </file>
 
 <file path="src/composables/useConfirm.ts">
-// src/composables/useConfirm.ts
+// Src/composables/useConfirm.ts
 import { ref } from "vue";
 
 interface ConfirmOptions {
@@ -1435,7 +4116,7 @@ function handleCancel() {
 }
 
 export function useConfirm() {
-  return { isOpen, options, confirm, handleConfirm, handleCancel };
+  return { confirm, handleCancel, handleConfirm, isOpen, options };
 }
 </file>
 
@@ -1451,13 +4132,26 @@ const VIEW_MODE_KEY = "rose-explorer-view-mode";
 const SORT_KEY_KEY = "rose-explorer-sort-key";
 const SORT_DIR_KEY = "rose-explorer-sort-dir";
 
-const viewMode = ref<ViewMode>((localStorage.getItem(VIEW_MODE_KEY) as ViewMode) || "grid");
-const sortKey = ref<SortKey>((localStorage.getItem(SORT_KEY_KEY) as SortKey) || "name");
-const sortDir = ref<SortDir>((localStorage.getItem(SORT_DIR_KEY) as SortDir) || "asc");
+const VALID_VIEW_MODES: ViewMode[] = ["grid", "list"];
+const VALID_SORT_KEYS: SortKey[] = ["name", "updatedAt"];
+const VALID_SORT_DIRS: SortDir[] = ["asc", "desc"];
 
-watch(viewMode, (v) => localStorage.setItem(VIEW_MODE_KEY, v));
-watch(sortKey, (v) => localStorage.setItem(SORT_KEY_KEY, v));
-watch(sortDir, (v) => localStorage.setItem(SORT_DIR_KEY, v));
+function readStored<TValue extends string>(
+  key: string,
+  validValues: TValue[],
+  fallback: TValue,
+): TValue {
+  const stored = localStorage.getItem(key);
+  return (validValues as string[]).includes(stored ?? "") ? (stored as TValue) : fallback;
+}
+
+const viewMode = ref<ViewMode>(readStored(VIEW_MODE_KEY, VALID_VIEW_MODES, "grid"));
+const sortKey = ref<SortKey>(readStored(SORT_KEY_KEY, VALID_SORT_KEYS, "name"));
+const sortDir = ref<SortDir>(readStored(SORT_DIR_KEY, VALID_SORT_DIRS, "asc"));
+
+watch(viewMode, (value) => localStorage.setItem(VIEW_MODE_KEY, value));
+watch(sortKey, (value) => localStorage.setItem(SORT_KEY_KEY, value));
+watch(sortDir, (value) => localStorage.setItem(SORT_DIR_KEY, value));
 
 export function useExplorerViewMode() {
   function toggleViewMode() {
@@ -1473,7 +4167,7 @@ export function useExplorerViewMode() {
     }
   }
 
-  return { viewMode, sortKey, sortDir, toggleViewMode, setSortKey };
+  return { setSortKey, sortDir, sortKey, toggleViewMode, viewMode };
 }
 </file>
 
@@ -1490,27 +4184,34 @@ export interface Toast {
 }
 
 const toasts = ref<Toast[]>([]);
+const timers = new Map<number, ReturnType<typeof setTimeout>>();
 let nextId = 0;
 
 function showToast(message: string, type: ToastType = "info", duration = 3000) {
   const id = nextId++;
   toasts.value.push({ id, message, type });
-  setTimeout(() => dismissToast(id), duration);
+  const timer = setTimeout(() => dismissToast(id), duration);
+  timers.set(id, timer);
 }
 
 function dismissToast(id: number) {
-  toasts.value = toasts.value.filter((t) => t.id !== id);
+  const timer = timers.get(id);
+  if (timer) {
+    clearTimeout(timer);
+    timers.delete(id);
+  }
+  toasts.value = toasts.value.filter((toast) => toast.id !== id);
 }
 
 export function useToast() {
-  return { toasts, showToast, dismissToast };
+  return { dismissToast, showToast, toasts };
 }
 </file>
 
 <file path="src/db/index.ts">
-// src/db/index.ts
+// Src/db/index.ts
 import Dexie, { type EntityTable } from "dexie";
-import type { Folder, TodoList, Todo } from "./types";
+import type { Folder, Todo, TodoList } from "./types";
 
 const db = new Dexie("RoseDatabase") as Dexie & {
   folders: EntityTable<Folder, "id">;
@@ -1539,7 +4240,7 @@ export default db;
 </file>
 
 <file path="src/db/types.ts">
-// src/db/types.ts
+// Src/db/types.ts
 
 export type FeatureType = "todo" | "note" | "doc";
 
@@ -1573,7 +4274,7 @@ export interface Todo {
 </file>
 
 <file path="src/router/index.ts">
-// src/router/index.ts
+// Src/router/index.ts
 import { createRouter, createWebHistory } from "vue-router";
 import TodosView from "../views/TodosView.vue";
 import TodoListView from "../views/TodoListView.vue";
@@ -1586,44 +4287,29 @@ const router = createRouter({
     { path: "/", redirect: "/todos/folder" },
 
     {
-      path: "/todos/folder/:pathMatch(.*)*",
-      name: "todos-folder",
       component: TodosView,
+      name: "todos-folder",
+      path: "/todos/folder/:pathMatch(.*)*",
       props: true,
     },
     {
-      path: "/todos/list/:pathMatch(.*)*",
-      name: "todos-list",
       component: TodoListView,
+      name: "todos-list",
+      path: "/todos/list/:pathMatch(.*)*",
       props: true,
     },
 
     {
-      path: "/notes/folder/:pathMatch(.*)*",
-      name: "notes-folder",
       component: NotesView,
+      name: "notes-folder",
+      path: "/notes/folder/:pathMatch(.*)*",
       props: true,
     },
-    { path: "/docs/folder/:pathMatch(.*)*", name: "docs-folder", component: DocsView, props: true },
+    { component: DocsView, name: "docs-folder", path: "/docs/folder/:pathMatch(.*)*", props: true },
   ],
 });
 
 export default router;
-</file>
-
-<file path="src/stores/counter.ts">
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
-
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
-  }
-
-  return { count, doubleCount, increment }
-})
 </file>
 
 <file path="src/stores/folders.ts">
@@ -1631,7 +4317,7 @@ export const useCounterStore = defineStore('counter', () => {
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "../db";
-import type { Folder, FeatureType } from "../db/types";
+import type { FeatureType, Folder } from "../db/types";
 import { useTodosStore } from "./todos";
 
 export const useFoldersStore = defineStore("folders", () => {
@@ -1641,45 +4327,24 @@ export const useFoldersStore = defineStore("folders", () => {
     folders.value = await db.folders.where("type").equals(type).toArray();
   }
 
-  // async function createFolder(name: string, parentId: string | null, type: FeatureType) {
-  //   const now = Date.now();
-  //   const folder: Folder = {
-  //     id: crypto.randomUUID(),
-  //     name,
-  //     parentId,
-  //     type,
-  //     createdAt: now,
-  //     updatedAt: now,
-  //   };
-  //   await db.folders.add(folder);
-  //   await loadFolders(type);
-  //   return folder.id;
-  // }
-
-  // async function renameFolder(id: string, name: string) {
-  //   await db.folders.update(id, { name, updatedAt: Date.now() });
-  //   const updated = folders.value.find((f) => f.id === id);
-  //   if (updated) await loadFolders(updated.type);
-  // }
-
   async function createFolder(name: string, parentId: string | null, type: FeatureType) {
     const trimmed = name.trim();
     const duplicate = folders.value.find(
-      (f) =>
-        f.parentId === parentId &&
-        f.type === type &&
-        f.name.toLowerCase() === trimmed.toLowerCase(),
+      (folder) =>
+        folder.parentId === parentId &&
+        folder.type === type &&
+        folder.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
       throw new Error(`A folder named "${trimmed}" already exists here.`);
     }
     const now = Date.now();
     const folder: Folder = {
+      createdAt: now,
       id: crypto.randomUUID(),
       name: trimmed,
       parentId,
       type,
-      createdAt: now,
       updatedAt: now,
     };
     await db.folders.add(folder);
@@ -1689,14 +4354,16 @@ export const useFoldersStore = defineStore("folders", () => {
 
   async function renameFolder(id: string, name: string) {
     const trimmed = name.trim();
-    const target = folders.value.find((f) => f.id === id);
-    if (!target) return;
+    const target = folders.value.find((folder) => folder.id === id);
+    if (!target) {
+      return;
+    }
     const duplicate = folders.value.find(
-      (f) =>
-        f.id !== id &&
-        f.parentId === target.parentId &&
-        f.type === target.type &&
-        f.name.toLowerCase() === trimmed.toLowerCase(),
+      (folder) =>
+        folder.id !== id &&
+        folder.parentId === target.parentId &&
+        folder.type === target.type &&
+        folder.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
       throw new Error(`A folder named "${trimmed}" already exists here.`);
@@ -1705,33 +4372,71 @@ export const useFoldersStore = defineStore("folders", () => {
     await loadFolders(target.type);
   }
 
+  function collectDescendantIds(id: string): string[] {
+    const result: string[] = [];
+    const queue = [id];
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      const children = folders.value.filter((folder) => folder.parentId === currentId);
+      for (const child of children) {
+        result.push(child.id);
+        queue.push(child.id);
+      }
+    }
+    return result;
+  }
+
   async function deleteFolder(id: string) {
-    const target = folders.value.find((f) => f.id === id);
-    if (!target) return;
-    const descendants = folders.value.filter((f) => f.parentId === id);
-    for (const child of descendants) {
-      await deleteFolder(child.id);
+    const target = folders.value.find((folder) => folder.id === id);
+    if (!target) {
+      return;
     }
-    if (target.type === "todo") {
-      const todosStore = useTodosStore();
-      await todosStore.deleteTodoListsByFolder(target.id);
-    }
-    await db.folders.delete(id);
+
+    const descendantIds = collectDescendantIds(id);
+    const allIds = [id, ...descendantIds];
+    const todosStore = useTodosStore();
+
+    const todoFolderIds = allIds.filter(
+      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo",
+    );
+    await Promise.all(
+      todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
+    );
+
+    await db.folders.bulkDelete(allIds);
     await loadFolders(target.type);
   }
 
-  async function moveFolder(id: string, newParentId: string | null) {
-    await db.folders.update(id, { parentId: newParentId, updatedAt: Date.now() });
-    const target = folders.value.find((f) => f.id === id);
-    if (target) await loadFolders(target.type);
+  function isDescendantOf(candidateId: string, ancestorId: string): boolean {
+    let cursor: string | null = candidateId;
+    while (cursor !== null) {
+      if (cursor === ancestorId) {
+        return true;
+      }
+      cursor = folders.value.find((folder) => folder.id === cursor)?.parentId ?? null;
+    }
+    return false;
   }
 
-  return { folders, loadFolders, createFolder, renameFolder, deleteFolder, moveFolder };
+  async function moveFolder(id: string, newParentId: string | null) {
+    if (newParentId !== null) {
+      if (newParentId === id || isDescendantOf(newParentId, id)) {
+        throw new Error("Cannot move a folder into itself or one of its own subfolders.");
+      }
+    }
+    await db.folders.update(id, { parentId: newParentId, updatedAt: Date.now() });
+    const target = folders.value.find((folder) => folder.id === id);
+    if (target) {
+      await loadFolders(target.type);
+    }
+  }
+
+  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder };
 });
 </file>
 
 <file path="src/stores/theme.ts">
-// src/stores/theme.ts
+// Src/stores/theme.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
@@ -1740,7 +4445,7 @@ type ThemeMode = "light" | "dark" | "system";
 const STORAGE_KEY = "rose-theme-mode";
 
 function getSystemPrefersDark(): boolean {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 function applyTheme(mode: ThemeMode) {
@@ -1759,12 +4464,14 @@ export const useThemeStore = defineStore("theme", () => {
 
   function init() {
     applyTheme(mode.value);
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-      if (mode.value === "system") applyTheme("system");
+    globalThis.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (mode.value === "system") {
+        applyTheme("system");
+      }
     });
   }
 
-  return { mode, setMode, init };
+  return { init, mode, setMode };
 });
 </file>
 
@@ -1773,11 +4480,12 @@ export const useThemeStore = defineStore("theme", () => {
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "../db";
-import type { TodoList, Todo } from "../db/types";
+import type { Todo, TodoList } from "../db/types";
 
 export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
   const todos = ref<Todo[]>([]);
+  const currentListId = ref<string | null>(null);
 
   async function loadTodoLists() {
     todoLists.value = await db.todoLists.toArray();
@@ -1786,15 +4494,17 @@ export const useTodosStore = defineStore("todos", () => {
   async function createTodoList(name: string, folderId: string | null) {
     const trimmed = name.trim();
     const duplicate = todoLists.value.find(
-      (l) => l.folderId === folderId && l.name.toLowerCase() === trimmed.toLowerCase(),
+      (list) => list.folderId === folderId && list.name.toLowerCase() === trimmed.toLowerCase(),
     );
-    if (duplicate) throw new Error(`A list named "${trimmed}" already exists here.`);
+    if (duplicate) {
+      throw new Error(`A list named "${trimmed}" already exists here.`);
+    }
     const now = Date.now();
     const list: TodoList = {
+      createdAt: now,
+      folderId,
       id: crypto.randomUUID(),
       name: trimmed,
-      folderId,
-      createdAt: now,
       updatedAt: now,
     };
     await db.todoLists.add(list);
@@ -1804,17 +4514,26 @@ export const useTodosStore = defineStore("todos", () => {
 
   async function renameTodoList(id: string, name: string) {
     const trimmed = name.trim();
-    const target = todoLists.value.find((l) => l.id === id);
-    if (!target) return;
+    const target = todoLists.value.find((list) => list.id === id);
+    if (!target) {
+      return;
+    }
     const duplicate = todoLists.value.find(
-      (l) =>
-        l.id !== id &&
-        l.folderId === target.folderId &&
-        l.name.toLowerCase() === trimmed.toLowerCase(),
+      (list) =>
+        list.id !== id &&
+        list.folderId === target.folderId &&
+        list.name.toLowerCase() === trimmed.toLowerCase(),
     );
-    if (duplicate) throw new Error(`A list named "${trimmed}" already exists here.`);
+    if (duplicate) {
+      throw new Error(`A list named "${trimmed}" already exists here.`);
+    }
     await db.todoLists.update(id, { name: trimmed, updatedAt: Date.now() });
     await loadTodoLists();
+  }
+
+  async function deleteTodosByList(listId: string) {
+    const targets = await db.todos.where("listId").equals(listId).toArray();
+    await db.todos.bulkDelete(targets.map((todo) => todo.id));
   }
 
   async function deleteTodoList(id: string) {
@@ -1829,10 +4548,8 @@ export const useTodosStore = defineStore("todos", () => {
 
   async function deleteTodoListsByFolder(folderId: string) {
     const targets = await db.todoLists.where("folderId").equals(folderId).toArray();
-    for (const list of targets) {
-      await deleteTodosByList(list.id);
-    }
-    await db.todoLists.bulkDelete(targets.map((l) => l.id));
+    await Promise.all(targets.map((list) => deleteTodosByList(list.id)));
+    await db.todoLists.bulkDelete(targets.map((list) => list.id));
   }
 
   async function getTodoCountForList(listId: string): Promise<number> {
@@ -1840,31 +4557,41 @@ export const useTodosStore = defineStore("todos", () => {
   }
 
   async function loadTodos(listId: string) {
-    todos.value = await db.todos.where("listId").equals(listId).toArray();
+    currentListId.value = listId;
+    const result = await db.todos.where("listId").equals(listId).toArray();
+    if (currentListId.value === listId) {
+      todos.value = result;
+    }
   }
 
   async function createTodo(title: string, listId: string) {
     const now = Date.now();
     const todo: Todo = {
-      id: crypto.randomUUID(),
-      title,
-      listId,
-      done: false,
-      priority: null,
-      dueDate: null,
       createdAt: now,
+      done: false,
+      dueDate: null,
+      id: crypto.randomUUID(),
+      listId,
+      priority: null,
+      title,
       updatedAt: now,
     };
     await db.todos.add(todo);
-    await loadTodos(listId);
+    if (listId === currentListId.value) {
+      await loadTodos(listId);
+    }
     return todo.id;
   }
 
   async function toggleDone(id: string) {
-    const todo = todos.value.find((t) => t.id === id);
-    if (!todo) return;
+    const todo = todos.value.find((candidate) => candidate.id === id);
+    if (!todo) {
+      return;
+    }
     await db.todos.update(id, { done: !todo.done, updatedAt: Date.now() });
-    await loadTodos(todo.listId);
+    if (todo.listId === currentListId.value) {
+      await loadTodos(todo.listId);
+    }
   }
 
   async function updateTodo(
@@ -1872,61 +4599,92 @@ export const useTodosStore = defineStore("todos", () => {
     changes: Partial<Pick<Todo, "title" | "priority" | "dueDate">>,
   ) {
     await db.todos.update(id, { ...changes, updatedAt: Date.now() });
-    const todo = todos.value.find((t) => t.id === id);
-    if (todo) await loadTodos(todo.listId);
+    const todo = todos.value.find((candidate) => candidate.id === id);
+    if (todo && todo.listId === currentListId.value) {
+      await loadTodos(todo.listId);
+    }
   }
 
   async function deleteTodo(id: string) {
-    const todo = todos.value.find((t) => t.id === id);
-    if (!todo) return;
+    const todo = todos.value.find((candidate) => candidate.id === id);
+    if (!todo) {
+      return;
+    }
     await db.todos.delete(id);
-    await loadTodos(todo.listId);
-  }
-
-  async function deleteTodosByList(listId: string) {
-    const targets = await db.todos.where("listId").equals(listId).toArray();
-    await db.todos.bulkDelete(targets.map((t) => t.id));
+    if (todo.listId === currentListId.value) {
+      await loadTodos(todo.listId);
+    }
   }
 
   return {
+    createTodo,
+    createTodoList,
+    deleteTodo,
+    deleteTodoList,
+    deleteTodoListsByFolder,
+    deleteTodosByList,
+    getTodoCountForList,
+    getTodoList,
+    loadTodoLists,
+    loadTodos,
+    renameTodoList,
     todoLists,
     todos,
-    loadTodoLists,
-    createTodoList,
-    renameTodoList,
-    deleteTodoList,
-    getTodoList,
-    deleteTodoListsByFolder,
-    getTodoCountForList,
-    loadTodos,
-    createTodo,
     toggleDone,
     updateTodo,
-    deleteTodo,
-    deleteTodosByList,
   };
 });
 </file>
 
 <file path="src/types/explorer.ts">
-// src/types/explorer.ts
+// Src/types/explorer.ts
 export interface Crumb {
   id: string | null;
   name: string;
 }
 </file>
 
+<file path="src/utils/constants.ts">
+// Src/utils/constants.ts
+
+export const TOAST_AUTO_DISMISS_MS = 8000;
+
+export const MS_PER_SECOND = 1000;
+export const SECONDS_PER_MINUTE = 60;
+export const MINUTES_PER_HOUR = 60;
+export const HOURS_PER_DAY = 24;
+export const DAYS_PER_WEEK = 7;
+export const DAYS_PER_MONTH = 30;
+export const DAYS_PER_YEAR = 365;
+
+export const MS_PER_MINUTE = MS_PER_SECOND * SECONDS_PER_MINUTE;
+export const MS_PER_HOUR = MS_PER_MINUTE * MINUTES_PER_HOUR;
+export const MS_PER_DAY = MS_PER_HOUR * HOURS_PER_DAY;
+export const MS_PER_WEEK = MS_PER_DAY * DAYS_PER_WEEK;
+export const MS_PER_MONTH = MS_PER_DAY * DAYS_PER_MONTH;
+export const MS_PER_YEAR = MS_PER_DAY * DAYS_PER_YEAR;
+</file>
+
 <file path="src/utils/formatRelativeTime.ts">
-// src/utils/formatRelativeTime.ts
+// Src/utils/formatRelativeTime.ts
+import {
+  MS_PER_DAY,
+  MS_PER_HOUR,
+  MS_PER_MINUTE,
+  MS_PER_MONTH,
+  MS_PER_WEEK,
+  MS_PER_YEAR,
+} from "./constants";
+
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
-  ["year", 1000 * 60 * 60 * 24 * 365],
-  ["month", 1000 * 60 * 60 * 24 * 30],
-  ["week", 1000 * 60 * 60 * 24 * 7],
-  ["day", 1000 * 60 * 60 * 24],
-  ["hour", 1000 * 60 * 60],
-  ["minute", 1000 * 60],
+  ["year", MS_PER_YEAR],
+  ["month", MS_PER_MONTH],
+  ["week", MS_PER_WEEK],
+  ["day", MS_PER_DAY],
+  ["hour", MS_PER_HOUR],
+  ["minute", MS_PER_MINUTE],
 ];
 
 export function formatRelativeTime(timestamp: number): string {
@@ -1966,46 +4724,73 @@ export function formatRelativeTime(timestamp: number): string {
 
 <file path="src/views/TodoListView.vue">
 <!-- src/views/TodoListView.vue -->
-<!-- src/views/TodoListView.vue -->
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  InfoIcon,
+  MoreVerticalIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from "@lucide/vue";
 import { useTodosStore } from "../stores/todos";
 import { useFoldersStore } from "../stores/folders";
 import { useConfirm } from "../composables/useConfirm";
 import { useToast } from "../composables/useToast";
-import {
-  ArrowLeftIcon,
-  PlusIcon,
-  TrashIcon,
-  PencilIcon,
-  MoreVerticalIcon,
-  InfoIcon,
-  XIcon,
-  CalendarIcon,
-} from "@lucide/vue";
 import { formatRelativeTime } from "../utils/formatRelativeTime";
-import type { TodoList, Todo } from "../db/types";
+import type { Todo, TodoList } from "../db/types";
 
-const props = defineProps<{ pathMatch?: string[] }>();
+const MENU_WIDTH_PX = 220;
+const MENU_OFFSET_PX = 6;
+
+const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+
 const router = useRouter();
 const todosStore = useTodosStore();
 const foldersStore = useFoldersStore();
 const { confirm } = useConfirm();
 const { showToast } = useToast();
 
-const segments = computed(() => props.pathMatch ?? []);
+const segments = computed(() => pathMatch ?? []);
+
+const currentList = ref<TodoList | undefined>(undefined);
+const isRenaming = ref(false);
+const renameValue = ref("");
+const newTodoTitle = ref("");
+const editingId = ref<string | null>(null);
+const editingTitle = ref("");
+const openMenuTodoId = ref<string | null>(null);
+const menuStyle = ref({ left: "0px", top: "0px" });
+const isInfoOpen = ref(false);
+let activeLoadToken = 0;
+
+const priorityOptions: { value: Todo["priority"]; label: string }[] = [
+  { label: "None", value: null },
+  { label: "Low", value: "low" },
+  { label: "Medium", value: "medium" },
+  { label: "High", value: "high" },
+];
+
+const totalCount = computed(() => todosStore.todos.length);
+const completedCount = computed(() => todosStore.todos.filter((todo) => todo.done).length);
+const pendingCount = computed(() => totalCount.value - completedCount.value);
 
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;
   for (const segment of segs) {
     const match = foldersStore.folders.find(
-      (f) =>
-        f.parentId === cursor &&
-        f.type === "todo" &&
-        f.name.toLowerCase() === segment.toLowerCase(),
+      (folder) =>
+        folder.parentId === cursor &&
+        folder.type === "todo" &&
+        folder.name.toLowerCase() === segment.toLowerCase(),
     );
-    if (!match) return undefined;
+    if (!match) {
+      return undefined;
+    }
     cursor = match.id;
   }
   return cursor;
@@ -2015,18 +4800,33 @@ function buildFolderPath(folderId: string | null): string[] {
   const path: string[] = [];
   let cursor = folderId;
   while (cursor !== null) {
-    const folder = foldersStore.folders.find((f) => f.id === cursor);
-    if (!folder) break;
+    const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
+    if (!folder) {
+      break;
+    }
     path.unshift(folder.name);
     cursor = folder.parentId;
   }
   return path;
 }
 
-const currentList = ref<TodoList | undefined>(undefined);
+function dateInputValue(dueDate: number | null): string {
+  if (!dueDate) {
+    return "";
+  }
+  return new Date(dueDate).toISOString().slice(0, 10);
+}
 
 async function loadList() {
-  await foldersStore.loadFolders("todo");
+  const token = ++activeLoadToken;
+  try {
+    await foldersStore.loadFolders("todo");
+  } catch (error) {
+    if (token === activeLoadToken) {
+      showToast((error as Error).message, "error");
+    }
+    return;
+  }
 
   const segs = segments.value;
   if (segs.length === 0) {
@@ -2044,9 +4844,21 @@ async function loadList() {
     return;
   }
 
-  await todosStore.loadTodoLists();
+  try {
+    await todosStore.loadTodoLists();
+  } catch (error) {
+    if (token === activeLoadToken) {
+      showToast((error as Error).message, "error");
+    }
+    return;
+  }
+
+  if (token !== activeLoadToken) {
+    return;
+  }
+
   const match = todosStore.todoLists.find(
-    (l) => l.folderId === folderId && l.name.toLowerCase() === listName?.toLowerCase(),
+    (list) => list.folderId === folderId && list.name.toLowerCase() === listName?.toLowerCase(),
   );
 
   if (!match) {
@@ -2056,11 +4868,14 @@ async function loadList() {
   }
 
   currentList.value = match;
-  await todosStore.loadTodos(match.id);
+  try {
+    await todosStore.loadTodos(match.id);
+  } catch (error) {
+    if (token === activeLoadToken) {
+      showToast((error as Error).message, "error");
+    }
+  }
 }
-
-onMounted(loadList);
-watch(() => props.pathMatch, loadList);
 
 function goBack() {
   if (!currentList.value) {
@@ -2073,13 +4888,11 @@ function goBack() {
   });
 }
 
-const isRenaming = ref(false);
-const renameValue = ref("");
-
 function startRenameList() {
   isRenaming.value = true;
   renameValue.value = currentList.value?.name ?? "";
 }
+
 async function confirmRenameList() {
   const name = renameValue.value.trim();
   if (name && currentList.value?.id) {
@@ -2093,95 +4906,109 @@ async function confirmRenameList() {
           params: { pathMatch: [...buildFolderPath(updated.folderId), updated.name] },
         });
       }
-    } catch (e) {
-      showToast((e as Error).message, "error");
+    } catch (error) {
+      showToast((error as Error).message, "error");
     }
   }
   isRenaming.value = false;
 }
+
 function cancelRenameList() {
   isRenaming.value = false;
 }
 
-const newTodoTitle = ref("");
-
 async function handleCreateTodo() {
-  if (!currentList.value) return;
+  if (!currentList.value) {
+    return;
+  }
   const title = newTodoTitle.value.trim();
-  if (!title) return;
-  await todosStore.createTodo(title, currentList.value.id);
-  newTodoTitle.value = "";
+  if (!title) {
+    return;
+  }
+  try {
+    await todosStore.createTodo(title, currentList.value.id);
+    newTodoTitle.value = "";
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
 
 async function handleDeleteTodo(id: string, title: string) {
   const confirmed = await confirm({
-    title: "Delete todo",
-    message: `Delete "${title}"?`,
     confirmLabel: "Delete",
+    message: `Delete "${title}"?`,
+    title: "Delete todo",
   });
-  if (!confirmed) return;
-  await todosStore.deleteTodo(id);
-  showToast(`Deleted "${title}"`, "info");
+  if (!confirmed) {
+    return;
+  }
+  try {
+    await todosStore.deleteTodo(id);
+    showToast(`Deleted "${title}"`, "info");
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
-
-const editingId = ref<string | null>(null);
-const editingTitle = ref("");
 
 function startEdit(id: string, currentTitle: string) {
   editingId.value = id;
   editingTitle.value = currentTitle;
 }
+
 async function confirmEdit() {
-  if (editingId.value === null) return;
+  if (editingId.value === null) {
+    return;
+  }
   const title = editingTitle.value.trim();
-  if (title) await todosStore.updateTodo(editingId.value, { title });
+  if (title) {
+    try {
+      await todosStore.updateTodo(editingId.value, { title });
+    } catch (error) {
+      showToast((error as Error).message, "error");
+    }
+  }
   editingId.value = null;
 }
+
 function cancelEdit() {
   editingId.value = null;
 }
 
-// --- Per-todo action popover (priority, due date, edit, delete) ---
-const openMenuTodoId = ref<string | null>(null);
-const menuStyle = ref({ top: "0px", left: "0px" });
-
 function openTodoMenu(id: string, event: MouseEvent) {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
   menuStyle.value = {
-    top: `${rect.bottom + 6}px`,
-    left: `${Math.min(rect.left, window.innerWidth - 220)}px`,
+    left: `${Math.min(rect.left, globalThis.innerWidth - MENU_WIDTH_PX)}px`,
+    top: `${rect.bottom + MENU_OFFSET_PX}px`,
   };
   openMenuTodoId.value = openMenuTodoId.value === id ? null : id;
 }
+
 function closeTodoMenu() {
   openMenuTodoId.value = null;
 }
 
-const priorityOptions: { value: Todo["priority"]; label: string }[] = [
-  { value: null, label: "None" },
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-];
-
 async function setPriority(id: string, priority: Todo["priority"]) {
-  await todosStore.updateTodo(id, { priority });
+  try {
+    await todosStore.updateTodo(id, { priority });
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
 
 async function setDueDate(id: string, value: string) {
   const timestamp = value ? new Date(value).getTime() : null;
-  await todosStore.updateTodo(id, { dueDate: timestamp });
-}
-
-function dateInputValue(dueDate: number | null): string {
-  if (!dueDate) return "";
-  return new Date(dueDate).toISOString().slice(0, 10);
+  try {
+    await todosStore.updateTodo(id, { dueDate: timestamp });
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
 
 function handleMenuEdit(todo: Todo) {
   closeTodoMenu();
   startEdit(todo.id, todo.title);
 }
+
 async function handleMenuDelete(todo: Todo) {
   closeTodoMenu();
   await handleDeleteTodo(todo.id, todo.title);
@@ -2194,19 +5021,14 @@ function handleOutsideMenuClick(event: MouseEvent) {
   }
 }
 
-// --- List info / properties panel ---
-const isInfoOpen = ref(false);
-
-const totalCount = computed(() => todosStore.todos.length);
-const completedCount = computed(() => todosStore.todos.filter((t) => t.done).length);
-const pendingCount = computed(() => totalCount.value - completedCount.value);
-
+onMounted(loadList);
 onMounted(() => {
   document.addEventListener("click", handleOutsideMenuClick);
 });
 onUnmounted(() => {
   document.removeEventListener("click", handleOutsideMenuClick);
 });
+watch(() => pathMatch, loadList);
 </script>
 
 <template>
@@ -2487,36 +5309,44 @@ onUnmounted(() => {
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { FoldersIcon, ListTodoIcon } from "@lucide/vue";
 import FolderTree from "../components/FolderTree.vue";
 import ExplorerGrid from "../components/ExplorerGrid.vue";
 import Breadcrumbs from "../components/Breadcrumbs.vue";
+import FolderTreeDrawer from "../components/FolderTreeDrawer.vue";
+import ExplorerActions from "../components/ExplorerActions.vue";
 import type { Crumb } from "../types/explorer";
 import { useFoldersStore } from "../stores/folders";
 import { useTodosStore } from "../stores/todos";
 import { useToast } from "../composables/useToast";
-import { FoldersIcon, ListTodoIcon } from "@lucide/vue";
-import FolderTreeDrawer from "../components/FolderTreeDrawer.vue";
 
-import ExplorerActions from "../components/ExplorerActions.vue";
+const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
-const props = defineProps<{ pathMatch?: string[] }>();
 const router = useRouter();
 const foldersStore = useFoldersStore();
 const todosStore = useTodosStore();
 const { showToast } = useToast();
 
-const segments = computed(() => props.pathMatch ?? []);
+const isDrawerOpen = ref(false);
+const listItemCounts = ref<Record<string, number>>({});
+const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
+let activeLoadToken = 0;
 
+const segments = computed(() => pathMatch ?? []);
+
+// Returns `null` for the root folder, a folder id if resolved, or `undefined` if the path segments don't match any real folder.
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;
   for (const segment of segs) {
     const match = foldersStore.folders.find(
-      (f) =>
-        f.parentId === cursor &&
-        f.type === "todo" &&
-        f.name.toLowerCase() === segment.toLowerCase(),
+      (folder) =>
+        folder.parentId === cursor &&
+        folder.type === "todo" &&
+        folder.name.toLowerCase() === segment.toLowerCase(),
     );
-    if (!match) return undefined;
+    if (!match) {
+      return undefined;
+    }
     cursor = match.id;
   }
   return cursor;
@@ -2526,8 +5356,10 @@ function buildFolderPath(folderId: string | null): string[] {
   const path: string[] = [];
   let cursor = folderId;
   while (cursor !== null) {
-    const folder = foldersStore.folders.find((f) => f.id === cursor);
-    if (!folder) break;
+    const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
+    if (!folder) {
+      break;
+    }
     path.unshift(folder.name);
     cursor = folder.parentId;
   }
@@ -2536,22 +5368,70 @@ function buildFolderPath(folderId: string | null): string[] {
 
 const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
 
-const isDrawerOpen = ref(false);
-const listItemCounts = ref<Record<string, number>>({});
-const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
+const subfolders = computed(() => {
+  if (currentFolderId.value === undefined) {
+    return [];
+  }
+  return foldersStore.folders.filter((folder) => folder.parentId === currentFolderId.value);
+});
+
+const visibleLists = computed(() => {
+  if (currentFolderId.value === undefined) {
+    return [];
+  }
+  return todosStore.todoLists.filter((list) => list.folderId === currentFolderId.value);
+});
+
+const crumbs = computed<Crumb[]>(() => {
+  if (currentFolderId.value === undefined || currentFolderId.value === null) {
+    return [];
+  }
+  const chain: Crumb[] = [];
+  let cursor: string | null = currentFolderId.value;
+  while (cursor !== null) {
+    const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
+    if (!folder) {
+      break;
+    }
+    chain.unshift({ id: folder.id, name: folder.name });
+    cursor = folder.parentId;
+  }
+  return chain;
+});
+
+function countChildrenOf(folderId: string): number {
+  const subfolderCount = foldersStore.folders.filter(
+    (folder) => folder.parentId === folderId,
+  ).length;
+  const listCount = todosStore.todoLists.filter((list) => list.folderId === folderId).length;
+  return subfolderCount + listCount;
+}
 
 async function loadListItemCounts() {
   const entries = await Promise.all(
     visibleLists.value.map(
-      async (l) => [l.id, await todosStore.getTodoCountForList(l.id)] as const,
+      async (list) => [list.id, await todosStore.getTodoCountForList(list.id)] as const,
     ),
   );
   listItemCounts.value = Object.fromEntries(entries);
 }
 
 async function loadCurrentFolder() {
-  await foldersStore.loadFolders("todo");
-  await todosStore.loadTodoLists();
+  const token = ++activeLoadToken;
+  try {
+    await foldersStore.loadFolders("todo");
+    await todosStore.loadTodoLists();
+  } catch (error) {
+    if (token === activeLoadToken) {
+      showToast((error as Error).message, "error");
+    }
+    return;
+  }
+
+  if (token !== activeLoadToken) {
+    return;
+  }
+
   const resolved = resolveFolderId(segments.value);
   if (resolved === undefined) {
     showToast("That folder no longer exists.", "error");
@@ -2561,45 +5441,15 @@ async function loadCurrentFolder() {
   await loadListItemCounts();
 }
 
-onMounted(loadCurrentFolder);
-watch(() => props.pathMatch, loadCurrentFolder);
-
-const subfolders = computed(() => {
-  if (currentFolderId.value === undefined) return [];
-  return foldersStore.folders.filter((f) => f.parentId === currentFolderId.value);
-});
-
-const visibleLists = computed(() => {
-  if (currentFolderId.value === undefined) return [];
-  return todosStore.todoLists.filter((l) => l.folderId === currentFolderId.value);
-});
-
-function countChildrenOf(folderId: string): number {
-  const subfolderCount = foldersStore.folders.filter((f) => f.parentId === folderId).length;
-  const listCount = todosStore.todoLists.filter((l) => l.folderId === folderId).length;
-  return subfolderCount + listCount;
-}
-
-const crumbs = computed<Crumb[]>(() => {
-  if (currentFolderId.value === undefined || currentFolderId.value === null) return [];
-  const chain: Crumb[] = [];
-  let cursor: string | null = currentFolderId.value;
-  while (cursor !== null) {
-    const folder = foldersStore.folders.find((f) => f.id === cursor);
-    if (!folder) break;
-    chain.unshift({ id: folder.id, name: folder.name });
-    cursor = folder.parentId;
-  }
-  return chain;
-});
-
 function navigateToFolder(id: string | null) {
   router.push({ name: "todos-folder", params: { pathMatch: buildFolderPath(id) } });
 }
 
 function openList(id: string) {
-  const list = todosStore.todoLists.find((l) => l.id === id);
-  if (!list) return;
+  const list = todosStore.todoLists.find((candidate) => candidate.id === id);
+  if (!list) {
+    return;
+  }
   router.push({
     name: "todos-list",
     params: { pathMatch: [...buildFolderPath(list.folderId), list.name] },
@@ -2609,46 +5459,64 @@ function openList(id: string) {
 async function handleCreateFolder(name: string) {
   try {
     await foldersStore.createFolder(name, currentFolderId.value ?? null, "todo");
-  } catch (e) {
-    showToast((e as Error).message, "error");
+  } catch (error) {
+    showToast((error as Error).message, "error");
   }
 }
+
 async function handleRenameFolder(id: string, name: string) {
   try {
     await foldersStore.renameFolder(id, name);
-    if (id === currentFolderId.value) navigateToFolder(id);
-  } catch (e) {
-    showToast((e as Error).message, "error");
+    if (id === currentFolderId.value) {
+      navigateToFolder(id);
+    }
+  } catch (error) {
+    showToast((error as Error).message, "error");
   }
 }
+
 async function handleDeleteFolder(id: string) {
-  await foldersStore.deleteFolder(id);
+  try {
+    await foldersStore.deleteFolder(id);
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
+
 async function handleCreateFile(name: string) {
   try {
     await todosStore.createTodoList(name, currentFolderId.value ?? null);
     await loadListItemCounts();
-  } catch (e) {
-    showToast((e as Error).message, "error");
+  } catch (error) {
+    showToast((error as Error).message, "error");
   }
 }
+
 async function handleRenameFile(id: string, name: string) {
   try {
     await todosStore.renameTodoList(id, name);
-  } catch (e) {
-    showToast((e as Error).message, "error");
+  } catch (error) {
+    showToast((error as Error).message, "error");
   }
 }
+
 async function handleDeleteFile(id: string) {
-  await todosStore.deleteTodoList(id);
-  await loadListItemCounts();
+  try {
+    await todosStore.deleteTodoList(id);
+    await loadListItemCounts();
+  } catch (error) {
+    showToast((error as Error).message, "error");
+  }
 }
+
 function handleMobileSelect(id: string | null) {
   navigateToFolder(id);
   isDrawerOpen.value = false;
 }
-</script>
 
+onMounted(loadCurrentFolder);
+watch(() => pathMatch, loadCurrentFolder);
+</script>
 <template>
   <div class="flex h-full">
     <aside class="hidden md:block w-64 border-r border-rose-border p-4 overflow-y-auto shrink-0">
@@ -2754,25 +5622,25 @@ function handleMobileSelect(id: string | null) {
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { RouterView } from "vue-router";
 import Sidebar from "./components/Sidebar.vue";
 import MenuOverlay from "./components/MenuOverlay.vue";
 import ToastContainer from "./components/ToastContainer.vue";
 import ConfirmDialog from "./components/ConfirmDialog.vue";
 
-import { onMounted, onUnmounted } from "vue";
 import { useToast } from "./composables/useToast";
+import { TOAST_AUTO_DISMISS_MS } from "./utils/constants.ts";
 
 const { showToast } = useToast();
 const isMenuOpen = ref(false);
 
 function onSWUpdate() {
-  showToast("App updated — refresh to get the latest version.", "info", 8000);
+  showToast("App updated — refresh to get the latest version.", "info", TOAST_AUTO_DISMISS_MS);
 }
 
-onMounted(() => window.addEventListener("sw-update-available", onSWUpdate));
-onUnmounted(() => window.removeEventListener("sw-update-available", onSWUpdate));
+onMounted(() => globalThis.addEventListener("sw-update-available", onSWUpdate));
+onUnmounted(() => globalThis.removeEventListener("sw-update-available", onSWUpdate));
 </script>
 
 <style>
@@ -2805,39 +5673,11 @@ useThemeStore().init();
 </file>
 
 <file path="src/registerSW.ts">
-// // src/registerSW.ts
-
-// export function registerSW() {
-//   if (!("serviceWorker" in navigator)) return;
-//   if (import.meta.env.DEV) return;
-
-//   window.addEventListener("load", () => {
-//     navigator.serviceWorker
-//       .register("/sw.js", { scope: "/" })
-//       .then((registration) => {
-//         // Poll for updates every 60 seconds while the app is open
-//         setInterval(() => registration.update(), 60_000);
-
-//         registration.addEventListener("updatefound", () => {
-//           const newWorker = registration.installing;
-//           if (!newWorker) return;
-
-//           newWorker.addEventListener("statechange", () => {
-//             // A new SW is installed and ready; notify the user
-//             if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-//               // Dispatch a custom event — App.vue listens for this
-//               window.dispatchEvent(new CustomEvent("sw-update-available"));
-//             }
-//           });
-//         });
-//       })
-//       .catch((err) => console.error("[SW] Registration failed:", err));
-//   });
-// }
-
 // src/registerSW.ts
 export function registerSW() {
-  if (!("serviceWorker" in navigator)) return;
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
 
   if (import.meta.env.DEV) {
     // Dev mode: proactively unregister any previously-installed SW and
@@ -2849,7 +5689,7 @@ export function registerSW() {
       }
     });
 
-    if ("caches" in window) {
+    if ("caches" in globalThis) {
       caches.keys().then((keys) => {
         for (const key of keys) {
           caches.delete(key);
@@ -2860,9 +5700,9 @@ export function registerSW() {
     return;
   }
 
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
-      console.error("Service worker registration failed:", err);
+  globalThis.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Service worker registration failed:", error);
     });
   });
 }
@@ -2889,71 +5729,68 @@ max_line_length = 100
 * text=auto eol=lf
 </file>
 
-<file path=".gitignore">
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-*.tsbuildinfo
-
-.eslintcache
-
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-
-# Vitest
-__screenshots__/
-
-# Vite
-*.timestamp-*-*.mjs
-
-test-results/
-playwright-report/
-
-certs/
-</file>
-
 <file path=".oxfmtrc.json">
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "semi": false,
-  "singleQuote": true
+  "$schema": "./node_modules/oxfmt/configuration-schema.json",
+  "semi": true,
+  "singleQuote": false
 }
 </file>
 
 <file path=".oxlintrc.json">
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "$schema": "./node_modules/oxlint/configuration-schema.json",
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "vue", "vitest"],
-  "env": {
-    "browser": true
-  },
+  "env": { "browser": true },
   "categories": {
-    "correctness": "error"
-  }
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn",
+    "style": "warn"
+  },
+  "rules": {
+    "eslint/func-style": [
+      "warn",
+      "declaration",
+      { "allowArrowFunctions": true }
+    ],
+    "eslint/sort-imports": [
+      "warn",
+      { "ignoreDeclarationSort": true, "ignoreCase": true }
+    ],
+
+    "eslint/id-length": [
+      "warn",
+      { "min": 2, "exceptions": ["i", "e", "f", "id", "x", "y", "a", "b"] }
+    ],
+    "eslint/no-underscore-dangle": ["error", { "allow": ["__APP_VERSION__"] }],
+    "eslint/max-statements": "off",
+    "eslint/max-params": "off",
+    "eslint/sort-keys": "off",
+    "eslint/no-ternary": "off",
+    "unicorn/filename-case": "off",
+    "unicorn/no-null": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/prefer-global-this": "warn",
+    "vitest/require-hook": "off",
+    "vitest/prefer-lowercase-title": "off",
+    "vitest/prefer-describe-function-title": "off",
+    "vitest/consistent-test-filename": "off",
+    "eslint/capitalized-comments": "off",
+    "vitest/no-importing-vitest-globals": "off",
+    "eslint/no-magic-numbers": "off",
+    "vitest/no-hooks": "off"
+  },
+  "overrides": [
+    {
+      "files": ["e2e/**"],
+      "rules": {
+        "vitest/prefer-importing-vitest-globals": "off",
+        "vitest/no-importing-vitest-globals": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist", "dist-ssr", "coverage", "public/sw.js"]
 }
 </file>
 
@@ -2961,45 +5798,60 @@ certs/
 /// <reference types="vite/client" />
 </file>
 
+<file path="eslint-report.json">
+[{"filePath":"/home/yash-agarwal/rose/e2e/vue.spec.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/env.d.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/eslint.config.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/playwright.config.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/App.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/__tests__/App.test.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/Breadcrumbs.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/ConfirmDialog.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/ExplorerActions.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/ExplorerGrid.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/FolderTree.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/FolderTreeDrawer.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/MenuOverlay.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/Sidebar.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/components/ToastContainer.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/composables/useConfirm.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/composables/useExplorerViewMode.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/composables/useToast.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/db/index.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/db/types.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/main.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/registerSW.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/router/index.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/stores/folders.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/stores/theme.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/stores/todos.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/types/explorer.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/utils/constants.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/utils/formatRelativeTime.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/views/DocsView.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/views/NotesView.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/views/TodoListView.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/views/TodosView.vue","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/src/vite-env.d.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/vite.config.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]},{"filePath":"/home/yash-agarwal/rose/vitest.config.ts","messages":[],"suppressedMessages":[],"errorCount":0,"fatalErrorCount":0,"warningCount":0,"fixableErrorCount":0,"fixableWarningCount":0,"usedDeprecatedRules":[]}]
+</file>
+
 <file path="eslint.config.ts">
-import { globalIgnores } from 'eslint/config'
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
-import pluginVue from 'eslint-plugin-vue'
-import pluginPlaywright from 'eslint-plugin-playwright'
-import pluginVitest from '@vitest/eslint-plugin'
-import pluginOxlint from 'eslint-plugin-oxlint'
-import skipFormatting from 'eslint-config-prettier/flat'
+import { globalIgnores } from "eslint/config";
+import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
+import pluginVue from "eslint-plugin-vue";
+import pluginPlaywright from "eslint-plugin-playwright";
+import pluginVitest from "@vitest/eslint-plugin";
+import pluginOxlint from "eslint-plugin-oxlint";
+import skipFormatting from "eslint-config-prettier/flat";
 
 // To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
+// Import { configureVueProject } from '@vue/eslint-config-typescript'
+// ConfigureVueProject({ scriptLangs: ['ts', 'tsx'] })
 // More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
 
 export default defineConfigWithVueTs(
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{vue,ts,mts,tsx}'],
+    files: ["**/*.{vue,ts,mts,tsx}"],
+    name: "app/files-to-lint",
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
 
-  ...pluginVue.configs['flat/essential'],
+  ...pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
 
   {
-    ...pluginPlaywright.configs['flat/recommended'],
-    files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    ...pluginPlaywright.configs["flat/recommended"],
+    files: ["e2e/**/*.{test,spec}.{js,ts,jsx,tsx}"],
   },
 
   {
     ...pluginVitest.configs.recommended,
-    files: ['src/**/__tests__/*'],
+    files: ["src/**/__tests__/*"],
+    rules: {
+      ...pluginVitest.configs.recommended.rules,
+      "vitest/require-hook": "off", // ← add this
+    },
   },
 
-  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
+  {
+    files: ["src/components/Breadcrumbs.vue", "src/components/Sidebar.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off",
+    },
+  },
+
+  ...pluginOxlint.buildFromOxlintConfigFile(".oxlintrc.json"),
 
   skipFormatting,
-)
+);
 </file>
 
 <file path="index.html">
@@ -3017,10 +5869,7 @@ export default defineConfigWithVueTs(
     <!-- PWA: iOS/Android standalone app support -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Rose" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
@@ -3033,93 +5882,30 @@ export default defineConfigWithVueTs(
 </html>
 </file>
 
-<file path="package.json">
-{
-  "name": "rose",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "test:unit": "vitest",
-    "test:e2e": "playwright test",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "lint": "run-s \"lint:*\"",
-    "lint:oxlint": "oxlint . --fix",
-    "lint:eslint": "eslint . --fix --cache",
-    "format": "oxfmt src/"
-  },
-  "dependencies": {
-    "@lucide/vue": "^1.24.0",
-    "@tiptap/pm": "^3.27.3",
-    "@tiptap/starter-kit": "^3.27.3",
-    "@tiptap/vue-3": "^3.27.3",
-    "dexie": "^4.4.4",
-    "fabric": "^7.4.0",
-    "pinia": "^3.0.4",
-    "vue": "^3.5.38",
-    "vue-router": "^5.1.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.61.0",
-    "@tailwindcss/vite": "^4.3.2",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/user-event": "^14.6.1",
-    "@testing-library/vue": "^8.1.0",
-    "@tsconfig/node24": "^24.0.4",
-    "@types/jsdom": "^28.0.3",
-    "@types/node": "^24.13.2",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vitejs/plugin-vue-jsx": "^5.1.5",
-    "@vitest/eslint-plugin": "^1.6.20",
-    "@vue/eslint-config-typescript": "^14.8.0",
-    "@vue/test-utils": "^2.4.11",
-    "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-oxlint": "~1.69.0",
-    "eslint-plugin-playwright": "^2.10.4",
-    "eslint-plugin-vue": "~10.9.2",
-    "jiti": "^2.7.0",
-    "jsdom": "^29.1.1",
-    "npm-run-all2": "^9.0.2",
-    "oxfmt": "^0.54.0",
-    "oxlint": "~1.69.0",
-    "tailwindcss": "^4.3.2",
-    "typescript": "~6.0.0",
-    "vite": "^8.0.16",
-    "vite-plugin-vue-devtools": "^8.1.2",
-    "vitest": "^4.1.9",
-    "vue-eslint-parser": "^10.4.1",
-    "vue-tsc": "^3.3.5"
-  },
-  "engines": {
-    "node": "^22.18.0 || >=24.12.0"
-  },
-  "volta": {
-    "node": "24.18.0"
-  }
-}
+<file path="oxlint-report.json">
+{ "diagnostics": [],
+              "number_of_files": 36,
+              "number_of_rules": 340,
+              "threads_count": 16,
+              "start_time": 0.026979549
+            }
 </file>
 
 <file path="playwright.config.ts">
-import process from 'node:process'
-import { defineConfig, devices } from '@playwright/test'
+import process from "node:process";
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// require('dotenv').config();
+// Require('dotenv').config();
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
@@ -3130,79 +5916,79 @@ export default defineConfig({
     timeout: 5000,
   },
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: Boolean(process.env.CI),
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.CI ? 'http://localhost:4173' : 'http://localhost:5173',
+    baseURL: process.env.CI ? "http://localhost:4173" : "http://localhost:5173",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     /* Only on CI systems run the tests headless */
-    headless: !!process.env.CI,
+    headless: Boolean(process.env.CI),
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
       },
     },
     {
-      name: 'firefox',
+      name: "firefox",
       use: {
-        ...devices['Desktop Firefox'],
+        ...devices["Desktop Firefox"],
       },
     },
     {
-      name: 'webkit',
+      name: "webkit",
       use: {
-        ...devices['Desktop Safari'],
+        ...devices["Desktop Safari"],
       },
     },
 
     /* Test against mobile viewports. */
     // {
-    //   name: 'Mobile Chrome',
-    //   use: {
+    //   Name: 'Mobile Chrome',
+    //   Use: {
     //     ...devices['Pixel 5'],
     //   },
     // },
     // {
-    //   name: 'Mobile Safari',
-    //   use: {
+    //   Name: 'Mobile Safari',
+    //   Use: {
     //     ...devices['iPhone 12'],
     //   },
     // },
 
     /* Test against branded browsers. */
     // {
-    //   name: 'Microsoft Edge',
-    //   use: {
-    //     channel: 'msedge',
+    //   Name: 'Microsoft Edge',
+    //   Use: {
+    //     Channel: 'msedge',
     //   },
     // },
     // {
-    //   name: 'Google Chrome',
-    //   use: {
-    //     channel: 'chrome',
+    //   Name: 'Google Chrome',
+    //   Use: {
+    //     Channel: 'chrome',
     //   },
     // },
   ],
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  // outputDir: 'test-results/',
+  // OutputDir: 'test-results/',
 
   /* Run your local dev server before starting the tests */
   webServer: {
@@ -3211,11 +5997,11 @@ export default defineConfig({
      * Use the preview server on CI for more realistic testing.
      * Playwright will re-use the local server if there is already a dev-server running.
      */
-    command: process.env.CI ? 'npm run preview' : 'npm run dev',
+    command: process.env.CI ? "npm run preview" : "npm run dev",
     port: process.env.CI ? 4173 : 5173,
     reuseExistingServer: !process.env.CI,
   },
-})
+});
 </file>
 
 <file path="README.md">
@@ -3289,33 +6075,6 @@ Rose stores everything in your browser's IndexedDB. There is no cloud sync by de
 See [ROADMAP.md](./ROADMAP.md) for the phased development plan and checklist.
 </file>
 
-<file path="repomix.config.json">
-{
-  "ignore": {
-    "useGitignore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": [
-      "certs/**",
-      "public/**",
-      "**/*.png",
-      "**/*.jpg",
-      "**/*.jpeg",
-      "**/*.gif",
-      "**/*.webp",
-      "**/*.svg",
-      "**/*.ico",
-      "**/*.avif",
-      "**/.env",
-      "**/.env.*",
-      "**/*.yml",
-      "src/Data/**",
-      "**/*.scss",
-      "**/*.css"
-    ]
-  }
-}
-</file>
-
 <file path="Roadmap.md">
 # Rose — Roadmap & Checklist
 
@@ -3332,8 +6091,8 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] Configure Tailwind v4 via Vite plugin
 - [x] Set up base routing shell (`/todos`, `/notes`, `/docs`)
 - [x] Set up Pinia store structure (one store per feature + one for UI/theme state)
-- [ ] Confirm ESLint/Prettier/oxlint all run cleanly on the empty scaffold
-- [ ] First commit + `.gitignore` sanity check (node_modules, dist, .env etc.)
+- [x] Confirm ESLint/Prettier/oxlint all run cleanly on the empty scaffold
+- [x] First commit + `.gitignore` sanity check (node_modules, dist, .env etc.)
 
 ## Phase 1 — Todos + Folders (V1 core)
 
@@ -3415,6 +6174,8 @@ Check items off as you go (`- [x]`). Add new items under the relevant phase as t
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     // Extra safety for array and object lookups, but may have false positives.
     "noUncheckedIndexedAccess": true,
 
@@ -3480,29 +6241,86 @@ Check items off as you go (`- [x]`). Add new items under the relevant phase as t
 <file path="tsconfig.vitest.json">
 {
   "extends": "./tsconfig.app.json",
-
-  // Override to include only test files and clear exclusions.
-  // Application code imported in tests is automatically included via module resolution.
-  "include": ["src/**/__tests__/*", "env.d.ts"],
+  "include": ["src/**/__tests__/**/*", "env.d.ts"],
   "exclude": [],
-
   "compilerOptions": {
-    // Vitest runs in a different environment than the application code.
-    // Adjust lib and types accordingly.
     "lib": [],
-    "types": ["node", "jsdom"],
-
-    // `vue-tsc --build` produces a .tsbuildinfo file for incremental type-checking.
-    // Specified here to keep it out of the root directory.
+    "types": ["node", "jsdom", "fake-indexeddb"],
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vitest.tsbuildinfo"
   }
 }
 </file>
 
+<file path="vercel.json">
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+</file>
+
 <file path="vite.config.ts">
-import { readFileSync } from "node:fs";
+// import { readFileSync } from "node:fs";
+// import { fileURLToPath, URL } from "node:url";
+// import { defineConfig, type Plugin } from "vite";
+// import vue from "@vitejs/plugin-vue";
+// import tailwindcss from "@tailwindcss/vite";
+
+// function getBuildVersion() {
+//   const now = new Date();
+//   const day = String(now.getDate()).padStart(2, "0");
+//   const month = String(now.getMonth() + 1).padStart(2, "0");
+//   const year = now.getFullYear();
+//   return `v0.${day}.${month}.${year}`;
+// }
+
+// // Injects the emitted asset list into public/sw.js at build time.
+// // Only runs on `vite build`; never touches dev server behavior.
+// function swManifestPlugin(): Plugin {
+//   return {
+//     apply: "build",
+//     generateBundle(_, bundle) {
+//       const assets = Object.keys(bundle)
+//         .filter((name) => !name.endsWith(".map"))
+//         .map((name) => `/${name}`);
+//       const precacheList = JSON.stringify(["/", "/index.html", ...assets]);
+
+//       const swChunk = bundle["sw.js"] as { code?: string } | undefined;
+//       if (swChunk?.code) {
+//         swChunk.code = swChunk.code.replace("__PRECACHE_MANIFEST__", precacheList);
+//       }
+//     },
+//     name: "sw-manifest",
+//   };
+// }
+
+// export default defineConfig(({ command }) => {
+//   const isDev = command === "serve";
+
+//   return {
+//     define: {
+//       __APP_VERSION__: JSON.stringify(getBuildVersion()),
+//     },
+//     plugins: [vue(), tailwindcss(), swManifestPlugin()],
+//     resolve: {
+//       alias: {
+//         "@": fileURLToPath(new URL("src", import.meta.url)),
+//       },
+//     },
+//     server: {
+//       port: 5176,
+//       ...(isDev && {
+//         https: {
+//           cert: readFileSync("certs/localhost.pem"),
+//           key: readFileSync("certs/localhost-key.pem"),
+//         },
+//       }),
+//     },
+//   };
+// });
+
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig, type Plugin } from "vite";
+import { resolve } from "node:path";
+import { defineConfig, type Plugin, type ResolvedConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -3514,22 +6332,45 @@ function getBuildVersion() {
   return `v0.${day}.${month}.${year}`;
 }
 
-// Injects the emitted asset list into public/sw.js at build time.
-// Only runs on `vite build`; never touches dev server behavior.
+// Injects the emitted asset list into the built sw.js at build time.
+// Runs after `writeBundle`, since public/sw.js is copied post-bundle
+// and never appears in the Rollup bundle graph. Never touches dev server.
 function swManifestPlugin(): Plugin {
+  let resolvedConfig: ResolvedConfig | undefined = undefined;
+
   return {
-    name: "sw-manifest",
     apply: "build",
-    generateBundle(_, bundle) {
+    configResolved(config) {
+      resolvedConfig = config;
+    },
+    name: "sw-manifest",
+    writeBundle(_outputOptions, bundle) {
+      if (!resolvedConfig) {
+        return;
+      }
+
       const assets = Object.keys(bundle)
-        .filter((name) => !name.endsWith(".map"))
+        .filter((name) => !name.endsWith(".map") && name !== "sw.js")
         .map((name) => `/${name}`);
       const precacheList = JSON.stringify(["/", "/index.html", ...assets]);
 
-      const swChunk = bundle["sw.js"] as { code?: string } | undefined;
-      if (swChunk?.code) {
-        swChunk.code = swChunk.code.replace("__PRECACHE_MANIFEST__", precacheList);
+      const swPath = resolve(resolvedConfig.root, resolvedConfig.build.outDir, "sw.js");
+      if (!existsSync(swPath)) {
+        this.warn(
+          `sw-manifest: expected sw.js at ${swPath} but it was not found; skipping injection.`,
+        );
+        return;
       }
+
+      const swCode = readFileSync(swPath, "utf8");
+      if (!swCode.includes("__PRECACHE_MANIFEST__")) {
+        this.warn(
+          "sw-manifest: __PRECACHE_MANIFEST__ placeholder not found in sw.js; skipping injection.",
+        );
+        return;
+      }
+
+      writeFileSync(swPath, swCode.replace("__PRECACHE_MANIFEST__", precacheList));
     },
   };
 }
@@ -3538,43 +6379,176 @@ export default defineConfig(({ command }) => {
   const isDev = command === "serve";
 
   return {
-    plugins: [vue(), tailwindcss(), swManifestPlugin()],
     define: {
       __APP_VERSION__: JSON.stringify(getBuildVersion()),
+    },
+    plugins: [vue(), tailwindcss(), swManifestPlugin()],
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("src", import.meta.url)),
+      },
     },
     server: {
       port: 5176,
       ...(isDev && {
         https: {
-          key: readFileSync("certs/localhost-key.pem"),
           cert: readFileSync("certs/localhost.pem"),
+          key: readFileSync("certs/localhost-key.pem"),
         },
       }),
-    },
-    resolve: {
-      alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url)),
-      },
     },
   };
 });
 </file>
 
 <file path="vitest.config.ts">
-import { fileURLToPath } from 'node:url'
-import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
-import viteConfig from './vite.config'
+// vitest.config.ts
+import { fileURLToPath } from "node:url";
+import { configDefaults, defineConfig, mergeConfig } from "vitest/config";
+import viteConfig from "./vite.config";
 
-export default mergeConfig(
-  viteConfig,
-  defineConfig({
-    test: {
-      environment: 'jsdom',
-      exclude: [...configDefaults.exclude, 'e2e/**'],
-      root: fileURLToPath(new URL('./', import.meta.url)),
-    },
-  }),
-)
+export default defineConfig((configEnv) =>
+  mergeConfig(
+    typeof viteConfig === "function" ? viteConfig(configEnv) : viteConfig,
+    defineConfig({
+      test: {
+        environment: "jsdom",
+        exclude: [...configDefaults.exclude, "e2e/**"],
+        root: fileURLToPath(new URL("./", import.meta.url)),
+        setupFiles: ["./src/__tests__/setup.ts"],
+      },
+    }),
+  ),
+);
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+.eslintcache
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
+
+# Vite
+*.timestamp-*-*.mjs
+
+test-results/
+playwright-report/
+
+certs/
+</file>
+
+<file path="package.json">
+{
+  "name": "rose",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "test:e2e": "playwright test",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "run-s \"lint:*\"",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "lint:check": "run-s \"lint:check:*\"",
+    "lint:check:oxlint": "oxlint .",
+    "lint:check:eslint": "eslint . --cache",
+    "lint:report:oxlint": "oxlint . --format json > oxlint-report.json",
+    "lint:report:eslint": "eslint . --format json --output-file eslint-report.json",
+    "lint:report": "run-s \"lint:report:*\"",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "verify": "run-s type-check lint:check format:check test:unit"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.24.0",
+    "@tiptap/pm": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
+    "@tiptap/vue-3": "^3.27.3",
+    "dexie": "^4.4.4",
+    "fabric": "^7.4.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.38",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@testing-library/vue": "^8.1.0",
+    "@tsconfig/node24": "^24.0.4",
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "^24.13.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue-jsx": "^5.1.5",
+    "@vitest/eslint-plugin": "^1.6.20",
+    "@vue/eslint-config-typescript": "^14.8.0",
+    "@vue/test-utils": "^2.4.11",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "~1.69.0",
+    "eslint-plugin-playwright": "^2.10.4",
+    "eslint-plugin-vue": "~10.9.2",
+    "fake-indexeddb": "^6.2.5",
+    "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
+    "npm-run-all2": "^9.0.2",
+    "oxfmt": "^0.54.0",
+    "oxlint": "~1.69.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~6.0.0",
+    "vite": "^8.0.16",
+    "vite-plugin-vue-devtools": "^8.1.2",
+    "vitest": "^4.1.9",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.5"
+  },
+  "engines": {
+    "node": ">=24.18.0",
+    "npm": ">=11.16.0"
+  },
+  "volta": {
+    "node": "24.18.0"
+  }
+}
 </file>
 
 </files>
