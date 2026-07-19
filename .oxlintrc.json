@@ -38,7 +38,8 @@
     "vitest/consistent-test-filename": "off",
     "eslint/capitalized-comments": "off",
     "vitest/no-importing-vitest-globals": "off",
-    "eslint/no-magic-numbers": "off"
+    "eslint/no-magic-numbers": "off",
+    "vitest/no-hooks": "off"
   },
   "overrides": [
     {
