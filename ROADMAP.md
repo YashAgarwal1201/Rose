@@ -36,8 +36,8 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] Todo list "properties" info panel (counts, created/modified timestamps)
 - [x] Fix relative-time formatting bug (premature unit rounding in `formatRelativeTime.ts`)
 - [x] Surface "Created" date and item type (folder/list) columns in Explorer list view
-- [ ] Unit tests: Dexie store logic (add/update/delete/move folder & todo)
-- [ ] Component tests: folder tree interactions, todo list rendering
+- [x] Unit tests: Dexie store logic (add/update/delete/move folder & todo)
+- [x] Component tests: folder tree interactions, todo list rendering
 - [ ] E2E test: create folder → add todo → mark done → refresh page → data persists
 - [ ] **Checkpoint: Rose is a usable todo app on its own**
 
@@ -57,11 +57,11 @@ Development is organized into phases. Each phase should be shippable/usable on i
 
 ## Phase 3 — Docs
 
-- [ ] Dexie schema for `docs` table (folderId, title, contentJSON, timestamps)
-- [ ] TipTap editor component with StarterKit extensions (bold, italic, headings, lists, etc.)
-- [ ] Save/load document content to/from Dexie
-- [ ] Docs list view + folder integration (reuse `ExplorerGrid.vue`)
-- [ ] Basic formatting toolbar
+- [x] Dexie schema for `docs` table (folderId, title, contentJSON, timestamps)
+- [x] TipTap editor component with StarterKit extensions (bold, italic, headings, lists, etc.)
+- [x] Save/load document content to/from Dexie
+- [x] Docs list view + folder integration (reuse `ExplorerGrid.vue`)
+- [x] Basic formatting toolbar
 - [ ] Unit/component tests for doc store logic and editor content round-trip
 - [ ] **Checkpoint: All three core features are live**
 
