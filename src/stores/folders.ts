@@ -4,6 +4,7 @@ import { ref } from "vue";
 import db from "../db";
 import type { FeatureType, Folder } from "../db/types";
 import { useTodosStore } from "./todos";
+import { useDocsStore } from "./docs";
 
 export const useFoldersStore = defineStore("folders", () => {
   const folders = ref<Folder[]>([]);
@@ -71,6 +72,27 @@ export const useFoldersStore = defineStore("folders", () => {
     return result;
   }
 
+  // async function deleteFolder(id: string) {
+  //   const target = folders.value.find((folder) => folder.id === id);
+  //   if (!target) {
+  //     return;
+  //   }
+
+  //   const descendantIds = collectDescendantIds(id);
+  //   const allIds = [id, ...descendantIds];
+  //   const todosStore = useTodosStore();
+
+  //   const todoFolderIds = allIds.filter(
+  //     (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo",
+  //   );
+  //   await Promise.all(
+  //     todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
+  //   );
+
+  //   await db.folders.bulkDelete(allIds);
+  //   await loadFolders(target.type);
+  // }
+
   async function deleteFolder(id: string) {
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
@@ -80,6 +102,7 @@ export const useFoldersStore = defineStore("folders", () => {
     const descendantIds = collectDescendantIds(id);
     const allIds = [id, ...descendantIds];
     const todosStore = useTodosStore();
+    const docsStore = useDocsStore();
 
     const todoFolderIds = allIds.filter(
       (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo",
@@ -87,6 +110,11 @@ export const useFoldersStore = defineStore("folders", () => {
     await Promise.all(
       todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
     );
+
+    const docFolderIds = allIds.filter(
+      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "doc",
+    );
+    await Promise.all(docFolderIds.map((folderId) => docsStore.deleteDocsByFolder(folderId)));
 
     await db.folders.bulkDelete(allIds);
     await loadFolders(target.type);

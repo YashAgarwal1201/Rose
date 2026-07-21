@@ -29,3 +29,12 @@ export interface Todo {
   createdAt: number;
   updatedAt: number;
 }
+
+export interface Doc {
+  id: string;
+  folderId: string | null;
+  title: string;
+  contentJSON: Record<string, unknown> | null; // TipTap JSON output
+  createdAt: number;
+  updatedAt: number;
+}
