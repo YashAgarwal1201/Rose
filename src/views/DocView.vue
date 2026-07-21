@@ -45,6 +45,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
+import { TableMap } from "@tiptap/pm/tables";
 
 const AUTOSAVE_DELAY_MS = 600;
 
@@ -56,6 +57,9 @@ const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
 const segments = computed(() => pathMatch ?? []);
+
+const MAX_TABLE_ROWS = 20;
+const MAX_TABLE_COLS = 10;
 
 const currentDoc = ref<Doc | undefined>(undefined);
 const isRenaming = ref(false);
@@ -197,7 +201,13 @@ const editor = useEditor({
     TextStyle,
     Color,
     Highlight.configure({ multicolor: true }),
-    TableKit,
+    TableKit.configure({
+      table: {
+        resizable: true,
+        lastColumnResizable: true,
+        cellMinWidth: 60,
+      },
+    }),
   ],
   editorProps: {
     handleDrop(view, event) {
@@ -361,10 +371,65 @@ function setLink() {
 }
 
 function insertTable() {
-  const rows = Math.min(Math.max(tableRowCount.value, 1), 20);
-  const cols = Math.min(Math.max(tableColCount.value, 1), 10);
+  const rows = Math.min(Math.max(tableRowCount.value, 1), MAX_TABLE_ROWS);
+  const cols = Math.min(Math.max(tableColCount.value, 1), MAX_TABLE_COLS);
   editor.value?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
   isTableInsertOpen.value = false;
+}
+
+function getCurrentTableDimensions(): { rows: number; cols: number } | null {
+  if (!editor.value) {
+    return null;
+  }
+  const { $from } = editor.value.state.selection;
+  for (let { depth } = $from; depth > 0; depth--) {
+    const node = $from.node(depth);
+    if (node.type.name === "table") {
+      const map = TableMap.get(node);
+      return { rows: map.height, cols: map.width };
+    }
+  }
+  return null;
+}
+
+function isTableAtMaxRows(): boolean {
+  return (getCurrentTableDimensions()?.rows ?? 0) >= MAX_TABLE_ROWS;
+}
+
+function isTableAtMaxCols(): boolean {
+  return (getCurrentTableDimensions()?.cols ?? 0) >= MAX_TABLE_COLS;
+}
+
+function addRowBeforeGuarded() {
+  if (isTableAtMaxRows()) {
+    showToast(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
+    return;
+  }
+  editor.value?.chain().focus().addRowBefore().run();
+}
+
+function addRowAfterGuarded() {
+  if (isTableAtMaxRows()) {
+    showToast(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
+    return;
+  }
+  editor.value?.chain().focus().addRowAfter().run();
+}
+
+function addColumnBeforeGuarded() {
+  if (isTableAtMaxCols()) {
+    showToast(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
+    return;
+  }
+  editor.value?.chain().focus().addColumnBefore().run();
+}
+
+function addColumnAfterGuarded() {
+  if (isTableAtMaxCols()) {
+    showToast(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
+    return;
+  }
+  editor.value?.chain().focus().addColumnAfter().run();
 }
 
 onMounted(loadDoc);
@@ -589,11 +654,12 @@ onBeforeUnmount(() => {
           >
             <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
               Rows
+
               <input
                 v-model.number="tableRowCount"
                 type="number"
                 min="1"
-                max="20"
+                :max="MAX_TABLE_ROWS"
                 class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
               />
             </label>
@@ -603,7 +669,7 @@ onBeforeUnmount(() => {
                 v-model.number="tableColCount"
                 type="number"
                 min="1"
-                max="10"
+                :max="MAX_TABLE_COLS"
                 class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
               />
             </label>
@@ -766,14 +832,16 @@ onBeforeUnmount(() => {
       >
         <span class="text-xs text-rose-text-muted px-1.5">Table:</span>
         <button
-          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-          @click="editor.chain().focus().addRowBefore().run()"
+          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
+          :disabled="isTableAtMaxRows()"
+          @click="addRowBeforeGuarded"
         >
           Row above
         </button>
         <button
-          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-          @click="editor.chain().focus().addRowAfter().run()"
+          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
+          :disabled="isTableAtMaxRows()"
+          @click="addRowAfterGuarded"
         >
           Row below
         </button>
@@ -787,14 +855,16 @@ onBeforeUnmount(() => {
         <div class="w-px h-5 bg-rose-border mx-1"></div>
 
         <button
-          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-          @click="editor.chain().focus().addColumnBefore().run()"
+          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
+          :disabled="isTableAtMaxCols()"
+          @click="addColumnBeforeGuarded"
         >
           Col before
         </button>
         <button
-          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-          @click="editor.chain().focus().addColumnAfter().run()"
+          class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
+          :disabled="isTableAtMaxCols()"
+          @click="addColumnAfterGuarded"
         >
           Col after
         </button>
@@ -902,6 +972,24 @@ onBeforeUnmount(() => {
 }
 .rose-editor-content .selectedCell {
   background-color: rgba(236, 72, 153, 0.15);
+}
+
+.rose-editor-content .tableWrapper {
+  overflow-x: auto;
+}
+
+.rose-editor-content .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--color-rose-primary, #ec4899);
+  pointer-events: none;
+}
+
+.rose-editor-content.resize-cursor {
+  cursor: col-resize;
 }
 
 @media (max-width: 640px) {
