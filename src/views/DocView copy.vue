@@ -17,7 +17,6 @@ import {
   BoldIcon,
   CheckSquareIcon,
   CodeIcon,
-  DownloadIcon,
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
@@ -48,8 +47,6 @@ import { Highlight } from "@tiptap/extension-highlight";
 // import { TableKit } from "@tiptap/extension-table";
 import { TableMap } from "@tiptap/pm/tables";
 import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
-import Papa from "papaparse";
-import { Markdown } from "@tiptap/markdown";
 
 const AUTOSAVE_DELAY_MS = 600;
 
@@ -72,9 +69,6 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const isTableInsertOpen = ref(false);
 const tableRowCount = ref(3);
 const tableColCount = ref(3);
-const csvFileInputRef = ref<HTMLInputElement | null>(null);
-const csvFirstRowIsHeader = ref(true);
-const isExportMenuOpen = ref(false);
 
 let activeLoadToken = 0;
 
@@ -245,9 +239,7 @@ const saveContent = debounce(async (id: string, contentJSON: Record<string, unkn
 const editor = useEditor({
   content: "",
   extensions: [
-    StarterKit.configure({
-      link: false,
-    }),
+    StarterKit,
     TaskList,
     TaskItem.configure({ nested: true }),
     Link.configure({ openOnClick: false }),
@@ -269,9 +261,6 @@ const editor = useEditor({
     TableRow,
     ColorableTableCell,
     ColorableTableHeader,
-    Markdown.configure({
-      markedOptions: { gfm: true },
-    }),
   ],
   editorProps: {
     handleDrop(view, event) {
@@ -428,11 +417,8 @@ async function loadDoc() {
   }
 
   currentDoc.value = match;
-  currentDoc.value = match;
-  const rawContent = match.contentJSON ? JSON.parse(JSON.stringify(match.contentJSON)) : "";
-  editor.value?.commands.setContent(rawContent, { emitUpdate: false });
   // editor.value?.commands.setContent(match.contentJSON ?? "", false);
-  // editor.value?.commands.setContent(match.contentJSON ?? "", { emitUpdate: false });
+  editor.value?.commands.setContent(match.contentJSON ?? "", { emitUpdate: false });
 }
 
 function goBack() {
@@ -562,112 +548,6 @@ function addColumnAfterGuarded() {
     return;
   }
   editor.value?.chain().focus().addColumnAfter().run();
-}
-
-function triggerCsvPick() {
-  csvFileInputRef.value?.click();
-}
-
-function buildTableContentFromRows(rows: string[][], firstRowIsHeader: boolean) {
-  const tableRows = rows.map((row, rowIndex) => ({
-    type: "tableRow",
-    content: row.map((cellText) => ({
-      type: firstRowIsHeader && rowIndex === 0 ? "tableHeader" : "tableCell",
-      content: cellText.trim()
-        ? [{ type: "paragraph", content: [{ type: "text", text: cellText }] }]
-        : [{ type: "paragraph" }],
-    })),
-  }));
-
-  return { type: "table", content: tableRows };
-}
-
-async function handleCsvSelect(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  (event.target as HTMLInputElement).value = "";
-  if (!file) {
-    return;
-  }
-
-  const text = await file.text();
-  const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true });
-
-  if (parsed.errors.length > 0) {
-    showToast("Couldn't read that CSV file.", "error");
-    return;
-  }
-
-  let rows = parsed.data;
-  if (rows.length === 0) {
-    showToast("That CSV file is empty.", "error");
-    return;
-  }
-
-  const totalRows = rows.length;
-  const totalCols = Math.max(...rows.map((row) => row.length));
-  const truncatedRows = totalRows > MAX_TABLE_ROWS;
-  const truncatedCols = totalCols > MAX_TABLE_COLS;
-
-  rows = rows.slice(0, MAX_TABLE_ROWS).map((row) => row.slice(0, MAX_TABLE_COLS));
-
-  const tableContent = buildTableContentFromRows(rows, csvFirstRowIsHeader.value);
-  editor.value?.chain().focus().insertContent(tableContent).run();
-  isTableInsertOpen.value = false;
-
-  if (truncatedRows || truncatedCols) {
-    const parts = [
-      truncatedRows ? `first ${MAX_TABLE_ROWS} of ${totalRows} rows` : null,
-      truncatedCols ? `first ${MAX_TABLE_COLS} of ${totalCols} columns` : null,
-    ].filter(Boolean);
-    showToast(`CSV was larger than the table limit — imported ${parts.join(" and ")}.`, "error");
-  }
-}
-
-function sanitizeFilename(name: string): string {
-  return name.replace(/[\\/:*?"<>|]/g, "-").trim() || "Untitled";
-}
-
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportAsHtml() {
-  if (!editor.value || !currentDoc.value) {
-    return;
-  }
-  const html = `<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><title>${currentDoc.value.title}</title></head>\n<body>\n${editor.value.getHTML()}\n</body>\n</html>`;
-  downloadFile(html, `${sanitizeFilename(currentDoc.value.title)}.html`, "text/html");
-  isExportMenuOpen.value = false;
-}
-
-function exportAsMarkdown() {
-  if (!editor.value || !currentDoc.value) {
-    return;
-  }
-  downloadFile(
-    editor.value.getMarkdown(),
-    `${sanitizeFilename(currentDoc.value.title)}.md`,
-    "text/markdown",
-  );
-  isExportMenuOpen.value = false;
-}
-
-function exportAsText() {
-  if (!editor.value || !currentDoc.value) {
-    return;
-  }
-  downloadFile(
-    editor.value.getText(),
-    `${sanitizeFilename(currentDoc.value.title)}.txt`,
-    "text/plain",
-  );
-  isExportMenuOpen.value = false;
 }
 
 onMounted(loadDoc);
@@ -888,10 +768,11 @@ onBeforeUnmount(() => {
           ></div>
           <div
             v-if="isTableInsertOpen"
-            class="absolute top-full left-0 mt-1 z-20 flex flex-col gap-2 p-3 w-56 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+            class="absolute top-full left-0 mt-1 z-20 flex flex-col gap-2 p-3 w-48 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
           >
             <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
               Rows
+
               <input
                 v-model.number="tableRowCount"
                 type="number"
@@ -914,20 +795,7 @@ onBeforeUnmount(() => {
               class="mt-1 px-2 py-1.5 rounded bg-rose-primary text-white text-sm font-medium"
               @click="insertTable"
             >
-              Insert blank table
-            </button>
-
-            <div class="h-px bg-rose-border my-1"></div>
-
-            <label class="flex items-center gap-2 text-sm text-rose-text">
-              <input v-model="csvFirstRowIsHeader" type="checkbox" class="accent-rose-primary" />
-              First row is header
-            </label>
-            <button
-              class="px-2 py-1.5 rounded border border-rose-border text-rose-text text-sm font-medium hover:bg-rose-surface-alt"
-              @click="triggerCsvPick"
-            >
-              Import from CSV
+              Insert table
             </button>
           </div>
         </div>
@@ -1074,45 +942,6 @@ onBeforeUnmount(() => {
             </label>
           </div>
         </div>
-
-        <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-        <div class="relative">
-          <button
-            class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-            @click="isExportMenuOpen = !isExportMenuOpen"
-          >
-            <DownloadIcon class="w-4 h-4" />
-          </button>
-          <div
-            v-if="isExportMenuOpen"
-            class="fixed inset-0 z-10"
-            @click="isExportMenuOpen = false"
-          ></div>
-          <div
-            v-if="isExportMenuOpen"
-            class="absolute top-full right-0 mt-1 z-20 flex flex-col w-40 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
-          >
-            <button
-              class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-              @click="exportAsHtml"
-            >
-              Export as HTML
-            </button>
-            <button
-              class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-              @click="exportAsMarkdown"
-            >
-              Export as Markdown
-            </button>
-            <button
-              class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-              @click="exportAsText"
-            >
-              Export as Text
-            </button>
-          </div>
-        </div>
       </div>
 
       <div
@@ -1218,14 +1047,6 @@ onBeforeUnmount(() => {
         accept="image/*"
         class="hidden"
         @change="handleImageSelect"
-      />
-
-      <input
-        ref="csvFileInputRef"
-        type="file"
-        accept=".csv,text/csv"
-        class="hidden"
-        @change="handleCsvSelect"
       />
 
       <EditorContent

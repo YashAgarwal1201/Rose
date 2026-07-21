@@ -65,8 +65,18 @@ export const useDocsStore = defineStore("docs", () => {
     return db.docs.get(id);
   }
 
+  // async function updateDoc(id: string, changes: Partial<Pick<Doc, "title" | "contentJSON">>) {
+  //   await db.docs.update(id, { ...changes, updatedAt: Date.now() });
+  // }
+
   async function updateDoc(id: string, changes: Partial<Pick<Doc, "title" | "contentJSON">>) {
-    await db.docs.update(id, { ...changes, updatedAt: Date.now() });
+    const sanitized: Partial<Pick<Doc, "title" | "contentJSON">> = { ...changes };
+    if ("contentJSON" in changes) {
+      sanitized.contentJSON = changes.contentJSON
+        ? JSON.parse(JSON.stringify(changes.contentJSON))
+        : null;
+    }
+    await db.docs.update(id, { ...sanitized, updatedAt: Date.now() });
   }
 
   // async function deleteDoc(id: string) {
