@@ -42,6 +42,7 @@ const emit = defineEmits<{
   exportAsHtml: [];
   exportAsMarkdown: [];
   exportAsText: [];
+  exportAsPdf: [];
 }>();
 
 const TEXT_COLORS = [
@@ -505,7 +506,7 @@ function handleTriggerCsvPick() {
       ></div>
       <div
         v-if="isExportMenuOpen"
-        class="absolute top-full right-0 mt-1 z-20 flex flex-col w-40 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
+        class="absolute top-full right-0 mt-1 z-20 flex flex-col w-44 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
       >
         <button
           class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
@@ -524,6 +525,13 @@ function handleTriggerCsvPick() {
           @click="emit('exportAsText')"
         >
           Export as Text
+        </button>
+        <div class="h-px bg-rose-border"></div>
+        <button
+          class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+          @click="emit('exportAsPdf')"
+        >
+          Print / Save as PDF
         </button>
       </div>
     </div>

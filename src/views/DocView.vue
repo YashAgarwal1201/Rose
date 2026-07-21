@@ -167,7 +167,7 @@ const editor = useEditor({
 });
 
 const docTitle = computed(() => currentDoc.value?.title);
-const { exportAsHtml, exportAsMarkdown, exportAsText } = useDocExport(
+const { exportAsHtml, exportAsMarkdown, exportAsText, exportAsPdf } = useDocExport(
   editor,
   docTitle,
   isExportMenuOpen,
@@ -562,6 +562,7 @@ onBeforeUnmount(() => {
         @export-as-html="exportAsHtml"
         @export-as-markdown="exportAsMarkdown"
         @export-as-text="exportAsText"
+        @export-as-pdf="exportAsPdf"
       />
 
       <!-- Table context toolbar -->
