@@ -689,6 +689,96 @@ onBeforeUnmount(() => {
 .rose-editor-content .ProseMirror {
   outline: none;
 }
+
+.rose-editor-content h1 {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.75rem 0 0.5rem;
+}
+.rose-editor-content h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0.75rem 0 0.5rem;
+}
+.rose-editor-content h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0.75rem 0 0.5rem;
+}
+
+/* Bullet list */
+.rose-editor-content ul:not([data-type="taskList"]) {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Ordered list */
+.rose-editor-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+/* Bullet list */
+.rose-editor-content ul:not([data-type="taskList"]) {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Ordered list */
+.rose-editor-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Nested bullet */
+.rose-editor-content ul:not([data-type="taskList"]) ul {
+  list-style: circle;
+  margin: 0;
+}
+
+/* Nested ordered */
+.rose-editor-content ol ol {
+  list-style: lower-alpha;
+  margin: 0;
+}
+
+/* List items */
+.rose-editor-content li {
+  margin: 0.2rem 0;
+}
+
+/* Paragraph inside list item — TipTap wraps content in <p> */
+.rose-editor-content li > p {
+  margin: 0;
+}
+/* Nested bullet */
+.rose-editor-content ul:not([data-type="taskList"]) ul {
+  list-style: circle;
+  margin: 0;
+}
+
+/* Nested ordered */
+.rose-editor-content ol ol {
+  list-style: lower-alpha;
+  margin: 0;
+}
+
+/* List items */
+.rose-editor-content li {
+  margin: 0.2rem 0;
+}
+
+/* Paragraph inside list item — TipTap wraps content in <p> */
+.rose-editor-content li > p {
+  margin: 0;
+}
+
 .rose-editor-content ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
