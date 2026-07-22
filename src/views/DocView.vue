@@ -34,6 +34,9 @@ import { Markdown } from "@tiptap/markdown";
 import DocToolbar from "../components/DocToolbar.vue";
 import { type ToolbarPosition, useToolbarPosition } from "../composables/useToolbarPosition";
 import { type PopoverPlacement, usePopoverPosition } from "../composables/usePopoverPosition";
+import Underline from "@tiptap/extension-underline";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 
 const AUTOSAVE_DELAY_MS = 600;
 const MAX_TABLE_ROWS = 20;
@@ -145,6 +148,9 @@ const editor = useEditor({
     TextStyle,
     Color,
     Highlight.configure({ multicolor: true }),
+    Underline,
+    Subscript,
+    Superscript,
     BorderedTable.configure({ resizable: true, lastColumnResizable: true, cellMinWidth: 60 }),
     TableRow,
     ColorableTableCell,
@@ -152,6 +158,16 @@ const editor = useEditor({
     Markdown.configure({ markedOptions: { gfm: true } }),
   ],
   editorProps: {
+    handleClick(view, pos, event) {
+      const target = event.target as HTMLElement;
+      const link = target.closest("a");
+      if (link && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        window.open(link.getAttribute("href") ?? "", "_blank", "noopener,noreferrer");
+        return true;
+      }
+      return false;
+    },
     handleDrop(view, event) {
       const files = [...(event.dataTransfer?.files ?? [])].filter((f) =>
         f.type.startsWith("image/"),
@@ -842,72 +858,46 @@ onBeforeUnmount(() => {
   margin: 0.75rem 0 0.5rem;
 }
 
-/* Bullet list */
+.rose-editor-content u {
+  text-decoration: underline;
+}
+
+.rose-editor-content sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.rose-editor-content sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
 .rose-editor-content ul:not([data-type="taskList"]) {
   list-style: disc;
   padding-left: 1.5rem;
   margin: 0.5rem 0;
 }
 
-/* Ordered list */
-.rose-editor-content ol {
-  list-style: decimal;
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
-}
-/* Bullet list */
-.rose-editor-content ul:not([data-type="taskList"]) {
-  list-style: disc;
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
-}
-
-/* Ordered list */
 .rose-editor-content ol {
   list-style: decimal;
   padding-left: 1.5rem;
   margin: 0.5rem 0;
 }
 
-/* Nested bullet */
 .rose-editor-content ul:not([data-type="taskList"]) ul {
   list-style: circle;
   margin: 0;
 }
 
-/* Nested ordered */
 .rose-editor-content ol ol {
   list-style: lower-alpha;
   margin: 0;
 }
 
-/* List items */
 .rose-editor-content li {
   margin: 0.2rem 0;
 }
 
-/* Paragraph inside list item — TipTap wraps content in <p> */
-.rose-editor-content li > p {
-  margin: 0;
-}
-/* Nested bullet */
-.rose-editor-content ul:not([data-type="taskList"]) ul {
-  list-style: circle;
-  margin: 0;
-}
-
-/* Nested ordered */
-.rose-editor-content ol ol {
-  list-style: lower-alpha;
-  margin: 0;
-}
-
-/* List items */
-.rose-editor-content li {
-  margin: 0.2rem 0;
-}
-
-/* Paragraph inside list item — TipTap wraps content in <p> */
 .rose-editor-content li > p {
   margin: 0;
 }
@@ -924,6 +914,7 @@ onBeforeUnmount(() => {
 .rose-editor-content ul[data-type="taskList"] li > label {
   margin-top: 0.2rem;
 }
+
 .rose-editor-content p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -931,23 +922,58 @@ onBeforeUnmount(() => {
   pointer-events: none;
   height: 0;
 }
+
 .rose-editor-content a {
   color: var(--color-rose-primary, #ec4899);
   text-decoration: underline;
   text-underline-offset: 2px;
+  cursor: pointer;
   transition: opacity 0.15s ease;
 }
 .rose-editor-content a:hover {
   opacity: 0.8;
 }
+
+.rose-editor-content blockquote {
+  border-left: 4px solid var(--color-rose-primary, #ec4899);
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--color-rose-text-muted, #8a8a8a);
+}
+
+.rose-editor-content pre {
+  background: var(--color-rose-surface-alt, #2a2a2a);
+  border: 1px solid var(--color-rose-border, #3a3a3a);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.rose-editor-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.875em;
+}
+
+.rose-editor-content code {
+  background: var(--color-rose-surface-alt, #2a2a2a);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.35rem;
+  font-size: 0.875em;
+}
+
 .rose-editor-content img {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
 }
+
 .rose-editor-content {
   overflow-x: auto;
 }
+
 .rose-editor-content table {
   border-collapse: collapse;
   table-layout: fixed;
@@ -989,6 +1015,7 @@ onBeforeUnmount(() => {
 .rose-editor-content.resize-cursor {
   cursor: col-resize;
 }
+
 @media (max-width: 640px) {
   .rose-editor-content {
     font-size: 0.95rem;

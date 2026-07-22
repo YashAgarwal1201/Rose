@@ -24,7 +24,10 @@ import {
   QuoteIcon,
   Redo2Icon,
   StrikethroughIcon,
+  SubscriptIcon,
+  SuperscriptIcon,
   TableIcon,
+  UnderlineIcon,
   Undo2Icon,
 } from "@lucide/vue";
 import type { ToolbarPosition } from "../composables/useToolbarPosition";
@@ -342,6 +345,13 @@ function handleTriggerCsvPick() {
       >
         <StrikethroughIcon class="w-4 h-4" />
       </button>
+      <button
+        :class="btnClass(editor.isActive('underline'))"
+        title="Underline"
+        @click="editor.chain().focus().toggleUnderline().run()"
+      >
+        <UnderlineIcon class="w-4 h-4" />
+      </button>
 
       <div :class="dividerClass"></div>
 
@@ -366,6 +376,23 @@ function handleTriggerCsvPick() {
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
       >
         <Heading3Icon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass" />
+
+      <button
+        :class="btnClass(editor.isActive('subscript'))"
+        title="Subscript"
+        @click="editor.chain().focus().toggleSubscript().run()"
+      >
+        <SubscriptIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('superscript'))"
+        title="Superscript"
+        @click="editor.chain().focus().toggleSuperscript().run()"
+      >
+        <SuperscriptIcon class="w-4 h-4" />
       </button>
 
       <div :class="dividerClass"></div>
