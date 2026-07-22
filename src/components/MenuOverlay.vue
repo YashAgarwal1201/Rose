@@ -26,10 +26,10 @@
   >
     <div
       v-if="isOpen"
-      class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl bg-rose-surface shadow-2xl flex flex-col"
+      class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl rounded-none md:rounded-l-xl! bg-rose-surface shadow-2xl flex flex-col"
     >
-      <div class="flex items-center justify-between px-6 py-5 shrink-0">
-        <h3 class="text-xl font-semibold text-rose-text">Menu</h3>
+      <div class="flex items-center justify-between p-5 shrink-0">
+        <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-rose-text">More Options</h3>
         <button
           class="p-2 hover:bg-rose-surface-alt rounded-full transition-colors"
           @click="close"
@@ -38,35 +38,161 @@
           <XIcon class="w-5 h-5 text-rose-text" />
         </button>
       </div>
+      <div class="grow overflow-y-auto px-5 pb-5">
+        <div class="p-4 rounded-xl bg-rose-surface-alt border border-rose-border overflow-hidden">
+          <!-- Appearance -->
+          <PanelSection
+            :icon="PaletteIcon"
+            label="Appearance"
+            :is-open="openPanel === 0"
+            @toggle="togglePanel(0)"
+          >
+            <template #collapsed-preview>
+              <MonitorIcon v-if="selectedMode === 'system'" class="w-4 h-4 text-rose-text-muted" />
+              <SunIcon v-else-if="selectedMode === 'light'" class="w-4 h-4 text-rose-text-muted" />
+              <MoonIcon v-else class="w-4 h-4 text-rose-text-muted" />
+            </template>
 
-      <div class="flex-1 overflow-y-auto p-4">
-        <nav class="flex flex-col rounded-xl bg-rose-surface-alt p-4 border border-rose-border">
-          <div class="px-2 py-4 flex items-center gap-x-3 text-lg text-rose-text">
-            <PaletteIcon class="w-4 h-4 text-rose-text-muted shrink-0" />
-            <span>Theme</span>
-            <select
-              v-model="selectedMode"
-              class="ml-auto text-base bg-rose-surface border border-rose-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer"
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-        </nav>
-      </div>
+            <div class="flex items-center justify-between gap-3 px-1 py-2">
+              <span class="text-sm text-rose-text">Theme</span>
+              <select
+                v-model="selectedMode"
+                class="text-sm bg-rose-surface border border-rose-border rounded-md px-2 py-1.5 text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer"
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+          </PanelSection>
 
-      <div class="px-6 py-4 shrink-0">
-        <p class="text-xs text-rose-text-muted font-mono">Rose — dev build</p>
+          <div class="divider" />
+
+          <!-- Keyboard Shortcuts -->
+          <PanelSection
+            :icon="KeyboardIcon"
+            label="Keyboard Shortcuts"
+            :is-open="openPanel === 1"
+            @toggle="togglePanel(1)"
+          >
+            <ul class="flex flex-col gap-y-2 px-1 py-2 text-sm">
+              <li v-for="s in shortcuts" :key="s.action" class="flex items-center justify-between">
+                <span class="text-rose-text-muted">{{ s.action }}</span>
+                <kbd
+                  class="px-2 py-0.5 rounded bg-rose-surface border border-rose-border text-rose-text text-xs font-mono"
+                >
+                  {{ s.keys }}
+                </kbd>
+              </li>
+            </ul>
+          </PanelSection>
+
+          <div class="divider" />
+
+          <!-- Export & Sharing -->
+          <PanelSection
+            :icon="Share2Icon"
+            label="Share"
+            :is-open="openPanel === 2"
+            @toggle="togglePanel(2)"
+          >
+            <div class="flex flex-col gap-y-3 px-1 py-2">
+              <p class="text-sm text-rose-text-muted">Share Rose with others.</p>
+              <div class="flex items-center gap-2">
+                <button
+                  class="flex-1 px-3 py-2 rounded-lg bg-rose-primary text-white text-sm font-medium hover:bg-rose-primary-hover transition-colors"
+                  @click="handleShare"
+                >
+                  {{ copied ? "Copied!" : "Copy link" }}
+                </button>
+              </div>
+            </div>
+          </PanelSection>
+
+          <div class="divider" />
+
+          <!-- Manage App Data -->
+          <PanelSection
+            :icon="DatabaseIcon"
+            label="Manage App Data"
+            :is-open="openPanel === 3"
+            @toggle="togglePanel(3)"
+          >
+            <div class="px-1 py-2">
+              <button
+                class="px-3 py-2 rounded-lg border border-red-400/40 text-red-400 text-sm font-medium hover:bg-red-400/10 transition-colors flex items-center gap-2"
+                @click="confirmClearData"
+              >
+                <Trash2Icon class="w-4 h-4" />
+                Clear all data
+              </button>
+              <p class="text-xs text-rose-text-muted mt-2">
+                This removes locally saved preferences and cached data on this device.
+              </p>
+            </div>
+          </PanelSection>
+
+          <div class="divider" />
+
+          <!-- About This App -->
+          <PanelSection
+            :icon="InfoIcon"
+            label="About This App"
+            :is-open="openPanel === 4"
+            @toggle="togglePanel(4)"
+          >
+            <div class="flex flex-col gap-y-4 px-1 py-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-rose-text-muted">Version</span>
+                <span
+                  class="px-3 py-1 rounded-full bg-rose-primary/10 text-rose-primary border border-rose-primary/20 text-xs font-mono"
+                >
+                  {{ appVersion }}
+                </span>
+              </div>
+
+              <div class="divider" />
+
+              <div class="flex flex-col gap-y-2">
+                <span class="text-sm text-rose-text-muted">Built with</span>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="tech in techStack"
+                    :key="tech.label"
+                    class="flex items-center gap-x-1.5 px-2.5 py-1 rounded-full bg-rose-surface text-rose-text text-xs border border-rose-border"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full shrink-0"
+                      :style="{ backgroundColor: tech.color }"
+                    ></span>
+                    {{ tech.label }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </PanelSection>
+        </div>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { PaletteIcon, XIcon } from "@lucide/vue";
+import { computed, ref } from "vue";
+import {
+  DatabaseIcon,
+  InfoIcon,
+  KeyboardIcon,
+  MonitorIcon,
+  MoonIcon,
+  PaletteIcon,
+  Share2Icon,
+  SunIcon,
+  Trash2Icon,
+  XIcon,
+} from "@lucide/vue";
 import { useThemeStore } from "../stores/theme";
+import PanelSection from "./PanelSection.vue";
 
 defineProps<{ isOpen: boolean }>();
 const emit = defineEmits<{ close: [] }>();
@@ -77,6 +203,58 @@ const selectedMode = computed({
   get: () => themeStore.mode,
   set: (value: "light" | "dark" | "system") => themeStore.setMode(value),
 });
+
+const openPanel = ref(-1);
+function togglePanel(index: number) {
+  openPanel.value = openPanel.value === index ? -1 : index;
+}
+
+const copied = ref(false);
+async function handleShare() {
+  const url = globalThis.location.href;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Rose", url });
+      return;
+    }
+  } catch {
+    // user cancelled native share — fall through to copy
+  }
+  await navigator.clipboard.writeText(url);
+  copied.value = true;
+  setTimeout(() => (copied.value = false), 2000);
+}
+
+function confirmClearData() {
+  const ok = globalThis.confirm(
+    "This will permanently delete your locally saved preferences and cached data on this device. This cannot be undone. Continue?",
+  );
+  if (!ok) {
+    return;
+  }
+  localStorage.clear();
+  sessionStorage.clear();
+  globalThis.location.reload();
+}
+
+const shortcuts = [
+  { action: "Bold", keys: "Ctrl+B" },
+  { action: "Italic", keys: "Ctrl+I" },
+  { action: "Strikethrough", keys: "Ctrl+Shift+X" },
+  { action: "Undo", keys: "Ctrl+Z" },
+  { action: "Redo", keys: "Ctrl+Shift+Z" },
+  { action: "Link", keys: "Ctrl+K" },
+];
+
+const appVersion = __APP_VERSION__;
+
+const techStack = [
+  { label: "Vue 3", color: "#42b883" },
+  { label: "TypeScript", color: "#3178C6" },
+  { label: "Tailwind CSS v4", color: "#38BDF8" },
+  { label: "Tiptap", color: "#6366F1" },
+  { label: "Vite", color: "#A855F7" },
+];
 
 function close() {
   emit("close");

@@ -1,6 +1,6 @@
 <!-- src/components/DocToolbar.vue -->
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import type { Editor } from "@tiptap/core";
 import {
   AlignCenterIcon,
@@ -27,11 +27,14 @@ import {
   TableIcon,
   Undo2Icon,
 } from "@lucide/vue";
+import type { ToolbarPosition } from "../composables/useToolbarPosition";
+import { type PopoverPlacement, usePopoverPosition } from "../composables/usePopoverPosition";
 
 const props = defineProps<{
   editor: Editor;
   maxTableRows: number;
   maxTableCols: number;
+  position: ToolbarPosition;
 }>();
 
 const emit = defineEmits<{
@@ -87,12 +90,178 @@ const HIGHLIGHT_COLORS = [
 
 const tableRowCount = ref(3);
 const tableColCount = ref(3);
+const customTextColor = ref("#ffffff");
+const customHighlightColor = ref("#fef08a");
+
 const isTableInsertOpen = ref(false);
 const isColorPickerOpen = ref(false);
 const isHighlightPickerOpen = ref(false);
 const isExportMenuOpen = ref(false);
-const customTextColor = ref("#ffffff");
-const customHighlightColor = ref("#fef08a");
+
+// Outer (non-clipping) root and the inner scrollable button row.
+const rootRef = ref<HTMLElement | null>(null);
+const scrollRef = ref<HTMLElement | null>(null);
+
+// Trigger buttons
+const tableTriggerRef = ref<HTMLButtonElement | null>(null);
+const colorTriggerRef = ref<HTMLButtonElement | null>(null);
+const highlightTriggerRef = ref<HTMLButtonElement | null>(null);
+const exportTriggerRef = ref<HTMLButtonElement | null>(null);
+
+// Popover panels — rendered as siblings of `scrollRef`, not inside it.
+const tablePopoverRef = ref<HTMLElement | null>(null);
+const colorPopoverRef = ref<HTMLElement | null>(null);
+const highlightPopoverRef = ref<HTMLElement | null>(null);
+const exportPopoverRef = ref<HTMLElement | null>(null);
+
+// Start-aligned popovers (table insert, color, highlight)
+const startPlacement = computed<PopoverPlacement>(() => {
+  if (props.position === "left") {
+    return "right-start";
+  }
+  if (props.position === "right") {
+    return "left-start";
+  }
+  if (props.position === "bottom") {
+    return "top-start";
+  }
+  return "bottom-start"; // top
+});
+
+// End-aligned popover (export menu)
+const endPlacement = computed<PopoverPlacement>(() => {
+  if (props.position === "left") {
+    return "right-end";
+  }
+  if (props.position === "right") {
+    return "left-end";
+  }
+  if (props.position === "bottom") {
+    return "top-end";
+  }
+  return "bottom-end"; // top
+});
+
+const tableAnchor = usePopoverPosition(rootRef, tableTriggerRef, tablePopoverRef, startPlacement);
+const colorAnchor = usePopoverPosition(rootRef, colorTriggerRef, colorPopoverRef, startPlacement);
+const highlightAnchor = usePopoverPosition(
+  rootRef,
+  highlightTriggerRef,
+  highlightPopoverRef,
+  startPlacement,
+);
+const exportAnchor = usePopoverPosition(rootRef, exportTriggerRef, exportPopoverRef, endPlacement);
+
+const isAnyPopoverOpen = computed(
+  () =>
+    isTableInsertOpen.value ||
+    isColorPickerOpen.value ||
+    isHighlightPickerOpen.value ||
+    isExportMenuOpen.value,
+);
+
+function closeAllPopovers() {
+  isTableInsertOpen.value = false;
+  isColorPickerOpen.value = false;
+  isHighlightPickerOpen.value = false;
+  isExportMenuOpen.value = false;
+  tableAnchor.close();
+  colorAnchor.close();
+  highlightAnchor.close();
+  exportAnchor.close();
+}
+
+function toggleTableInsert() {
+  const next = !isTableInsertOpen.value;
+  closeAllPopovers();
+  if (next) {
+    isTableInsertOpen.value = true;
+    tableAnchor.open();
+  }
+}
+
+function toggleColorPicker() {
+  const next = !isColorPickerOpen.value;
+  closeAllPopovers();
+  if (next) {
+    isColorPickerOpen.value = true;
+    colorAnchor.open();
+  }
+}
+
+function toggleHighlightPicker() {
+  const next = !isHighlightPickerOpen.value;
+  closeAllPopovers();
+  if (next) {
+    isHighlightPickerOpen.value = true;
+    highlightAnchor.open();
+  }
+}
+
+function toggleExportMenu() {
+  const next = !isExportMenuOpen.value;
+  closeAllPopovers();
+  if (next) {
+    isExportMenuOpen.value = true;
+    exportAnchor.open();
+  }
+}
+
+// Close (rather than let it drift) if the toolbar itself is scrolled while a popover is open.
+function handleScrollRefScroll() {
+  if (isAnyPopoverOpen.value) {
+    closeAllPopovers();
+  }
+}
+
+onMounted(() => {
+  scrollRef.value?.addEventListener("scroll", handleScrollRefScroll, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  scrollRef.value?.removeEventListener("scroll", handleScrollRefScroll);
+});
+
+// Whether toolbar is vertical (left/right)
+const isVertical = computed(() => props.position === "left" || props.position === "right");
+
+// Root — background, border, z-index, and structural placement only.
+// Deliberately NO overflow here, so it never clips the popovers.
+const rootClasses = computed(() => {
+  const base = "bg-rose-surface border-rose-border z-20 relative ";
+  if (props.position === "left") {
+    return `${base} border-r w-12 shrink-0`;
+  }
+  if (props.position === "right") {
+    return `${base} w-12 shrink-0`;
+  }
+  if (props.position === "bottom") {
+    return `${base} border-t absolute bottom-0 left-0 right-0`;
+  }
+  return `${base} border sticky top-0`; // top
+});
+
+// Scroll container — holds ONLY the buttons, owns the overflow clipping.
+const scrollClasses = computed(() => {
+  if (props.position === "left" || props.position === "right") {
+    return "flex flex-col items-center gap-1 p-1.5 overflow-y-auto overflow-x-hidden w-full h-full";
+  }
+  // top / bottom
+  return "flex flex-row items-center gap-1 p-1.5 overflow-x-auto overflow-y-hidden w-full";
+});
+
+// Divider classes — horizontal line for vertical toolbar, vertical line for horizontal
+const dividerClass = computed(() =>
+  isVertical.value
+    ? "h-px w-6 bg-rose-border my-0.5 shrink-0"
+    : "w-px h-5 bg-rose-border mx-0.5 shrink-0",
+);
+
+function btnClass(active: boolean) {
+  return active
+    ? "p-1.5 rounded bg-rose-primary text-white shrink-0"
+    : "p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt shrink-0";
+}
 
 function applyTextColor(color: string | null) {
   if (color) {
@@ -100,7 +269,7 @@ function applyTextColor(color: string | null) {
   } else {
     props.editor.chain().focus().unsetColor().run();
   }
-  isColorPickerOpen.value = false;
+  closeAllPopovers();
 }
 
 function applyHighlight(color: string | null) {
@@ -109,431 +278,380 @@ function applyHighlight(color: string | null) {
   } else {
     props.editor.chain().focus().unsetHighlight().run();
   }
-  isHighlightPickerOpen.value = false;
+  closeAllPopovers();
 }
 
 function handleInsertTable() {
   const rows = Math.min(Math.max(tableRowCount.value, 1), props.maxTableRows);
   const cols = Math.min(Math.max(tableColCount.value, 1), props.maxTableCols);
   emit("insertTable", rows, cols);
-  isTableInsertOpen.value = false;
+  closeAllPopovers();
 }
 
 function handleTriggerCsvPick() {
   emit("triggerCsvPick");
-  isTableInsertOpen.value = false;
+  closeAllPopovers();
 }
 </script>
 
 <template>
-  <div
-    class="flex flex-wrap items-center gap-1 mb-3 p-1.5 rounded-lg bg-rose-surface border border-rose-border sticky top-0 z-10"
-  >
-    <!-- Bold / Italic / Strike -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('bold')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleBold().run()"
-    >
-      <BoldIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('italic')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleItalic().run()"
-    >
-      <ItalicIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('strike')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleStrike().run()"
-    >
-      <StrikethroughIcon class="w-4 h-4" />
-    </button>
+  <div ref="rootRef" :class="rootClasses">
+    <!-- Backdrop: closes whichever popover is open on outside click -->
+    <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-30" @click="closeAllPopovers"></div>
 
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Headings -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('heading', { level: 1 })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
-    >
-      <Heading1Icon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('heading', { level: 2 })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
-    >
-      <Heading2Icon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('heading', { level: 3 })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
-    >
-      <Heading3Icon class="w-4 h-4" />
-    </button>
-
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Lists -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('bulletList')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleBulletList().run()"
-    >
-      <ListIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('orderedList')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleOrderedList().run()"
-    >
-      <ListOrderedIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('taskList')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleTaskList().run()"
-    >
-      <CheckSquareIcon class="w-4 h-4" />
-    </button>
-
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Block types -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('blockquote')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleBlockquote().run()"
-    >
-      <QuoteIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('codeBlock')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().toggleCodeBlock().run()"
-    >
-      <CodeIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-      @click="editor.chain().focus().setHorizontalRule().run()"
-    >
-      <MinusIcon class="w-4 h-4" />
-    </button>
-
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Link / Image -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive('link')
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="emit('setLink')"
-    >
-      <LinkIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-      @click="emit('triggerImagePick')"
-    >
-      <ImageIcon class="w-4 h-4" />
-    </button>
-
-    <!-- Table insert popover -->
-    <div class="relative">
+    <div ref="scrollRef" :class="scrollClasses">
+      <!-- Group: History -->
       <button
-        class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-        @click="isTableInsertOpen = !isTableInsertOpen"
+        :class="btnClass(false)"
+        :disabled="!editor.can().undo()"
+        title="Undo"
+        @click="editor.chain().focus().undo().run()"
+      >
+        <Undo2Icon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(false)"
+        :disabled="!editor.can().redo()"
+        title="Redo"
+        @click="editor.chain().focus().redo().run()"
+      >
+        <Redo2Icon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Text style -->
+      <button
+        :class="btnClass(editor.isActive('bold'))"
+        title="Bold"
+        @click="editor.chain().focus().toggleBold().run()"
+      >
+        <BoldIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('italic'))"
+        title="Italic"
+        @click="editor.chain().focus().toggleItalic().run()"
+      >
+        <ItalicIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('strike'))"
+        title="Strikethrough"
+        @click="editor.chain().focus().toggleStrike().run()"
+      >
+        <StrikethroughIcon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Headings -->
+      <button
+        :class="btnClass(editor.isActive('heading', { level: 1 }))"
+        title="Heading 1"
+        @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
+      >
+        <Heading1Icon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('heading', { level: 2 }))"
+        title="Heading 2"
+        @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
+      >
+        <Heading2Icon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('heading', { level: 3 }))"
+        title="Heading 3"
+        @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
+      >
+        <Heading3Icon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Lists -->
+      <button
+        :class="btnClass(editor.isActive('bulletList'))"
+        title="Bullet list"
+        @click="editor.chain().focus().toggleBulletList().run()"
+      >
+        <ListIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('orderedList'))"
+        title="Ordered list"
+        @click="editor.chain().focus().toggleOrderedList().run()"
+      >
+        <ListOrderedIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('taskList'))"
+        title="Task list"
+        @click="editor.chain().focus().toggleTaskList().run()"
+      >
+        <CheckSquareIcon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Blocks -->
+      <button
+        :class="btnClass(editor.isActive('blockquote'))"
+        title="Blockquote"
+        @click="editor.chain().focus().toggleBlockquote().run()"
+      >
+        <QuoteIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive('codeBlock'))"
+        title="Code block"
+        @click="editor.chain().focus().toggleCodeBlock().run()"
+      >
+        <CodeIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(false)"
+        title="Horizontal rule"
+        @click="editor.chain().focus().setHorizontalRule().run()"
+      >
+        <MinusIcon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Insert -->
+      <button :class="btnClass(editor.isActive('link'))" title="Link" @click="emit('setLink')">
+        <LinkIcon class="w-4 h-4" />
+      </button>
+      <button :class="btnClass(false)" title="Image" @click="emit('triggerImagePick')">
+        <ImageIcon class="w-4 h-4" />
+      </button>
+
+      <button
+        ref="tableTriggerRef"
+        :class="btnClass(isTableInsertOpen)"
+        title="Table"
+        :aria-expanded="isTableInsertOpen"
+        @click="toggleTableInsert"
       >
         <TableIcon class="w-4 h-4" />
       </button>
-      <div
-        v-if="isTableInsertOpen"
-        class="fixed inset-0 z-10"
-        @click="isTableInsertOpen = false"
-      ></div>
-      <div
-        v-if="isTableInsertOpen"
-        class="absolute top-full left-0 mt-1 z-20 flex flex-col gap-2 p-3 w-56 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
-      >
-        <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
-          Rows
-          <input
-            v-model.number="tableRowCount"
-            type="number"
-            min="1"
-            :max="maxTableRows"
-            class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
-          />
-        </label>
-        <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
-          Columns
-          <input
-            v-model.number="tableColCount"
-            type="number"
-            min="1"
-            :max="maxTableCols"
-            class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
-          />
-        </label>
-        <button
-          class="mt-1 px-2 py-1.5 rounded bg-rose-primary text-white text-sm font-medium"
-          @click="handleInsertTable"
-        >
-          Insert blank table
-        </button>
-        <div class="h-px bg-rose-border my-1"></div>
-        <button
-          class="px-2 py-1.5 rounded border border-rose-border text-rose-text text-sm font-medium hover:bg-rose-surface-alt"
-          @click="handleTriggerCsvPick"
-        >
-          Import from CSV
-        </button>
-      </div>
-    </div>
 
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
+      <div :class="dividerClass"></div>
 
-    <!-- Undo / Redo -->
-    <button
-      class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
-      :disabled="!editor.can().undo()"
-      @click="editor.chain().focus().undo().run()"
-    >
-      <Undo2Icon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt disabled:opacity-40"
-      :disabled="!editor.can().redo()"
-      @click="editor.chain().focus().redo().run()"
-    >
-      <Redo2Icon class="w-4 h-4" />
-    </button>
-
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Text align -->
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive({ textAlign: 'left' })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().setTextAlign('left').run()"
-    >
-      <AlignLeftIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive({ textAlign: 'center' })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().setTextAlign('center').run()"
-    >
-      <AlignCenterIcon class="w-4 h-4" />
-    </button>
-    <button
-      class="p-1.5 rounded"
-      :class="
-        editor.isActive({ textAlign: 'right' })
-          ? 'bg-rose-primary text-white'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt'
-      "
-      @click="editor.chain().focus().setTextAlign('right').run()"
-    >
-      <AlignRightIcon class="w-4 h-4" />
-    </button>
-
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
-
-    <!-- Text color popover -->
-    <div class="relative">
+      <!-- Group: Align -->
       <button
-        class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-        @click="
-          isColorPickerOpen = !isColorPickerOpen;
-          isHighlightPickerOpen = false;
-        "
+        :class="btnClass(editor.isActive({ textAlign: 'left' }))"
+        title="Align left"
+        @click="editor.chain().focus().setTextAlign('left').run()"
+      >
+        <AlignLeftIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive({ textAlign: 'center' }))"
+        title="Align center"
+        @click="editor.chain().focus().setTextAlign('center').run()"
+      >
+        <AlignCenterIcon class="w-4 h-4" />
+      </button>
+      <button
+        :class="btnClass(editor.isActive({ textAlign: 'right' }))"
+        title="Align right"
+        @click="editor.chain().focus().setTextAlign('right').run()"
+      >
+        <AlignRightIcon class="w-4 h-4" />
+      </button>
+
+      <div :class="dividerClass"></div>
+
+      <!-- Group: Color -->
+      <button
+        ref="colorTriggerRef"
+        :class="btnClass(isColorPickerOpen)"
+        title="Text color"
+        :aria-expanded="isColorPickerOpen"
+        @click="toggleColorPicker"
       >
         <PaletteIcon class="w-4 h-4" />
       </button>
-      <div
-        v-if="isColorPickerOpen"
-        class="fixed inset-0 z-10"
-        @click="isColorPickerOpen = false"
-      ></div>
-      <div
-        v-if="isColorPickerOpen"
-        class="absolute top-full left-0 mt-1 z-20 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
-      >
-        <button
-          v-for="color in TEXT_COLORS"
-          :key="color.label"
-          class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-[10px] shrink-0"
-          :style="color.value ? { backgroundColor: color.value } : {}"
-          :title="color.label"
-          @click="applyTextColor(color.value)"
-        >
-          <span v-if="!color.value" class="text-rose-text-muted">×</span>
-        </button>
-        <label
-          class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
-          title="Custom color"
-        >
-          <input
-            v-model="customTextColor"
-            type="color"
-            class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
-            @input="applyTextColor(customTextColor)"
-          />
-        </label>
-      </div>
-    </div>
-
-    <!-- Highlight popover -->
-    <div class="relative">
       <button
-        class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-        @click="
-          isHighlightPickerOpen = !isHighlightPickerOpen;
-          isColorPickerOpen = false;
-        "
+        ref="highlightTriggerRef"
+        :class="btnClass(isHighlightPickerOpen)"
+        title="Highlight"
+        :aria-expanded="isHighlightPickerOpen"
+        @click="toggleHighlightPicker"
       >
         <HighlighterIcon class="w-4 h-4" />
       </button>
-      <div
-        v-if="isHighlightPickerOpen"
-        class="fixed inset-0 z-10"
-        @click="isHighlightPickerOpen = false"
-      ></div>
-      <div
-        v-if="isHighlightPickerOpen"
-        class="absolute top-full left-0 mt-1 z-20 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
-      >
-        <button
-          v-for="color in HIGHLIGHT_COLORS"
-          :key="color.label"
-          class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-[10px] shrink-0"
-          :style="color.value ? { backgroundColor: color.value } : {}"
-          :title="color.label"
-          @click="applyHighlight(color.value)"
-        >
-          <span v-if="!color.value" class="text-rose-text-muted">×</span>
-        </button>
-        <label
-          class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
-          title="Custom color"
-        >
-          <input
-            v-model="customHighlightColor"
-            type="color"
-            class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
-            @input="applyHighlight(customHighlightColor)"
-          />
-        </label>
-      </div>
-    </div>
 
-    <div class="w-px h-5 bg-rose-border mx-1"></div>
+      <div :class="dividerClass"></div>
 
-    <!-- Export popover -->
-    <div class="relative">
+      <!-- Group: Export -->
       <button
-        class="p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt"
-        @click="isExportMenuOpen = !isExportMenuOpen"
+        ref="exportTriggerRef"
+        :class="btnClass(isExportMenuOpen)"
+        title="Export"
+        :aria-expanded="isExportMenuOpen"
+        @click="toggleExportMenu"
       >
         <DownloadIcon class="w-4 h-4" />
       </button>
-      <div
-        v-if="isExportMenuOpen"
-        class="fixed inset-0 z-10"
-        @click="isExportMenuOpen = false"
-      ></div>
-      <div
-        v-if="isExportMenuOpen"
-        class="absolute top-full right-0 mt-1 z-20 flex flex-col w-44 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
+    </div>
+
+    <!-- Popovers: siblings of the scroll container, so its overflow can't clip them -->
+    <div
+      v-if="isTableInsertOpen"
+      ref="tablePopoverRef"
+      class="absolute z-40 flex flex-col gap-2 p-3 w-56 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+      :style="tableAnchor.style"
+    >
+      <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
+        Rows
+        <input
+          v-model.number="tableRowCount"
+          type="number"
+          min="1"
+          :max="maxTableRows"
+          class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
+        />
+      </label>
+      <label class="flex items-center justify-between gap-2 text-sm text-rose-text">
+        Columns
+        <input
+          v-model.number="tableColCount"
+          type="number"
+          min="1"
+          :max="maxTableCols"
+          class="w-14 px-1.5 py-0.5 rounded border border-rose-border bg-rose-bg text-rose-text text-sm"
+        />
+      </label>
+      <button
+        class="mt-1 px-2 py-1.5 rounded bg-rose-primary text-white text-sm font-medium"
+        @click="handleInsertTable"
       >
-        <button
-          class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-          @click="emit('exportAsHtml')"
-        >
-          Export as HTML
-        </button>
-        <button
-          class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-          @click="emit('exportAsMarkdown')"
-        >
-          Export as Markdown
-        </button>
-        <button
-          class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-          @click="emit('exportAsText')"
-        >
-          Export as Text
-        </button>
-        <div class="h-px bg-rose-border"></div>
-        <button
-          class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
-          @click="emit('exportAsPdf')"
-        >
-          Print / Save as PDF
-        </button>
-      </div>
+        Insert blank table
+      </button>
+      <div class="h-px bg-rose-border my-1"></div>
+      <button
+        class="px-2 py-1.5 rounded border border-rose-border text-rose-text text-sm font-medium hover:bg-rose-surface-alt"
+        @click="handleTriggerCsvPick"
+      >
+        Import from CSV
+      </button>
+    </div>
+
+    <div
+      v-if="isColorPickerOpen"
+      ref="colorPopoverRef"
+      class="absolute z-40 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+      :style="colorAnchor.style"
+    >
+      <button
+        v-for="color in TEXT_COLORS"
+        :key="color.label"
+        class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
+        :style="color.value ? { backgroundColor: color.value } : {}"
+        :title="color.label"
+        @click="applyTextColor(color.value)"
+      >
+        <span v-if="!color.value" class="text-rose-text-muted">×</span>
+      </button>
+      <label
+        class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
+        title="Custom color"
+      >
+        <input
+          v-model="customTextColor"
+          type="color"
+          class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
+          @input="applyTextColor(customTextColor)"
+        />
+      </label>
+    </div>
+
+    <div
+      v-if="isHighlightPickerOpen"
+      ref="highlightPopoverRef"
+      class="absolute z-40 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+      :style="highlightAnchor.style"
+    >
+      <button
+        v-for="color in HIGHLIGHT_COLORS"
+        :key="color.label"
+        class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
+        :style="color.value ? { backgroundColor: color.value } : {}"
+        :title="color.label"
+        @click="applyHighlight(color.value)"
+      >
+        <span v-if="!color.value" class="text-rose-text-muted">×</span>
+      </button>
+      <label
+        class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
+        title="Custom color"
+      >
+        <input
+          v-model="customHighlightColor"
+          type="color"
+          class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
+          @input="applyHighlight(customHighlightColor)"
+        />
+      </label>
+    </div>
+
+    <div
+      v-if="isExportMenuOpen"
+      ref="exportPopoverRef"
+      class="absolute z-40 flex flex-col w-44 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
+      :style="exportAnchor.style"
+    >
+      <button
+        class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="
+          emit('exportAsHtml');
+          closeAllPopovers();
+        "
+      >
+        Export as HTML
+      </button>
+      <button
+        class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="
+          emit('exportAsMarkdown');
+          closeAllPopovers();
+        "
+      >
+        Export as Markdown
+      </button>
+      <button
+        class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="
+          emit('exportAsText');
+          closeAllPopovers();
+        "
+      >
+        Export as Text
+      </button>
+      <div class="h-px bg-rose-border"></div>
+      <button
+        class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="
+          emit('exportAsPdf');
+          closeAllPopovers();
+        "
+      >
+        Print / Save as PDF
+      </button>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Hide scrollbar on the scroll row but keep it scrollable */
+div::-webkit-scrollbar {
+  display: none;
+}
+div {
+  scrollbar-width: none;
+}
+</style>

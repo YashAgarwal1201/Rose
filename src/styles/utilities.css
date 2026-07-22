@@ -1,0 +1,5 @@
+.divider {
+  margin: 0.25rem 0.5rem;
+  height: 1.5px;
+  background: var(--color-rose-border);
+}

@@ -878,7 +878,7 @@ onBeforeUnmount(() => {
             <button
               v-for="color in TEXT_COLORS"
               :key="color.label"
-              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-[10px] shrink-0"
+              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
               :style="color.value ? { backgroundColor: color.value } : {}"
               :title="color.label"
               @click="applyTextColor(color.value)"
@@ -922,7 +922,7 @@ onBeforeUnmount(() => {
             <button
               v-for="color in HIGHLIGHT_COLORS"
               :key="color.label"
-              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-[10px] shrink-0"
+              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
               :style="color.value ? { backgroundColor: color.value } : {}"
               :title="color.label"
               @click="applyHighlight(color.value)"
@@ -1014,7 +1014,7 @@ onBeforeUnmount(() => {
             <button
               v-for="color in CELL_BG_COLORS"
               :key="color.label"
-              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-[10px]"
+              class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs"
               :style="color.value ? { backgroundColor: color.value } : {}"
               :title="color.label"
               @click="applyCellBackground(color.value)"

@@ -1,7 +1,7 @@
 <!-- src/components/Sidebar.vue -->
 <template>
   <aside
-    class="w-full md:w-24 h-[72px] md:h-screen z-40 bg-rose-surface border-t md:border-t-0 md:border-r border-rose-border flex flex-row md:flex-col items-center py-2 md:py-3 px-2 md:px-0"
+    class="w-full h-full z-40 bg-rose-surface border-t md:border-t-0 md:border-r border-rose-border flex flex-row md:flex-col items-center px-1 py-1 md:py-3"
   >
     <div
       class="flex flex-row md:flex-col justify-around md:justify-center items-center gap-1 md:gap-3 w-full h-full"
@@ -22,10 +22,15 @@
               : 'group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text',
           ]"
         >
-          <component :is="item.icon" class="w-5 h-5 transition-colors duration-200" />
+          <component
+            :is="item.icon"
+            :size="16"
+            class="transition-colors duration-200"
+            :class="isActive(item.path) ? 'animate-icon-pop' : ''"
+          />
         </span>
         <span
-          class="truncate text-sm md:text-base font-medium mt-1 transition-all duration-200"
+          class="truncate text-xs font-medium mt-1 transition-all duration-200"
           :class="[
             isActive(item.path)
               ? 'text-rose-primary font-bold'
@@ -45,10 +50,10 @@
         <span
           class="rounded-full py-1 px-3 transition-all duration-200 group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text"
         >
-          <MenuIcon class="w-5 h-5 transition-colors duration-200" />
+          <MenuIcon :size="16" class="transition-colors duration-200" />
         </span>
         <span
-          class="truncate text-sm md:text-base font-medium mt-1 transition-all duration-200 text-rose-text-muted group-hover:text-rose-text"
+          class="truncate text-xs font-medium mt-1 transition-all duration-200 text-rose-text-muted group-hover:text-rose-text"
         >
           Menu
         </span>
