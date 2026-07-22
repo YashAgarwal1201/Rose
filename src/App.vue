@@ -1,9 +1,9 @@
 <!-- src/App.vue -->
 <template>
   <div
-    class="flex flex-col-reverse md:flex-row h-screen overflow-hidden bg-rose-bg text-rose-text antialiased"
+    class="flex flex-col-reverse md:flex-row h-dvh overflow-hidden bg-rose-bg text-rose-text antialiased"
   >
-    <div class="w-full md:w-24 h-[72px] md:h-full shrink-0">
+    <div class="w-full md:w-20 h-16 md:h-full shrink-0">
       <Sidebar @toggle-menu="isMenuOpen = true" />
     </div>
 

@@ -1,0 +1,13 @@
+@import "./tailwind.css";
+@import "./animations.css";
+@import "./utilities.css";
+
+button {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
