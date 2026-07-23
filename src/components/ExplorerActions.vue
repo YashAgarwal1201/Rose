@@ -36,7 +36,7 @@ function handleFileClick() {
   </div>
 
   <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
-  <div class="md:hidden fixed right-4 bottom-[92px] z-30 flex flex-col items-end gap-3">
+  <div class="md:hidden fixed right-4 bottom-23 z-30 flex flex-col items-end gap-3">
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 translate-y-2 scale-95"
