@@ -17,6 +17,7 @@ export interface TodoList {
   name: string;
   createdAt: number;
   updatedAt: number;
+  lastOpenedAt: number | null;
 }
 
 export interface Todo {
@@ -37,4 +38,14 @@ export interface Doc {
   contentJSON: Record<string, unknown> | null; // TipTap JSON output
   createdAt: number;
   updatedAt: number;
+  lastOpenedAt: number | null;
+}
+
+export interface AppSettings {
+  id: 1;
+  username: string | null;
+  enabledFeatures: FeatureType[];
+  onboardingCompleted: boolean;
+  onboardingStep: number;
+  createdAt: number;
 }

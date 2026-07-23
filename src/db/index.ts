@@ -28,13 +28,14 @@
 // export default db;
 
 import Dexie, { type EntityTable } from "dexie";
-import type { Doc, Folder, Todo, TodoList } from "./types";
+import type { AppSettings, Doc, Folder, Todo, TodoList } from "./types";
 
 const db = new Dexie("RoseDatabase") as Dexie & {
   folders: EntityTable<Folder, "id">;
   todoLists: EntityTable<TodoList, "id">;
   todos: EntityTable<Todo, "id">;
   docs: EntityTable<Doc, "id">;
+  settings: EntityTable<AppSettings, "id">;
 };
 
 db.version(1).stores({
@@ -60,5 +61,30 @@ db.version(4).stores({
   todos: "id, listId, done",
   docs: "id, folderId",
 });
+
+db.version(5)
+  .stores({
+    folders: "id, parentId, type",
+    todoLists: "id, folderId",
+    todos: "id, listId, done",
+    docs: "id, folderId",
+    settings: "id",
+  })
+  .upgrade(async (tx) => {
+    // Backfill lastOpenedAt on existing rows so the shape is consistent
+    // going forward (Home's "recently opened" sort relies on this field).
+    await tx
+      .table("todoLists")
+      .toCollection()
+      .modify((list: TodoList) => {
+        list.lastOpenedAt ??= null;
+      });
+    await tx
+      .table("docs")
+      .toCollection()
+      .modify((doc: Doc) => {
+        doc.lastOpenedAt ??= null;
+      });
+  });
 
 export default db;

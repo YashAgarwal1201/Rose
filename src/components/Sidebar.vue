@@ -64,19 +64,31 @@
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { FileTextIcon, ListTodoIcon, MenuIcon, PenLineIcon } from "@lucide/vue";
+import {
+  FileTextIcon,
+  HomeIcon,
+  ListTodoIcon,
+  MenuIcon,
+  PenLineIcon,
+  SettingsIcon,
+} from "@lucide/vue";
 
 const route = useRoute();
 
 const navItems = [
+  { icon: HomeIcon, label: "Home", name: "home", path: "/" },
   { icon: ListTodoIcon, label: "Todos", name: "todos", path: "/todos/folder" },
   { icon: PenLineIcon, label: "Notes", name: "notes", path: "/notes/folder" },
   { icon: FileTextIcon, label: "Docs", name: "docs", path: "/docs/folder" },
+  { icon: SettingsIcon, label: "Settings", name: "settings", path: "/settings" },
 ];
 
 const emit = defineEmits<{ toggleMenu: [] }>();
 
 function isActive(path: string): boolean {
+  if (path === "/") {
+    return route.path === "/";
+  }
   return route.path.split("/")[1] === path.split("/")[1];
 }
 </script>
