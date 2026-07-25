@@ -143,6 +143,7 @@ async function loadList() {
   }
 
   currentList.value = match;
+  todosStore.touchTodoList(match.id);
   try {
     await todosStore.loadTodos(match.id);
   } catch (error) {
@@ -442,7 +443,7 @@ watch(() => pathMatch, loadList);
     </div>
 
     <div
-      class="md:hidden fixed bottom-[76px] left-0 right-0 px-4 py-3 bg-rose-bg border-t border-rose-border flex items-center gap-2 z-20"
+      class="md:hidden fixed bottom-19 left-0 right-0 px-4 py-3 bg-rose-bg border-t border-rose-border flex items-center gap-2 z-20"
     >
       <input
         v-model="newTodoTitle"

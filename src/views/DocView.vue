@@ -1,6 +1,6 @@
 <!-- src/views/DocView.vue -->
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter } from "vue-router";
 import { EditorContent, useEditor } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
@@ -138,7 +138,8 @@ const saveContent = debounce(async (id: string, contentJSON: Record<string, unkn
 const editor = useEditor({
   content: "",
   extensions: [
-    StarterKit.configure({ link: false }),
+    // StarterKit.configure({ link: false }),
+    StarterKit.configure({ link: false, underline: false }),
     TaskList,
     TaskItem.configure({ nested: true }),
     Link.configure({ openOnClick: false }),
@@ -381,7 +382,8 @@ async function loadDoc() {
   }
 
   currentDoc.value = match;
-  const rawContent = match.contentJSON ? JSON.parse(JSON.stringify(match.contentJSON)) : "";
+  docsStore.touchDoc(match.id);
+  const rawContent = match.contentJSON ? structuredClone(toRaw(match).contentJSON) : "";
   editor.value?.commands.setContent(rawContent, { emitUpdate: false });
 }
 
@@ -578,9 +580,40 @@ function toggleCellBgPicker() {
   }
 }
 
-onMounted(loadDoc);
-watch(() => pathMatch, loadDoc);
+// onMounted(loadDoc);
+// watch(() => pathMatch, loadDoc);
+// onBeforeUnmount(() => {
+//   editor.value?.destroy();
+// });
+
+function flushPendingSave() {
+  saveContent.flush();
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "hidden") {
+    flushPendingSave();
+  }
+}
+
+onMounted(() => {
+  loadDoc();
+  window.addEventListener("pagehide", flushPendingSave);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+});
+
+watch(
+  () => pathMatch,
+  () => {
+    flushPendingSave(); // commit any pending write for the doc we're leaving
+    loadDoc();
+  },
+);
+
 onBeforeUnmount(() => {
+  flushPendingSave();
+  window.removeEventListener("pagehide", flushPendingSave);
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
   editor.value?.destroy();
 });
 </script>

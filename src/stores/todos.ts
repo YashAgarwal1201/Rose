@@ -26,6 +26,7 @@ export const useTodosStore = defineStore("todos", () => {
       createdAt: now,
       folderId,
       id: crypto.randomUUID(),
+      lastOpenedAt: null,
       name: trimmed,
       updatedAt: now,
     };
@@ -51,6 +52,12 @@ export const useTodosStore = defineStore("todos", () => {
     }
     await db.todoLists.update(id, { name: trimmed, updatedAt: Date.now() });
     await loadTodoLists();
+  }
+
+  // Marks a list as opened "now" — powers Home's "recently opened" sort.
+  // Call this once when a todo list is actually navigated into.
+  async function touchTodoList(id: string) {
+    await db.todoLists.update(id, { lastOpenedAt: Date.now() });
   }
 
   async function deleteTodosByList(listId: string) {
@@ -153,6 +160,7 @@ export const useTodosStore = defineStore("todos", () => {
     todoLists,
     todos,
     toggleDone,
+    touchTodoList,
     updateTodo,
   };
 });

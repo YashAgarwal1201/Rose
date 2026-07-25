@@ -21,15 +21,19 @@
           <slot name="collapsed-preview" />
         </span>
         <ChevronDownIcon
-          class="w-4 h-4 text-rose-text-muted transition-transform"
+          class="w-4 h-4 text-rose-text-muted transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           :class="isOpen ? 'rotate-180' : ''"
         />
       </span>
     </button>
 
-    <div v-if="isOpen" class="px-4 pb-4">
-      <slot />
-    </div>
+    <Transition name="panel-slide">
+      <div v-if="isOpen" class="panel-slide-outer px-4 pb-4">
+        <div class="panel-slide-inner">
+          <slot />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -45,3 +49,57 @@ defineProps<{
 
 const emit = defineEmits<{ toggle: [] }>();
 </script>
+
+<style scoped>
+/* Outer wrapper — scales vertically from the top */
+.panel-slide-outer {
+  transform-origin: top;
+  will-change: transform, opacity;
+}
+
+/* Inner wrapper — counter-scales to keep content undistorted */
+.panel-slide-inner {
+  transform-origin: top;
+  will-change: transform;
+}
+
+/* Enter: collapsed → expanded */
+.panel-slide-enter-active .panel-slide-outer {
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s ease;
+}
+.panel-slide-enter-active .panel-slide-inner {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Leave: expanded → collapsed */
+.panel-slide-leave-active .panel-slide-outer {
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 1, 1),
+    opacity 0.18s ease;
+}
+.panel-slide-leave-active .panel-slide-inner {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.panel-slide-enter-from .panel-slide-outer,
+.panel-slide-leave-to .panel-slide-outer {
+  transform: scaleY(0);
+  opacity: 0;
+}
+.panel-slide-enter-from .panel-slide-inner,
+.panel-slide-leave-to .panel-slide-inner {
+  transform: scaleY(9999); /* counter-scale cancels outer distortion */
+}
+
+.panel-slide-enter-to .panel-slide-outer,
+.panel-slide-leave-from .panel-slide-outer {
+  transform: scaleY(1);
+  opacity: 1;
+}
+.panel-slide-enter-to .panel-slide-inner,
+.panel-slide-leave-from .panel-slide-inner {
+  transform: scaleY(1);
+}
+</style>
