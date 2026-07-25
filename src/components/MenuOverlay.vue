@@ -89,6 +89,17 @@
 
           <div class="divider" />
 
+          <button
+            type="button"
+            class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
+            @click="goToSettings"
+          >
+            <SettingsIcon class="w-4 h-4 text-rose-primary" />
+            <span class="font-medium text-rose-text">Settings</span>
+          </button>
+
+          <div class="divider" />
+
           <!-- Export & Sharing -->
           <PanelSection
             :icon="Share2Icon"
@@ -111,35 +122,12 @@
 
           <div class="divider" />
 
-          <!-- Manage App Data -->
-          <PanelSection
-            :icon="DatabaseIcon"
-            label="Manage App Data"
-            :is-open="openPanel === 3"
-            @toggle="togglePanel(3)"
-          >
-            <div class="px-1 py-2">
-              <button
-                class="px-3 py-2 rounded-lg border border-red-400/40 text-red-400 text-sm font-medium hover:bg-red-400/10 transition-colors flex items-center gap-2"
-                @click="confirmClearData"
-              >
-                <Trash2Icon class="w-4 h-4" />
-                Clear all data
-              </button>
-              <p class="text-xs text-rose-text-muted mt-2">
-                This removes locally saved preferences and cached data on this device.
-              </p>
-            </div>
-          </PanelSection>
-
-          <div class="divider" />
-
           <!-- About This App -->
           <PanelSection
             :icon="InfoIcon"
             label="About This App"
-            :is-open="openPanel === 4"
-            @toggle="togglePanel(4)"
+            :is-open="openPanel === 3"
+            @toggle="togglePanel(3)"
           >
             <div class="flex flex-col gap-y-4 px-1 py-2">
               <div class="flex items-center justify-between">
@@ -180,24 +168,25 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import {
-  DatabaseIcon,
   InfoIcon,
   KeyboardIcon,
   MonitorIcon,
   MoonIcon,
   PaletteIcon,
+  SettingsIcon,
   Share2Icon,
   SunIcon,
-  Trash2Icon,
   XIcon,
 } from "@lucide/vue";
 import { useThemeStore } from "../stores/theme";
 import PanelSection from "./PanelSection.vue";
+import { useRouter } from "vue-router";
 
 defineProps<{ isOpen: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 
 const themeStore = useThemeStore();
+const router = useRouter();
 
 const selectedMode = computed({
   get: () => themeStore.mode,
@@ -225,18 +214,6 @@ async function handleShare() {
   setTimeout(() => (copied.value = false), 2000);
 }
 
-function confirmClearData() {
-  const ok = globalThis.confirm(
-    "This will permanently delete your locally saved preferences and cached data on this device. This cannot be undone. Continue?",
-  );
-  if (!ok) {
-    return;
-  }
-  localStorage.clear();
-  sessionStorage.clear();
-  globalThis.location.reload();
-}
-
 const shortcuts = [
   { action: "Bold", keys: "Ctrl+B" },
   { action: "Italic", keys: "Ctrl+I" },
@@ -255,6 +232,11 @@ const techStack = [
   { label: "Tiptap", color: "#6366F1" },
   { label: "Vite", color: "#A855F7" },
 ];
+
+function goToSettings() {
+  close();
+  router.push({ name: "settings" });
+}
 
 function close() {
   emit("close");
