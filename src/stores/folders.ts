@@ -5,6 +5,7 @@ import db from "../db";
 import type { FeatureType, Folder } from "../db/types";
 import { useTodosStore } from "./todos";
 import { useDocsStore } from "./docs";
+import { useActivityStore } from "./activity";
 
 export const useFoldersStore = defineStore("folders", () => {
   const folders = ref<Folder[]>([]);
@@ -33,7 +34,9 @@ export const useFoldersStore = defineStore("folders", () => {
       type,
       updatedAt: now,
     };
+
     await db.folders.add(folder);
+    await useActivityStore().record("folder_created", folder.id);
     await loadFolders(type);
     return folder.id;
   }

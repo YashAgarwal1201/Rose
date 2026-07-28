@@ -28,14 +28,16 @@
 // export default db;
 
 import Dexie, { type EntityTable } from "dexie";
-import type { AppSettings, Doc, Folder, Todo, TodoList } from "./types";
+import type { ActivityEntry, AppSettings, Doc, Folder, Note, Todo, TodoList } from "./types";
 
 const db = new Dexie("RoseDatabase") as Dexie & {
   folders: EntityTable<Folder, "id">;
   todoLists: EntityTable<TodoList, "id">;
   todos: EntityTable<Todo, "id">;
   docs: EntityTable<Doc, "id">;
+  notes: EntityTable<Note, "id">;
   settings: EntityTable<AppSettings, "id">;
+  activity: EntityTable<ActivityEntry, "id">;
 };
 
 db.version(1).stores({
@@ -86,5 +88,24 @@ db.version(5)
         doc.lastOpenedAt ??= null;
       });
   });
+
+db.version(6).stores({
+  activity: "id, timestamp, entityId",
+  docs: "id, folderId",
+  folders: "id, parentId, type",
+  settings: "id",
+  todoLists: "id, folderId",
+  todos: "id, listId, done",
+});
+
+db.version(7).stores({
+  activity: "id, timestamp, entityId",
+  docs: "id, folderId",
+  folders: "id, parentId, type",
+  notes: "id, folderId",
+  settings: "id",
+  todoLists: "id, folderId",
+  todos: "id, listId, done",
+});
 
 export default db;

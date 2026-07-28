@@ -28,7 +28,9 @@ interface GridFile {
   itemCount?: number;
   updatedAt?: number;
   createdAt?: number;
+  thumbnail?: string | null; // NEW
 }
+
 interface DisplayItem {
   kind: "folder" | "file";
   id: string;
@@ -102,6 +104,7 @@ const displayItems = computed<DisplayItem[]>(() => {
     itemCount: f.itemCount,
     kind: "file",
     name: f.name,
+    thumbnail: f.thumbnail, // NEW
     updatedAt: f.updatedAt,
   }));
 
@@ -320,7 +323,20 @@ defineExpose({ startCreate });
         class="group relative flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-rose-surface-alt cursor-pointer transition-colors"
         @click="!item.isNew && handleOpen(item)"
       >
+        <!-- <component
+          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
+          class="w-12 h-12 shrink-0"
+          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
+        /> -->
+
+        <img
+          v-if="item.kind === 'file' && item.thumbnail"
+          :src="item.thumbnail"
+          class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border"
+          alt=""
+        />
         <component
+          v-else
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
           class="w-12 h-12 shrink-0"
           :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
@@ -393,7 +409,20 @@ defineExpose({ startCreate });
         class="group flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt cursor-pointer transition-colors"
         @click="!item.isNew && handleOpen(item)"
       >
+        <!-- <component
+          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
+          class="w-5 h-5 shrink-0"
+          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
+        /> -->
+
+        <img
+          v-if="item.kind === 'file' && item.thumbnail"
+          :src="item.thumbnail"
+          class="w-5 h-5 shrink-0 object-cover rounded"
+          alt=""
+        />
         <component
+          v-else
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
           class="w-5 h-5 shrink-0"
           :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"

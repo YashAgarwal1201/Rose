@@ -75,14 +75,36 @@
         description="Everything here is stored only on this device."
       >
         <SettingsRow label="Storage used">
-          <span v-if="storage.isSupported.value" class="text-sm sm:text-base text-rose-text-muted">
-            {{ formatBytes(storage.usageBytes.value ?? 0) }}
-            <template v-if="storage.quotaBytes.value">
-              of {{ formatBytes(storage.quotaBytes.value) }}
-            </template>
-          </span>
-          <span v-else class="text-sm sm:text-base text-rose-text-muted">
-            Not available in this browser
+          <span class="inline-flex items-center gap-1.5">
+            <span
+              v-if="storage.status.value === 'ready'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
+              {{ formatBytes(storage.usageBytes.value ?? 0) }}
+              <template v-if="storage.quotaBytes.value">
+                of ~{{ formatBytes(storage.quotaBytes.value) }} available
+              </template>
+            </span>
+            <span
+              v-else-if="storage.status.value === 'loading'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
+              Calculating…
+            </span>
+            <span
+              v-else-if="storage.status.value === 'error'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
+              Couldn't check storage usage
+            </span>
+            <span v-else class="text-sm sm:text-base text-rose-text-muted">
+              Not available in this browser
+            </span>
+
+            <SummaryComp
+              label="About storage numbers"
+              text="Browsers report this approximately, and some (like Brave) deliberately obscure the exact figures for privacy. The numbers here are a rough guide, not an exact measurement — they can look different across browsers on the same device."
+            />
           </span>
         </SettingsRow>
 
@@ -193,6 +215,7 @@ import SettingsSection from "../components/settings/SettingsSection.vue";
 import SettingsRow from "../components/settings/SettingsRow.vue";
 import SettingsSwitch from "../components/settings/SettingsSwitch.vue";
 import type { FeatureType } from "../db/types";
+import SummaryComp from "@/components/SummaryComp.vue";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();

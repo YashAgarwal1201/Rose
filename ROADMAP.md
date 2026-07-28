@@ -126,7 +126,7 @@ Before Notes gets built, the app needs a real front door instead of hard-redirec
 
 - [x] PWA setup (installable, offline shell) — `registerSW.ts` in place
 - [x] Responsive layout pass across desktop and mobile widths (bottom nav sidebar, mobile drawers, FAB actions)
-- [ ] Global search across todos/notes/docs (at least by title) — surfaced beyond Home
+- [x] Global search across todos/notes/docs (at least by title) — surfaced beyond Home
 - [ ] Responsive layout validation on tablet widths
 - [ ] Accessibility pass (keyboard nav for folder tree, focus states, ARIA labels)
 - [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance

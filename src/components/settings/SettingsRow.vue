@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{
+const { label, description } = defineProps<{
   label: string;
   description?: string;
 }>();
@@ -31,10 +31,10 @@ const props = defineProps<{
 // slot renders, since these are custom controls rather than native
 // <label for="..."> inputs.
 const slug = computed(() =>
-  props.label
+  label
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, ""),
+    .replace(/(?<edge>^-|-$)/g, ""),
 );
 const labelId = computed(() => `setting-label-${slug.value}`);
 const descriptionId = computed(() => `setting-desc-${slug.value}`);

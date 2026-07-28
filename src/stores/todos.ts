@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "../db";
 import type { Todo, TodoList } from "../db/types";
+import { useActivityStore } from "./activity";
 
 export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
@@ -106,6 +107,7 @@ export const useTodosStore = defineStore("todos", () => {
       updatedAt: now,
     };
     await db.todos.add(todo);
+    await useActivityStore().record("todo_created", todo.id);
     if (listId === currentListId.value) {
       await loadTodos(listId);
     }
@@ -118,6 +120,7 @@ export const useTodosStore = defineStore("todos", () => {
       return;
     }
     await db.todos.update(id, { done: !todo.done, updatedAt: Date.now() });
+    await useActivityStore().record("todo_toggled", id);
     if (todo.listId === currentListId.value) {
       await loadTodos(todo.listId);
     }
@@ -128,6 +131,7 @@ export const useTodosStore = defineStore("todos", () => {
     changes: Partial<Pick<Todo, "title" | "priority" | "dueDate">>,
   ) {
     await db.todos.update(id, { ...changes, updatedAt: Date.now() });
+    await useActivityStore().record("todo_updated", id);
     const todo = todos.value.find((candidate) => candidate.id === id);
     if (todo && todo.listId === currentListId.value) {
       await loadTodos(todo.listId);

@@ -6,6 +6,7 @@ import SettingsView from "../views/SettingsView.vue";
 import TodosView from "../views/TodosView.vue";
 import TodoListView from "../views/TodoListView.vue";
 import NotesView from "../views/NotesView.vue";
+import NoteView from "../views/NoteView.vue";
 import DocsView from "../views/DocsView.vue";
 import DocView from "../views/DocView.vue";
 import { useSettingsStore } from "../stores/settings";
@@ -38,6 +39,7 @@ const router = createRouter({
     },
     { component: DocsView, name: "docs-folder", path: "/docs/folder/:pathMatch(.*)*", props: true },
     { component: DocView, name: "docs-doc", path: "/docs/doc/:pathMatch(.*)*", props: true },
+    { component: NoteView, name: "notes-note", path: "/notes/note/:pathMatch(.*)*", props: true },
   ],
 });
 

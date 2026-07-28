@@ -97,6 +97,23 @@
           />
         </div>
       </div>
+
+      <!-- Recent this week, split by feature. Shown/hidden per enabled feature; -->
+      <!-- each widget also self-hides when there's nothing from the last 7 days. -->
+      <HomeRecentScroller
+        v-if="settingsStore.isFeatureEnabled('todo')"
+        title="Recent todos"
+        :items="summary.recentTodos.value"
+        @open="openItem"
+      />
+      <HomeRecentScroller
+        v-if="settingsStore.isFeatureEnabled('doc')"
+        title="Recent docs"
+        :items="summary.recentDocs.value"
+        @open="openItem"
+      />
+
+      <HomeActivityHeatmap />
     </template>
   </div>
 </template>
@@ -111,6 +128,8 @@ import QuickJumpCard from "../components/home/QuickJumpCard.vue";
 import HomeFolderTile from "../components/home/HomeFolderTile.vue";
 import HomeFileCard from "../components/home/HomeFileCard.vue";
 import type { FeatureType } from "../db/types";
+import HomeRecentScroller from "@/components/home/HomeRecentScroller.vue";
+import HomeActivityHeatmap from "@/components/home/HomeActivityHeatmap.vue";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
@@ -118,9 +137,18 @@ const summary = useHomeSummary();
 
 const query = ref("");
 
+function timeOfDayFor(hour: number): string {
+  if (hour < 12) {
+    return "morning";
+  }
+  if (hour < 18) {
+    return "afternoon";
+  }
+  return "evening";
+}
+
 const greeting = computed(() => {
-  const hour = new Date().getHours();
-  const timeOfDay = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+  const timeOfDay = timeOfDayFor(new Date().getHours());
   return settingsStore.username
     ? `Good ${timeOfDay}, ${settingsStore.username}`
     : `Good ${timeOfDay}`;
@@ -148,9 +176,7 @@ const quickJumpConfig: {
 ];
 
 const quickJumpTiles = computed(() =>
-  quickJumpConfig
-    .filter((tile) => settingsStore.isFeatureEnabled(tile.feature))
-    .map((tile) => ({ ...tile })),
+  quickJumpConfig.filter((tile) => settingsStore.isFeatureEnabled(tile.feature)),
 );
 
 const folderRouteNames: Record<FeatureType, string> = {

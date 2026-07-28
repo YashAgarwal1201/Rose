@@ -17,12 +17,10 @@ import { computed } from "vue";
 import { FolderIcon } from "@lucide/vue";
 import type { FolderSummary } from "../../composables/useHomeSummary";
 
-const props = defineProps<{
+const { folder, routeName } = defineProps<{
   folder: FolderSummary;
   routeName: string;
 }>();
 
-const itemLabel = computed(() =>
-  props.folder.itemCount === 1 ? "1 item" : `${props.folder.itemCount} items`,
-);
+const itemLabel = computed(() => (folder.itemCount === 1 ? "1 item" : `${folder.itemCount} items`));
 </script>
