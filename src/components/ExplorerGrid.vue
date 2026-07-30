@@ -39,6 +39,7 @@ interface DisplayItem {
   updatedAt?: number;
   createdAt?: number;
   isNew?: boolean;
+  thumbnail?: string | null;
 }
 interface RenameOptions {
   kind: "folder" | "file";
@@ -316,13 +317,21 @@ defineExpose({ startCreate });
     <div
       v-else-if="viewMode === 'grid'"
       class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
+      role="list"
     >
       <div
         v-for="item in displayItems"
         :key="item.kind + '-' + item.id"
-        class="group relative flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-rose-surface-alt cursor-pointer transition-colors"
-        @click="!item.isNew && handleOpen(item)"
+        class="group relative flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-rose-surface-alt transition-colors"
+        role="listitem"
       >
+        <button
+          v-if="!item.isNew && !isRenaming(item)"
+          type="button"
+          class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
+          :aria-label="'Open ' + item.name"
+          @click="handleOpen(item)"
+        ></button>
         <!-- <component
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
           class="w-12 h-12 shrink-0"
@@ -332,13 +341,13 @@ defineExpose({ startCreate });
         <img
           v-if="item.kind === 'file' && item.thumbnail"
           :src="item.thumbnail"
-          class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border"
+          class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
           alt=""
         />
         <component
           v-else
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
-          class="w-12 h-12 shrink-0"
+          class="w-12 h-12 shrink-0 relative z-10 pointer-events-none"
           :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
         />
 
@@ -348,8 +357,9 @@ defineExpose({ startCreate });
           ref="newItemInputRef"
           type="text"
           autofocus
+          aria-label="New item name"
           :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
-          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
           @keyup.enter="confirmCreate"
           @keyup.escape="cancelCreate"
@@ -360,29 +370,34 @@ defineExpose({ startCreate });
           v-model="renamingName"
           type="text"
           autofocus
-          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          aria-label="Rename item"
+          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
           @keyup.enter="confirmRename"
           @keyup.escape="cancelRename"
           @blur="confirmRename"
         />
-        <span v-else class="text-sm text-rose-text text-center truncate w-full">{{
+        <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
           item.name
         }}</span>
 
         <div
           v-if="!item.isNew"
-          class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-20"
         >
           <button
-            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary"
-            @click="handleStartRename(item, $event)"
+            type="button"
+            aria-label="Rename"
+            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            @click.stop="handleStartRename(item, $event)"
           >
             <PencilIcon class="w-3.5 h-3.5" />
           </button>
           <button
-            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary"
-            @click="handleDelete(item, $event)"
+            type="button"
+            aria-label="Delete"
+            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            @click.stop="handleDelete(item, $event)"
           >
             <TrashIcon class="w-3.5 h-3.5" />
           </button>
@@ -403,12 +418,20 @@ defineExpose({ startCreate });
         <span class="w-14 shrink-0"></span>
       </div>
 
-      <div
-        v-for="item in displayItems"
-        :key="item.kind + '-' + item.id"
-        class="group flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt cursor-pointer transition-colors"
-        @click="!item.isNew && handleOpen(item)"
-      >
+      <div role="list" class="flex flex-col">
+        <div
+          v-for="item in displayItems"
+          :key="item.kind + '-' + item.id"
+          class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
+          role="listitem"
+        >
+        <button
+          v-if="!item.isNew && !isRenaming(item)"
+          type="button"
+          class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
+          :aria-label="'Open ' + item.name"
+          @click="handleOpen(item)"
+        ></button>
         <!-- <component
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
           class="w-5 h-5 shrink-0"
@@ -418,13 +441,13 @@ defineExpose({ startCreate });
         <img
           v-if="item.kind === 'file' && item.thumbnail"
           :src="item.thumbnail"
-          class="w-5 h-5 shrink-0 object-cover rounded"
+          class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
           alt=""
         />
         <component
           v-else
           :is="item.kind === 'folder' ? FolderIcon : fileIcon"
-          class="w-5 h-5 shrink-0"
+          class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
           :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
         />
 
@@ -434,8 +457,9 @@ defineExpose({ startCreate });
           ref="newItemInputRef"
           type="text"
           autofocus
+          aria-label="New item name"
           :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
-          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
           @keyup.enter="confirmCreate"
           @keyup.escape="cancelCreate"
@@ -446,13 +470,14 @@ defineExpose({ startCreate });
           v-model="renamingName"
           type="text"
           autofocus
-          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none"
+          aria-label="Rename item"
+          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
           @keyup.enter="confirmRename"
           @keyup.escape="cancelRename"
           @blur="confirmRename"
         />
-        <span v-else class="flex-1 text-sm text-rose-text truncate">{{ item.name }}</span>
+        <span v-else class="flex-1 text-sm text-rose-text truncate relative z-10 pointer-events-none">{{ item.name }}</span>
 
         <template v-if="!item.isNew">
           <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate">
@@ -468,9 +493,24 @@ defineExpose({ startCreate });
             {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
           </span>
           <div
-            class="w-14 flex justify-end gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            class="w-14 flex justify-end gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity relative z-20"
           >
-            ...
+            <button
+              type="button"
+              aria-label="Rename"
+              class="p-1 rounded text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary bg-rose-surface-alt"
+              @click.stop="handleStartRename(item, $event)"
+            >
+              <PencilIcon class="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Delete"
+              class="p-1 rounded text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary bg-rose-surface-alt"
+              @click.stop="handleDelete(item, $event)"
+            >
+              <TrashIcon class="w-3.5 h-3.5" />
+            </button>
           </div>
         </template>
         <template v-else>
@@ -480,6 +520,7 @@ defineExpose({ startCreate });
           <span class="w-32 shrink-0"></span>
           <span class="w-14 shrink-0"></span>
         </template>
+      </div>
       </div>
     </div>
   </div>
