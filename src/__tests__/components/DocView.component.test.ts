@@ -57,45 +57,45 @@ let fakeEditor: ReturnType<typeof makeFakeEditor>;
 vi.mock(import("@tiptap/vue-3"), () => ({
   useEditor: () => ref(fakeEditor),
   EditorContent: { template: "<div data-testid='editor-content' />" },
-}));
+} as any));
 
-// \u2500\u2500\u2500 Extension stubs \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 function extensionStub(name: string): Record<string, unknown> {
   const ext: Record<string, unknown> = { name };
   ext.configure = vi.fn(() => ext);
   ext.extend = vi.fn(() => extensionStub(name));
   return ext;
 }
-vi.mock(import("@tiptap/starter-kit"), () => ({ default: extensionStub("starterKit") }));
-vi.mock(import("@tiptap/extension-task-list"), () => ({ default: extensionStub("taskList") }));
-vi.mock(import("@tiptap/extension-task-item"), () => ({ default: extensionStub("taskItem") }));
-vi.mock(import("@tiptap/extension-link"), () => ({ default: extensionStub("link") }));
-vi.mock(import("@tiptap/extension-image"), () => ({ default: extensionStub("image") }));
-vi.mock(import("@tiptap/extension-placeholder"), () => ({ default: extensionStub("placeholder") }));
-vi.mock(import("@tiptap/extension-text-align"), () => ({ default: extensionStub("textAlign") }));
+vi.mock(import("@tiptap/starter-kit"), () => ({ default: extensionStub("starterKit") } as any));
+vi.mock(import("@tiptap/extension-task-list"), () => ({ default: extensionStub("taskList") } as any));
+vi.mock(import("@tiptap/extension-task-item"), () => ({ default: extensionStub("taskItem") } as any));
+vi.mock(import("@tiptap/extension-link"), () => ({ default: extensionStub("link") } as any));
+vi.mock(import("@tiptap/extension-image"), () => ({ default: extensionStub("image") } as any));
+vi.mock(import("@tiptap/extension-placeholder"), () => ({ default: extensionStub("placeholder") } as any));
+vi.mock(import("@tiptap/extension-text-align"), () => ({ default: extensionStub("textAlign") } as any));
 vi.mock(import("@tiptap/extension-text-style"), () => ({
   TextStyle: extensionStub("textStyle"),
   Color: extensionStub("color"),
-}));
-vi.mock(import("@tiptap/extension-highlight"), () => ({ Highlight: extensionStub("highlight") }));
-vi.mock(import("@tiptap/extension-underline"), () => ({ default: extensionStub("underline") }));
-vi.mock(import("@tiptap/extension-subscript"), () => ({ default: extensionStub("subscript") }));
-vi.mock(import("@tiptap/extension-superscript"), () => ({ default: extensionStub("superscript") }));
+} as any));
+vi.mock(import("@tiptap/extension-highlight"), () => ({ Highlight: extensionStub("highlight") } as any));
+vi.mock(import("@tiptap/extension-underline"), () => ({ default: extensionStub("underline") } as any));
+vi.mock(import("@tiptap/extension-subscript"), () => ({ default: extensionStub("subscript") } as any));
+vi.mock(import("@tiptap/extension-superscript"), () => ({ default: extensionStub("superscript") } as any));
 vi.mock(import("@tiptap/extension-table"), () => ({
   Table: extensionStub("table"),
   TableCell: extensionStub("tableCell"),
   TableHeader: extensionStub("tableHeader"),
   TableRow: extensionStub("tableRow"),
-}));
+} as any));
 vi.mock(import("@tiptap/pm/tables"), () => ({
   TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
-}));
-vi.mock(import("@tiptap/markdown"), () => ({ Markdown: extensionStub("markdown") }));
+} as any));
+vi.mock(import("@tiptap/markdown"), () => ({ Markdown: extensionStub("markdown") } as any));
 
-// \u2500\u2500\u2500 Composable mocks \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 vi.mock(import("../../composables/useToast"), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 vi.mock(import("../../composables/useDocExport"), () => ({
   useDocExport: () => ({
     exportAsHtml: vi.fn(),
@@ -103,7 +103,7 @@ vi.mock(import("../../composables/useDocExport"), () => ({
     exportAsText: vi.fn(),
     exportAsPdf: vi.fn(),
   }),
-}));
+} as any));
 vi.mock(import("../../composables/useToolbarPosition"), () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
@@ -112,24 +112,26 @@ vi.mock(import("../../composables/useToolbarPosition"), () => ({
     isMobile: ref(false),
     setPosition: vi.fn(),
   }),
-}));
+} as any));
 vi.mock(import("../../composables/usePopoverPosition"), () => ({
   usePopoverPosition: () => ({
     style: ref({}),
     open: vi.fn(),
     close: vi.fn(),
   }),
-}));
+} as any));
 // debounce runs immediately in tests instead of waiting AUTOSAVE_DELAY_MS
 vi.mock(import("../../utils/debounce"), () => ({
   debounce:
-    (fn: (...args: unknown[]) => unknown) =>
-    (...args: unknown[]) =>
-      fn(...args),
-}));
+    (fn: (...args: unknown[]) => unknown) => {
+      const debounced = (...args: unknown[]) => fn(...args);
+      debounced.flush = vi.fn();
+      return debounced;
+    },
+} as any));
 vi.mock(import("../../components/DocToolbar.vue"), () => ({
   default: { template: "<div data-testid='doc-toolbar' />" },
-}));
+} as any));
 
 // \u2500\u2500\u2500 Router factory \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const routerStub = { template: "<div />" };
@@ -217,6 +219,7 @@ describe("DocView", () => {
         title: "My Doc",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -239,6 +242,7 @@ describe("DocView", () => {
         title: "Nested Doc",
         folderId: "folder-nested-1",
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -254,6 +258,7 @@ describe("DocView", () => {
         title: "Content Doc",
         folderId: null,
         contentJSON: content,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -268,6 +273,7 @@ describe("DocView", () => {
         title: "Editor Doc",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -293,6 +299,7 @@ describe("DocView", () => {
         title: "Back Doc",
         folderId: "folder-2",
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -313,6 +320,7 @@ describe("DocView", () => {
         title: "Rename Me",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -331,6 +339,7 @@ describe("DocView", () => {
         title: "Old Title",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -353,6 +362,7 @@ describe("DocView", () => {
         title: "Untouched Title",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -377,6 +387,7 @@ describe("DocView", () => {
         title: "Timestamp Doc",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: Date.now(),
       });
@@ -391,6 +402,7 @@ describe("DocView", () => {
         title: "Toolbar Doc",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -408,6 +420,7 @@ describe("DocView", () => {
         title: "Unmount Doc",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
