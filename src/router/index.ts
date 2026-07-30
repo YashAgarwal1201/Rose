@@ -14,13 +14,19 @@ import { useSettingsStore } from "../stores/settings";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { component: HomeView, name: "home", path: "/" },
-    { component: OnboardingView, name: "onboarding", path: "/onboarding" },
-    { component: SettingsView, name: "settings", path: "/settings" },
+    { component: HomeView, meta: { title: "Home" }, name: "home", path: "/" },
+    {
+      component: OnboardingView,
+      meta: { title: "Welcome" },
+      name: "onboarding",
+      path: "/onboarding",
+    },
+    { component: SettingsView, name: "settings", meta: { title: "Settings" }, path: "/settings" },
 
     {
       component: TodosView,
       name: "todos-folder",
+      meta: { title: "Todos" },
       path: "/todos/folder/:pathMatch(.*)*",
       props: true,
     },
@@ -34,10 +40,17 @@ const router = createRouter({
     {
       component: NotesView,
       name: "notes-folder",
+      meta: { title: "Notes" },
       path: "/notes/folder/:pathMatch(.*)*",
       props: true,
     },
-    { component: DocsView, name: "docs-folder", path: "/docs/folder/:pathMatch(.*)*", props: true },
+    {
+      component: DocsView,
+      name: "docs-folder",
+      meta: { title: "Docs" },
+      path: "/docs/folder/:pathMatch(.*)*",
+      props: true,
+    },
     { component: DocView, name: "docs-doc", path: "/docs/doc/:pathMatch(.*)*", props: true },
     { component: NoteView, name: "notes-note", path: "/notes/note/:pathMatch(.*)*", props: true },
   ],
@@ -64,6 +77,11 @@ router.beforeEach(async (to) => {
   }
 
   return true;
+});
+
+router.afterEach((to) => {
+  const title = to.meta.title as string | undefined;
+  document.title = title ? `${title} · Rose` : "Rose";
 });
 
 export default router;

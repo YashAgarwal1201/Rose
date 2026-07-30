@@ -2,6 +2,22 @@
 @import "./animations.css";
 @import "./utilities.css";
 
+@layer base {
+  html {
+    font-family: var(--font-content);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
+}
+
 button {
   cursor: pointer;
   pointer-events: auto;

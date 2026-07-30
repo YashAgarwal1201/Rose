@@ -1,10 +1,10 @@
 // src/composables/useHomeSummary.ts
 import { computed, ref } from "vue";
 import db from "../db";
-import type { Doc, Folder, TodoList } from "../db/types";
+import type { Doc, Folder, Note, TodoList } from "../db/types";
 import { MS_PER_WEEK } from "../utils/constants";
 
-export type RecentItemType = "todo" | "doc";
+export type RecentItemType = "todo" | "doc" | "note";
 
 export interface HomeItem {
   id: string;
@@ -56,19 +56,22 @@ export function useHomeSummary() {
   const todoLists = ref<TodoList[]>([]);
   const openTodoCount = ref(0);
   const docs = ref<Doc[]>([]);
+  const notes = ref<Note[]>([]);
   const isLoaded = ref(false);
 
   async function refresh() {
-    const [folderRows, listRows, todoRows, docRows] = await Promise.all([
+    const [folderRows, listRows, todoRows, docRows, noteRows] = await Promise.all([
       db.folders.toArray(),
       db.todoLists.toArray(),
       db.todos.toArray(),
       db.docs.toArray(),
+      db.notes.toArray(),
     ]);
 
     folders.value = folderRows;
     todoLists.value = listRows;
     docs.value = docRows;
+    notes.value = noteRows;
     openTodoCount.value = todoRows.filter((todo) => !todo.done).length;
     isLoaded.value = true;
   }
@@ -92,6 +95,15 @@ export function useHomeSummary() {
       type: "doc" as const,
       updatedAt: doc.updatedAt,
     })),
+    ...notes.value.map((note) => ({
+      folderName: immediateFolderName(note.folderId, folders.value),
+      id: note.id,
+      lastOpenedAt: note.lastOpenedAt ?? null,
+      path: [...buildFolderPath(note.folderId, folders.value), note.title],
+      title: note.title,
+      type: "note" as const,
+      updatedAt: note.updatedAt,
+    })),
   ]);
 
   const recentItems = computed(() =>
@@ -110,6 +122,7 @@ export function useHomeSummary() {
 
   const recentTodos = computed(() => recentByType("todo"));
   const recentDocs = computed(() => recentByType("doc"));
+  const recentNotes = computed(() => recentByType("note"));
 
   function countForFolder(folder: Folder): number {
     if (folder.type === "todo") {
@@ -117,6 +130,9 @@ export function useHomeSummary() {
     }
     if (folder.type === "doc") {
       return docs.value.filter((doc) => doc.folderId === folder.id).length;
+    }
+    if (folder.type === "note") {
+      return notes.value.filter((note) => note.folderId === folder.id).length;
     }
     return 0;
   }
@@ -141,7 +157,11 @@ export function useHomeSummary() {
   );
 
   const isEmpty = computed(
-    () => folders.value.length === 0 && todoLists.value.length === 0 && docs.value.length === 0,
+    () =>
+      folders.value.length === 0 &&
+      todoLists.value.length === 0 &&
+      docs.value.length === 0 &&
+      notes.value.length === 0,
   );
 
   function search(query: string): HomeItem[] {
@@ -174,10 +194,12 @@ export function useHomeSummary() {
     isEmpty,
     isLoaded,
     listCount: computed(() => todoLists.value.length),
+    noteCount: computed(() => notes.value.length),
     openTodoCount,
     overflowFolderCount,
     recentDocs,
     recentItems,
+    recentNotes,
     recentTodos,
     refresh,
     search,

@@ -1,26 +1,27 @@
 <!-- src/components/NoteCanvas.vue -->
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useHandwritingCanvas } from "../composables/useHandwritingCanvas";
+import { debounce } from "../utils/debounce";
 import NoteToolbar from "./NoteToolbar.vue";
 import type { ToolbarPosition } from "../composables/useToolbarPosition";
 
-// const props = defineProps<{
-//   initialCanvasJSON: Record<string, unknown> | null;
-//   initialBackgroundColor: string;
-//   toolbarPosition: ToolbarPosition;
-// }>();
+// const props = withDefaults(
+//   defineProps<{
+//     initialCanvasJSON?: Record<string, unknown> | null;
+//     initialBackgroundColor: string;
+//     toolbarPosition: ToolbarPosition;
+//   }>(),
+//   {
+//     initialCanvasJSON: null,
+//   },
+// );
 
-const props = withDefaults(
-  defineProps<{
-    initialCanvasJSON?: Record<string, unknown> | null;
-    initialBackgroundColor: string;
-    toolbarPosition: ToolbarPosition;
-  }>(),
-  {
-    initialCanvasJSON: null,
-  },
-);
+const props = defineProps<{
+  initialCanvasJson: Record<string, unknown> | null;
+  initialBackgroundColor: string;
+  toolbarPosition: ToolbarPosition;
+}>();
 
 const emit = defineEmits<{
   change: [canvasJSON: Record<string, unknown>, backgroundColor: string, thumbnail: string];
@@ -47,34 +48,66 @@ const {
   addText,
   addImage,
   fabricCanvas,
+  destroy,
 } = useHandwritingCanvas(canvasEl);
 
-let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-
-function scheduleSave() {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout);
+function saveNow() {
+  const json = toJSON();
+  const thumbnail = generateThumbnail();
+  if (json && thumbnail) {
+    emit("change", json, backgroundColor.value, thumbnail);
   }
-  saveTimeout = setTimeout(() => {
-    const json = toJSON();
-    const thumbnail = generateThumbnail();
-    if (json && thumbnail) {
-      emit("change", json, backgroundColor.value, thumbnail);
-    }
-  }, 800); // debounced, same spirit as Docs' autosave
 }
 
+// debounced, same spirit as Docs' autosave — but now uses the shared utility
+// so we can .flush() a pending save before unmount/reload, instead of
+// silently losing it when the timer never gets a chance to fire.
+const scheduleSave = debounce(saveNow, 800);
+
+function handleBeforeUnload() {
+  scheduleSave.flush();
+}
+
+const isCanvasReady = false;
+
 onMounted(async () => {
+  // console.log("NoteCanvas mounted, initialCanvasJSON prop:", props.initialCanvasJson);
   if (!canvasEl.value) {
     return;
   }
   init(canvasEl.value);
-  await loadFromJSON(props.initialCanvasJSON, props.initialBackgroundColor);
+  await loadFromJSON(props.initialCanvasJson, props.initialBackgroundColor);
+
+  // await loadFromJSON(props.initialCanvasJSON, props.initialBackgroundColor);
+  // console.log("objects after load:", fabricCanvas.value?.getObjects().length);
 
   fabricCanvas.value?.on("object:added", scheduleSave);
   fabricCanvas.value?.on("object:removed", scheduleSave);
   fabricCanvas.value?.on("object:modified", scheduleSave);
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
 });
+
+onBeforeUnmount(() => {
+  // Remove the listener first, then flush — avoids a double-fire if a
+  // beforeunload event lands in the same tick as component teardown.
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+  // Flush before the parent's :key change disposes the Fabric canvas,
+  // so a pending edit from the last 800ms isn't dropped when switching notes.
+  scheduleSave.flush();
+  destroy();
+});
+
+watch(
+  () => props.initialCanvasJson,
+  async (canvasJSON) => {
+    if (!isCanvasReady || !canvasJSON) {
+      return;
+    }
+
+    await loadFromJSON(canvasJSON, props.initialBackgroundColor);
+  },
+);
 
 watch(backgroundColor, (color) => {
   if (fabricCanvas.value) {
@@ -114,30 +147,32 @@ async function handleImageSelected(event: Event) {
 </script>
 
 <template>
-  <div class="note-canvas">
-    <NoteToolbar
-      v-model:tool="tool"
-      v-model:pen-tool="penTool"
-      v-model:shape-tool="shapeTool"
-      v-model:pen-color="penColor"
-      v-model:background-color="backgroundColor"
-      :can-undo="canUndo"
-      :can-redo="canRedo"
-      :position="toolbarPosition"
-      @undo="undo"
-      @redo="redo"
-      @trigger-image-pick="triggerImagePick"
-    />
-    <div class="note-canvas__scroll">
-      <canvas ref="canvasEl" />
+  <div class="flex flex-col h-full overflow-hidden">
+    <div class="note-canvas">
+      <NoteToolbar
+        v-model:tool="tool"
+        v-model:pen-tool="penTool"
+        v-model:shape-tool="shapeTool"
+        v-model:pen-color="penColor"
+        v-model:background-color="backgroundColor"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :position="toolbarPosition"
+        @undo="undo"
+        @redo="redo"
+        @trigger-image-pick="triggerImagePick"
+      />
+      <div class="note-canvas__scroll">
+        <canvas ref="canvasEl" />
+      </div>
+      <input
+        ref="imageInputRef"
+        type="file"
+        accept="image/*"
+        class="sr-only"
+        @change="handleImageSelected"
+      />
     </div>
-    <input
-      ref="imageInputRef"
-      type="file"
-      accept="image/*"
-      class="sr-only"
-      @change="handleImageSelected"
-    />
   </div>
 </template>
 

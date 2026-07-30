@@ -116,6 +116,7 @@ async function loadNote() {
   }
 
   currentNote.value = match;
+  // console.log("loaded note, canvasJSON:", match.canvasJSON);
   notesStore.touchNote(match.id);
 }
 

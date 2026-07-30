@@ -35,6 +35,11 @@
             :size="16"
             class="text-rose-text-muted shrink-0"
           />
+          <PenLineIcon
+            v-else-if="result.type === 'note'"
+            :size="16"
+            class="text-rose-text-muted shrink-0"
+          />
           <FileTextIcon v-else :size="16" class="text-rose-text-muted shrink-0" />
           <span class="text-sm text-rose-text truncate">{{ result.title }}</span>
         </button>
@@ -112,8 +117,14 @@
         :items="summary.recentDocs.value"
         @open="openItem"
       />
+      <HomeRecentScroller
+        v-if="settingsStore.isFeatureEnabled('note')"
+        title="Recent notes"
+        :items="summary.recentNotes.value"
+        @open="openItem"
+      />
 
-      <HomeActivityHeatmap />
+      <HomeActivityCard />
     </template>
   </div>
 </template>
@@ -129,7 +140,7 @@ import HomeFolderTile from "../components/home/HomeFolderTile.vue";
 import HomeFileCard from "../components/home/HomeFileCard.vue";
 import type { FeatureType } from "../db/types";
 import HomeRecentScroller from "@/components/home/HomeRecentScroller.vue";
-import HomeActivityHeatmap from "@/components/home/HomeActivityHeatmap.vue";
+import HomeActivityCard from "@/components/home/HomeActivityCard.vue";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
@@ -193,6 +204,8 @@ function openItem(item: HomeItem) {
   query.value = "";
   if (item.type === "todo") {
     router.push({ name: "todos-list", params: { pathMatch: item.path } });
+  } else if (item.type === "note") {
+    router.push({ name: "notes-note", params: { pathMatch: item.path } });
   } else {
     router.push({ name: "docs-doc", params: { pathMatch: item.path } });
   }

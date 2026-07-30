@@ -35,7 +35,9 @@ function resolveFolderId(segs: string[]): string | null | undefined {
         folder.type === "note" &&
         folder.name.toLowerCase() === segment.toLowerCase(),
     );
-    if (!match) return undefined;
+    if (!match) {
+      return undefined;
+    }
     cursor = match.id;
   }
   return cursor;
@@ -46,7 +48,9 @@ function buildFolderPath(folderId: string | null): string[] {
   let cursor = folderId;
   while (cursor !== null) {
     const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
-    if (!folder) break;
+    if (!folder) {
+      break;
+    }
     path.unshift(folder.name);
     cursor = folder.parentId;
   }
@@ -56,22 +60,30 @@ function buildFolderPath(folderId: string | null): string[] {
 const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
 
 const subfolders = computed(() => {
-  if (currentFolderId.value === undefined) return [];
+  if (currentFolderId.value === undefined) {
+    return [];
+  }
   return foldersStore.folders.filter((folder) => folder.parentId === currentFolderId.value);
 });
 
 const visibleNotes = computed(() => {
-  if (currentFolderId.value === undefined) return [];
+  if (currentFolderId.value === undefined) {
+    return [];
+  }
   return notesStore.notes.filter((note) => note.folderId === currentFolderId.value);
 });
 
 const crumbs = computed<Crumb[]>(() => {
-  if (currentFolderId.value === undefined || currentFolderId.value === null) return [];
+  if (currentFolderId.value === undefined || currentFolderId.value === null) {
+    return [];
+  }
   const chain: Crumb[] = [];
   let cursor: string | null = currentFolderId.value;
   while (cursor !== null) {
     const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
-    if (!folder) break;
+    if (!folder) {
+      break;
+    }
     chain.unshift({ id: folder.id, name: folder.name });
     cursor = folder.parentId;
   }
@@ -92,10 +104,14 @@ async function loadCurrentFolder() {
     await foldersStore.loadFolders("note");
     await notesStore.loadNotes();
   } catch (error) {
-    if (token === activeLoadToken) showToast((error as Error).message, "error");
+    if (token === activeLoadToken) {
+      showToast((error as Error).message, "error");
+    }
     return;
   }
-  if (token !== activeLoadToken) return;
+  if (token !== activeLoadToken) {
+    return;
+  }
 
   const resolved = resolveFolderId(segments.value);
   if (resolved === undefined) {
@@ -110,7 +126,9 @@ function navigateToFolder(id: string | null) {
 
 function openNote(id: string) {
   const note = notesStore.notes.find((candidate) => candidate.id === id);
-  if (!note) return;
+  if (!note) {
+    return;
+  }
   router.push({
     name: "notes-note",
     params: { pathMatch: [...buildFolderPath(note.folderId), note.title] },
@@ -128,7 +146,9 @@ async function handleCreateFolder(name: string) {
 async function handleRenameFolder(id: string, name: string) {
   try {
     await foldersStore.renameFolder(id, name);
-    if (id === currentFolderId.value) navigateToFolder(id);
+    if (id === currentFolderId.value) {
+      navigateToFolder(id);
+    }
   } catch (error) {
     showToast((error as Error).message, "error");
   }

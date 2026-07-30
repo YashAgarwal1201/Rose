@@ -1,5 +1,5 @@
 // src/composables/useHandwritingCanvas.ts
-import { onBeforeUnmount, ref, type Ref, shallowRef, watch } from "vue";
+import { ref, type Ref, shallowRef, watch } from "vue";
 import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Rect, Textbox } from "fabric";
 import getStroke from "perfect-freehand";
 
@@ -695,7 +695,6 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     redoStack = [];
     maxContentBottom = 0;
     refreshHistoryFlags();
-
     return canvas.loadFromJSON(json).then(() => {
       canvas.requestRenderAll();
       suppressHistory = false;
@@ -714,12 +713,19 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     return canvas.toDataURL({ format: "png", multiplier: 0.2, quality: 0.6 });
   }
 
-  onBeforeUnmount(() => {
+  function destroy() {
     stopPreviewLoop();
     resizeObserver?.disconnect();
     fabricCanvas.value?.dispose();
     overlayCtx = null;
-  });
+  }
+
+  // onBeforeUnmount(() => {
+  //   stopPreviewLoop();
+  //   resizeObserver?.disconnect();
+  //   fabricCanvas.value?.dispose();
+  //   overlayCtx = null;
+  // });
 
   return {
     addImage,
@@ -739,5 +745,6 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     tool,
     toJSON,
     undo,
+    destroy,
   };
 }
