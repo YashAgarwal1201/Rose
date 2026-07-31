@@ -2,7 +2,7 @@
 <template>
   <div class="p-4 md:p-8 lg:p-10">
     <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
-    <p class="text-sm sm:text-base text-rose-text-muted mt-1">
+    <p class="text-sm sm:text-base text-rose-cream mt-1">
       Manage your profile, enabled features, and app data.
     </p>
 
@@ -263,10 +263,11 @@ async function handleClearContent() {
   if (!confirmed) {
     return;
   }
-  await db.transaction("rw", db.folders, db.todoLists, db.todos, db.docs, async () => {
+  await db.transaction("rw", [db.folders, db.todoLists, db.todos, db.notes, db.docs], async () => {
     await db.folders.clear();
     await db.todoLists.clear();
     await db.todos.clear();
+    await db.notes.clear();
     await db.docs.clear();
   });
   showToast("All content cleared.", "info");
@@ -289,10 +290,11 @@ async function confirmReset() {
   if (resetConfirmText.value.trim().toUpperCase() !== "RESET") {
     return;
   }
-  await db.transaction("rw", db.folders, db.todoLists, db.todos, db.docs, db.settings, async () => {
+  await db.transaction("rw", [db.folders, db.todoLists, db.todos, db.notes, db.docs, db.settings], async () => {
     await db.folders.clear();
     await db.todoLists.clear();
     await db.todos.clear();
+    await db.notes.clear();
     await db.docs.clear();
     await db.settings.clear();
   });

@@ -1,7 +1,8 @@
 <!-- src/components/NoteCanvas.vue -->
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useHandwritingCanvas } from "../composables/useHandwritingCanvas";
+import { useNoteExport } from "../composables/useNoteExport";
 import { debounce } from "../utils/debounce";
 import NoteToolbar from "./NoteToolbar.vue";
 import type { ToolbarPosition } from "../composables/useToolbarPosition";
@@ -21,6 +22,7 @@ const props = defineProps<{
   initialCanvasJson: Record<string, unknown> | null;
   initialBackgroundColor: string;
   toolbarPosition: ToolbarPosition;
+  noteTitle?: string;
 }>();
 
 const emit = defineEmits<{
@@ -50,6 +52,13 @@ const {
   fabricCanvas,
   destroy,
 } = useHandwritingCanvas(canvasEl);
+
+const dummyMenuOpen = ref(false);
+const { exportAsPng, exportAsJpeg, exportAsSvg } = useNoteExport(
+  fabricCanvas,
+  computed(() => props.noteTitle),
+  dummyMenuOpen,
+);
 
 function saveNow() {
   const json = toJSON();
@@ -161,6 +170,9 @@ async function handleImageSelected(event: Event) {
         @undo="undo"
         @redo="redo"
         @trigger-image-pick="triggerImagePick"
+        @export-as-png="exportAsPng"
+        @export-as-jpeg="exportAsJpeg"
+        @export-as-svg="exportAsSvg"
       />
       <div class="note-canvas__scroll">
         <canvas ref="canvasEl" />

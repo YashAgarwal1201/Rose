@@ -133,7 +133,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-sm text-rose-text-muted">Version</span>
                 <span
-                  class="px-3 py-1 rounded-full bg-rose-primary/10 text-rose-primary border border-rose-primary/20 text-xs font-mono"
+                  class="px-3 py-1 rounded-full bg-rose-surface text-rose-cream text-xs font-mono"
                 >
                   {{ appVersion }}
                 </span>

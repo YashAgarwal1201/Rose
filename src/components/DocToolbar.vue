@@ -256,13 +256,13 @@ const scrollClasses = computed(() => {
 // Divider classes — horizontal line for vertical toolbar, vertical line for horizontal
 const dividerClass = computed(() =>
   isVertical.value
-    ? "h-px w-6 bg-rose-border my-0.5 shrink-0"
-    : "w-px h-5 bg-rose-border mx-0.5 shrink-0",
+    ? "h-px w-6 bg-rose-cream/10 my-0.5 shrink-0"
+    : "w-px h-5 bg-rose-cream/10 mx-0.5 shrink-0",
 );
 
 function btnClass(active: boolean) {
   return active
-    ? "p-1.5 rounded bg-rose-primary text-white shrink-0"
+    ? "p-1.5 rounded bg-rose-surface-alt text-rose-green shrink-0"
     : "p-1.5 rounded text-rose-text-muted hover:bg-rose-surface-alt shrink-0";
 }
 

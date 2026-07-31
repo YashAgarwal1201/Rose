@@ -238,6 +238,7 @@ watch(() => pathMatch, loadNote);
       :initial-canvas-json="currentNote.canvasJSON"
       :initial-background-color="currentNote.backgroundColor"
       :toolbar-position="effectivePosition"
+      :note-title="currentNote.title"
       @change="handleCanvasChange"
     />
   </div>

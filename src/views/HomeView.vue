@@ -1,12 +1,14 @@
 <!-- src/views/HomeView.vue -->
 <template>
-  <div class="p-4 md:p-8 lg:p-10">
+  <div class="p-4 md:p-8 lg:p-10 flex flex-col min-h-full">
     <!-- Greeting -->
-    <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">{{ greeting }}</h1>
-    <p class="text-sm sm:text-base text-rose-text-muted mt-1">{{ formattedDate }}</p>
+    <div class="shrink-0">
+      <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">{{ greeting }}</h1>
+      <p class="text-sm sm:text-base text-rose-text-muted mt-1">{{ formattedDate }}</p>
+    </div>
 
     <!-- Search -->
-    <div class="relative mt-6 max-w-2xl">
+    <div v-if="!summary.isEmpty.value" class="relative mt-6 max-w-2xl shrink-0">
       <SearchIcon
         :size="16"
         class="absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-text-muted"
@@ -15,9 +17,18 @@
         v-model="query"
         type="text"
         placeholder="Search your todos and docs..."
-        class="w-full pl-10 pr-4 py-3 rounded-xl bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+        class="w-full pl-10 pr-10 py-3 rounded-xl bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
         @keyup.escape="query = ''"
       />
+      <button
+        v-if="query.length > 0"
+        type="button"
+        class="absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-text-muted hover:text-rose-text transition-colors"
+        @click="query = ''"
+        aria-label="Clear search"
+      >
+        <XIcon :size="16" />
+      </button>
 
       <div
         v-if="query.trim() && searchResults.length > 0"
@@ -54,9 +65,9 @@
     </div>
 
     <!-- Empty state: nothing created anywhere yet -->
-    <div v-if="summary.isEmpty.value" class="mt-12 text-center">
+    <div v-if="summary.isEmpty.value" class="m-auto flex flex-col items-center justify-center pb-20 text-center">
       <div
-        class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-rose-primary/10 flex items-center justify-center"
+        class="mb-4 w-14 h-14 rounded-2xl bg-rose-primary/10 flex items-center justify-center"
       >
         <SparklesIcon :size="24" class="text-rose-primary" />
       </div>
@@ -132,7 +143,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, SparklesIcon } from "@lucide/vue";
+import { FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, SparklesIcon, XIcon } from "@lucide/vue";
 import { useSettingsStore } from "../stores/settings";
 import { type HomeItem, useHomeSummary } from "../composables/useHomeSummary";
 import QuickJumpCard from "../components/home/QuickJumpCard.vue";

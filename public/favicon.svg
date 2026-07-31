@@ -4,23 +4,12 @@
 <svg
   version="1.0"
   xmlns="http://www.w3.org/2000/svg"
-  width="512"
+  width="438"
   height="512"
-  viewBox="0 0 1254 1254"
+  viewBox="282.13 198.65 683.27 797.91"
   preserveAspectRatio="xMidYMid meet"
 >
-  <rect
-    x="0"
-    y="0"
-    width="1254"
-    height="1254"
-    rx="250"
-    ry="250"
-    fill="#F5EFE6"
-  />
-
-  <g transform="translate(627 627) scale(0.8) translate(-627 -627)">
-   <g transform="translate(0,1254) scale(0.1,-0.1)">
+  <g transform="translate(0,1254) scale(0.1,-0.1)">
     <g fill="#bc4153" stroke="none">
       <path d="M5655 10509 c-191 -25 -386 -103 -507 -204 -182 -152 -377 -472 -487
       -800 -70 -208 -91 -319 -98 -507 -6 -175 3 -263 44 -393 140 -446 591 -756
@@ -58,6 +47,5 @@
       23 111 80 142 142 27 53 30 68 30 154 0 85 -3 101 -29 153 -49 97 -130 156
       -241 176 -32 6 -61 11 -64 10 -3 -1 -24 -5 -47 -9z"/>
     </g>
-   </g>
   </g>
 </svg>

@@ -5,7 +5,7 @@
     class="text-left rounded-lg bg-rose-surface hover:bg-rose-surface-alt transition-colors p-3.5 w-full"
     @click="emit('open')"
   >
-    <component :is="icon" :size="18" class="text-rose-primary mb-2" />
+    <component :is="icon" :size="18" class="mb-2" :class="iconColor" />
     <p class="text-sm text-rose-text truncate">{{ item.title }}</p>
     <p class="text-xs text-rose-text-muted truncate">{{ subtitle }}</p>
   </button>
@@ -24,6 +24,12 @@ const { item, timestampLabel = "opened" } = defineProps<{
 const emit = defineEmits<{ open: [] }>();
 
 const icon = computed(() => (item.type === "todo" ? ListTodoIcon : FileTextIcon));
+
+const iconColor = computed(() => {
+  if (item.type === "todo") return "text-rose-green";
+  if (item.type === "doc") return "text-rose-cream";
+  return "text-rose-primary";
+});
 
 const subtitle = computed(() => {
   const timestamp = timestampLabel === "updated" ? item.updatedAt : item.lastOpenedAt;

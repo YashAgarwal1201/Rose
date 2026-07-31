@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import {
   MoveUpRight as ArrowIcon,
   Circle as EllipseIcon,
+  DownloadIcon,
   EraserIcon,
   ImageIcon,
   Minus as LineIcon,
@@ -47,6 +48,9 @@ const emit = defineEmits<{
   undo: [];
   redo: [];
   triggerImagePick: [];
+  exportAsPng: [];
+  exportAsJpeg: [];
+  exportAsSvg: [];
 }>();
 
 const PEN_COLORS = [
@@ -73,15 +77,18 @@ const penTriggerRef = ref<HTMLButtonElement | null>(null);
 const shapeTriggerRef = ref<HTMLButtonElement | null>(null);
 const colorTriggerRef = ref<HTMLButtonElement | null>(null);
 const backgroundTriggerRef = ref<HTMLButtonElement | null>(null);
+const exportTriggerRef = ref<HTMLButtonElement | null>(null);
 const penPopoverRef = ref<HTMLElement | null>(null);
 const shapePopoverRef = ref<HTMLElement | null>(null);
 const colorPopoverRef = ref<HTMLElement | null>(null);
 const backgroundPopoverRef = ref<HTMLElement | null>(null);
+const exportPopoverRef = ref<HTMLElement | null>(null);
 
 const isPenPopoverOpen = ref(false);
 const isShapePopoverOpen = ref(false);
 const isColorPopoverOpen = ref(false);
 const isBackgroundPopoverOpen = ref(false);
+const isExportMenuOpen = ref(false);
 
 const startPlacement = computed<PopoverPlacement>(() => {
   if (position === "left") { return "right-start"; }
@@ -99,16 +106,24 @@ const backgroundAnchor = usePopoverPosition(
   backgroundPopoverRef,
   startPlacement,
 );
+const exportAnchor = usePopoverPosition(
+  rootRef,
+  exportTriggerRef,
+  exportPopoverRef,
+  startPlacement,
+);
 
 function closeAllPopovers() {
   isPenPopoverOpen.value = false;
   isShapePopoverOpen.value = false;
   isColorPopoverOpen.value = false;
   isBackgroundPopoverOpen.value = false;
+  isExportMenuOpen.value = false;
   penAnchor.close();
   shapeAnchor.close();
   colorAnchor.close();
   backgroundAnchor.close();
+  exportAnchor.close();
 }
 
 function selectTool(next: CanvasTool) {
@@ -150,8 +165,16 @@ function toggleBackgroundPopover() {
     backgroundAnchor.open();
   }
 }
+function toggleExportMenu() {
+  const next = !isExportMenuOpen.value;
+  closeAllPopovers();
+  if (next) {
+    isExportMenuOpen.value = true;
+    exportAnchor.open();
+  }
+}
 
-const activeBtn = "bg-rose-surface-alt text-rose-primary";
+const activeBtn = "bg-rose-surface-alt text-rose-green";
 const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text";
 </script>
 
@@ -192,7 +215,7 @@ const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-
       <PaletteIcon class="w-4.5 h-4.5" />
     </button>
 
-    <div class="w-px h-5 bg-rose-border mx-1 shrink-0"></div>
+    <div class="w-px h-5 bg-rose-cream/10 mx-1 shrink-0"></div>
 
     <button type="button" class="p-2 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
       :class="idleBtn" :disabled="!canUndo" title="Undo" @click="emit('undo')">
@@ -201,6 +224,13 @@ const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-
     <button type="button" class="p-2 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
       :class="idleBtn" :disabled="!canRedo" title="Redo" @click="emit('redo')">
       <Redo2Icon class="w-4.5 h-4.5" />
+    </button>
+
+    <div class="w-px h-5 bg-rose-cream/10 mx-1 shrink-0"></div>
+
+    <button ref="exportTriggerRef" type="button" class="p-2 rounded-md transition-colors"
+      :class="isExportMenuOpen ? activeBtn : idleBtn" title="Export" @click="toggleExportMenu">
+      <DownloadIcon class="w-4.5 h-4.5" />
     </button>
 
     <div v-if="isPenPopoverOpen" ref="penPopoverRef"
@@ -260,6 +290,24 @@ const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-
         ">
         <span class="w-4 h-4 rounded-full border border-rose-border" :style="{ backgroundColor: bg.value }" />
         {{ bg.label }}
+      </button>
+    </div>
+
+    <div v-if="isExportMenuOpen" ref="exportPopoverRef"
+      class="absolute z-20 flex flex-col w-44 rounded-lg bg-rose-surface border border-rose-border shadow-lg overflow-hidden"
+      :style="exportAnchor.style">
+      <button class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('exportAsPng'); closeAllPopovers();">
+        Export as PNG
+      </button>
+      <button class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('exportAsJpeg'); closeAllPopovers();">
+        Export as JPEG
+      </button>
+      <div class="h-px bg-rose-border"></div>
+      <button class="px-3 py-2 text-left text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('exportAsSvg'); closeAllPopovers();">
+        Export as SVG
       </button>
     </div>
   </div>
