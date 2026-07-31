@@ -43,74 +43,75 @@ Development is organized into phases. Each phase should be shippable/usable on i
 
 ## Phase 2 — Home, Onboarding & Settings
 
-Before Notes gets built, the app needs a real front door instead of hard-redirecting `/` → `/todos/folder`, plus a first-run experience and a proper settings surface (currently just `MenuOverlay.vue`, which is closer to a quick-settings drawer than a real Settings page — e.g. its "Clear all data" only clears `localStorage`/`sessionStorage`, not Dexie).
-
-### Data layer
-
-- [ ] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `enabledFeatures`, `onboardingCompleted`, `onboardingStep`, `createdAt`
-- [ ] Add `lastOpenedAt: number | null` to `todoLists` and `docs` (and `notes` once it exists), updated on open — powers Home's "recently opened" without a separate log table
-- [ ] `src/db/types.ts`: `AppSettings` interface
+- [x] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `enabledFeatures`, `onboardingCompleted`, `onboardingStep`, `createdAt`
+- [x] Add `lastOpenedAt: number | null` to `todoLists`, `docs`, and `notes`, updated on open — powers Home's "recently opened"
+- [x] `src/db/types.ts`: `AppSettings` interface
 
 ### Stores
 
-- [ ] New `stores/ui.ts` — app-level UI state (`isMenuOpen`, `isSearchOpen`, drawer states); migrate `isMenuOpen` out of `App.vue`'s local ref
-- [ ] New `stores/settings.ts` — wraps the `settings` Dexie row; actions: `completeOnboarding()`, `updateUsername()`, `toggleFeature()`, `resetOnboarding()`
-- [ ] `theme.ts` stays as-is (no migration needed)
-- [ ] `composables/useBackup.ts` — export/import logic across all tables (not a store; no reactive state needed)
+- [x] New `stores/ui.ts` — app-level UI state
+- [x] New `stores/settings.ts` — wraps the `settings` Dexie row; `completeOnboarding()`, `updateUsername()`, `toggleFeature()`, `resetOnboarding()`
+- [x] `theme.ts` stays as-is (no migration needed)
+- [ ] `composables/useBackup.ts` — export/import logic across all tables (not started; Data & Storage section below is still missing Export/Import entirely)
 
 ### Onboarding flow
 
-- [ ] Dedicated `/onboarding` route, gated by router guard on `settings.onboardingCompleted`
-- [ ] Hydrate `settings` store from Dexie before the router resolves the first route
-- [ ] Step 1 — Welcome (logo, one-liner, "Get Started" / "Skip setup")
-- [ ] Step 2 — Privacy (local-first / no accounts / no cloud explanation, currently only in README)
-- [ ] Step 3 — Theme picker (reuse existing light/dark/system logic)
-- [ ] Step 4 — Username (skippable, falls back to a friendly default)
-- [ ] Step 5 — Feature selection (Todos / Notes / Docs checkboxes, all on by default, ≥1 required)
-- [ ] Step 6 — Finish (writes `settings`, routes to `/`)
-- [ ] Persist `onboardingStep` so closing mid-flow resumes instead of restarting
-- [ ] Clarify and keep distinct: "has completed onboarding" vs. "has any content data" — a returning user who clears all their todos/docs should land on Home's empty state, not get routed back into onboarding
+- [x] Dedicated `/onboarding` route, gated by router guard on `settings.onboardingCompleted`
+- [x] Hydrate `settings` store from Dexie before the router resolves the first route
+- [x] Step 1 — Welcome (`WelcomeStep.vue`)
+- [x] Step 2 — Privacy (`PrivacyStep.vue`)
+- [x] Step 3 — Theme picker (`ThemeStep.vue`)
+- [x] Step 4 — Username (`UsernameStep.vue`)
+- [x] Step 5 — Feature selection (`FeaturesStep.vue`)
+- [x] Step 6 — Finish (`FinishStep.vue`)
+- [x] Persist `onboardingStep` so closing mid-flow resumes instead of restarting
+- [x] Clarify and keep distinct: "has completed onboarding" vs. "has any content data"
 
 ### Home page
 
-- [ ] New `HomeView.vue`, becomes the `/` route (replaces the `/todos/folder` redirect)
-- [ ] Greeting + date, using `settings.username`
-- [ ] Global search bar (lives only on Home for now)
-- [ ] Quick-create row (New Todo List / New Doc / New Note), filtered by `enabledFeatures`
-- [ ] "Recently opened" — merged list across enabled features via `lastOpenedAt`, icon-tagged by type
-- [ ] Stats strip — open task count, folder count, doc count, `enabledFeatures`-aware
-- [ ] Empty state for genuinely fresh installs (quick-create front and center, no recents/stats)
-- [ ] Sidebar: add Home nav entry
+- [x] New `HomeView.vue`, is now the `/` route
+- [x] Greeting + date, using `settings.username`
+- [x] Global search bar
+- [x] Quick-create row (`QuickJumpCard.vue`), filtered by `enabledFeatures`
+- [x] "Recently opened" — merged list across enabled features via `lastOpenedAt` (`HomeRecentScroller.vue`, `HomeFileCard.vue`, `HomeFolderTile.vue`)
+  - Note: notes were silently excluded from this (and from global search) until `useHomeSummary.ts` was fixed to actually query `db.notes` — worth double-checking this didn't regress anywhere else notes should show up.
+- [x] Stats strip / folder + doc + list counts, `enabledFeatures`-aware
+- [x] Empty state for genuinely fresh installs
+- [x] Sidebar: Home nav entry
+- [x] Activity heatmap — GitHub-style contribution calendar on Home (`activity` Dexie table + `stores/activity.ts` recording todo/doc/note create/update events, `useActivityHeatmap.ts`, `HomeActivityHeatmap.vue`)
+- [x] Contribution distribution chart — radar-style area chart showing % split of activity across Todos/Docs/Notes (`useContributionDistribution.ts`, `HomeContributionAreaChart.vue`), unified with the heatmap into one card (`HomeActivityCard.vue`)
+- [x] Per-page browser tab titles — route `meta.title` + global `afterEach` baseline, refined per-item via `useDocumentTitle.ts` on detail/folder views
 
 ### Settings page
 
-- [ ] New `SettingsView.vue` + `/settings` route; migrate `MenuOverlay.vue`'s sections into it
-- [ ] Profile section — username edit
-- [ ] Appearance section — theme (existing)
-- [ ] Features section — toggle Todos/Notes/Docs on/off post-onboarding
-- [ ] Data & Storage section:
-  - [ ] Storage usage indicator (`navigator.storage.estimate()`)
-  - [ ] Export data → JSON download (all tables)
-  - [ ] Import data → JSON upload, with **merge vs. overwrite** choice prompt at import time (overwrite requires extra confirmation); merge remaps imported IDs to avoid collisions and re-parents folders/lists/docs correctly
-  - [ ] "Clear all content" — wipes folders/todos/docs/notes only, keeps `settings`/theme intact, lands on Home empty state
-  - [ ] "Reset app completely" — wipes `settings` too, re-triggers onboarding; needs typed confirmation (not a plain `confirm()`), since it's more destructive than content-clear
-- [ ] About section — version, tech stack, keyboard shortcuts, "Replay onboarding" button
-- [ ] Sidebar: add Settings nav entry
-- [ ] **Checkpoint: Rose has a real home screen, onboarding, and a proper settings page**
+- [x] New `SettingsView.vue` + `/settings` route
+- [x] Profile section — username edit
+- [x] Appearance section — theme
+- [x] Features section — toggle Todos/Notes/Docs on/off post-onboarding
+- [x] Storage usage indicator (`navigator.storage.estimate()` via `useStorageEstimate.ts`)
+- [ ] Export data → JSON download (all tables) — not started
+- [ ] Import data → JSON upload with merge vs. overwrite — not started
+- [x] "Clear all content" — wipes folders/todos/docs, keeps `settings`/theme intact, lands on Home empty state
+  - ⚠️ **Bug found:** the Dexie transaction in `handleClearContent()` clears `folders`/`todoLists`/`todos`/`docs` but not `notes` — notes silently survive a "clear all content." Needs `db.notes` added to that transaction.
+- [x] "Reset app completely" — typed `RESET` confirmation, wipes settings too
+  - ⚠️ Same bug here — `confirmReset()`'s transaction also omits `db.notes`.
+- [ ] About section (version, tech stack, keyboard shortcuts) inside Settings — this info currently still only lives in `MenuOverlay.vue`, never migrated in
+- [x] Sidebar: Settings nav entry
+- [x] **Checkpoint: Rose has a real home screen, onboarding, and a proper settings page** _(modulo the Export/Import and About-section gaps above)_
 
 ## Phase 3 — Notes (Sketching/Handwriting)
 
-- [ ] Dexie schema for `notes` table (folderId, title, canvasJSON, thumbnail, timestamps, `lastOpenedAt`)
-- [ ] Fabric.js canvas component (basic freehand drawing)
-- [ ] Pointer event handling: detect `pointerType` (pen/touch/mouse), suppress touch input while pen is active (palm rejection)
-- [ ] Toolbar: pen, eraser, color, stroke width, undo/redo
-- [ ] Save canvas state to Dexie (`canvas.toJSON()`) on change (debounced)
-- [ ] Load canvas state back on note open (`canvas.loadFromJSON()`)
-- [ ] Thumbnail generation for notes list view (`canvas.toDataURL()` at low res)
-- [ ] Notes list view + folder integration (reuse folder tree component / `ExplorerGrid.vue`)
-- [ ] Test on at least one real touch+stylus device (iPad/Surface/Android tablet) — palm rejection behavior can't be fully validated in a desktop browser alone
+- [x] Dexie schema for `notes` table (folderId, title, canvasJSON, thumbnail, timestamps, `lastOpenedAt`)
+- [x] Fabric.js canvas component (`NoteCanvas.vue`, `useHandwritingCanvas.ts`, using `perfect-freehand` for stroke rendering)
+- [x] Pointer event handling: `pointerType` detection (pen/touch/mouse), touch suppressed while pen is active
+- [x] Toolbar: pen, eraser, color, stroke width, undo/redo (`NoteToolbar.vue`)
+- [x] Save canvas state to Dexie on change (debounced)
+- [x] Load canvas state back on note open
+- [x] Thumbnail generation for notes list view (low-res `canvas.toDataURL()`)
+- [x] Notes list view + folder integration (`NotesView.vue`, `ExplorerGrid.vue`)
+- [ ] Test on at least one real touch+stylus device (iPad/Surface/Android tablet) — can't be validated from code alone, still needs manual device QA
 - [ ] Unit/component tests for note store logic and canvas save/load round-trip
-- [ ] **Checkpoint: Rose supports todos + handwritten notes**
+- [x] **Checkpoint: Rose supports todos + handwritten notes**
 
 ## Phase 4 — Docs
 
@@ -118,17 +119,21 @@ Before Notes gets built, the app needs a real front door instead of hard-redirec
 - [x] TipTap editor component with StarterKit extensions (bold, italic, headings, lists, etc.)
 - [x] Save/load document content to/from Dexie
 - [x] Docs list view + folder integration (reuse `ExplorerGrid.vue`)
-- [x] Basic formatting toolbar
+- [x] Basic formatting toolbar (`DocToolbar.vue`)
+- [x] Extended formatting: tables, color pickers, CSV import
+- [x] Export: PDF / HTML / Markdown (`useDocExport.ts`)
+- [x] Fixed doc content-loss bug (missing `saveContent.flush()` + `structuredClone(toRaw(...))` for Vue Proxy cloning)
 - [ ] Unit/component tests for doc store logic and editor content round-trip
-- [ ] **Checkpoint: All three core features are live**
+- [x] **Checkpoint: All three core features are live**
 
 ## Phase 5 — Cross-Cutting Polish
 
 - [x] PWA setup (installable, offline shell) — `registerSW.ts` in place
 - [x] Responsive layout pass across desktop and mobile widths (bottom nav sidebar, mobile drawers, FAB actions)
-- [ ] Global search across todos/notes/docs (at least by title) — surfaced beyond Home
+- [x] Global search across todos/notes/docs (at least by title), surfaced beyond Home
+- [x] Bunny Fonts integration — Manrope (content) / Petrona (headings) applied via `@theme` tokens and base layer
 - [ ] Responsive layout validation on tablet widths
-- [ ] Accessibility pass (keyboard nav for folder tree, focus states, ARIA labels)
+- [ ] Accessibility pass — partial: focus-visible rings and `aria-labelledby`/`aria-describedby` are used throughout Settings and dialogs, but folder tree keyboard navigation specifically hasn't been addressed
 - [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance
 - [ ] Final design pass on rose color palette across light/dark
 
@@ -138,11 +143,8 @@ Before Notes gets built, the app needs a real front door instead of hard-redirec
 - [ ] Tags in addition to folders
 - [ ] Keyboard shortcuts (new item, search, toggle theme)
 - [ ] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
-- [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp
+- [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp (blocked on Export/Import existing first)
 - [ ] Pinned items section on Home (beyond recents)
+- [ ] Fix: `notes` table omitted from both "Clear all content" and "Reset app completely" Dexie transactions in `SettingsView.vue`
 
 ---
-
-### How to use this file
-
-Check items off as you go (`- [x]`). Add new items under the relevant phase as they come up — don't let scope creep into "Backlog" silently disappear; revisit it at the start of each phase to decide what's actually in scope.

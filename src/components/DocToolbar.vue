@@ -33,7 +33,7 @@ import {
 import type { ToolbarPosition } from "../composables/useToolbarPosition";
 import { type PopoverPlacement, usePopoverPosition } from "../composables/usePopoverPosition";
 
-const props = defineProps<{
+const { editor, maxTableRows, maxTableCols, position } = defineProps<{
   editor: Editor;
   maxTableRows: number;
   maxTableCols: number;
@@ -119,13 +119,13 @@ const exportPopoverRef = ref<HTMLElement | null>(null);
 
 // Start-aligned popovers (table insert, color, highlight)
 const startPlacement = computed<PopoverPlacement>(() => {
-  if (props.position === "left") {
+  if (position === "left") {
     return "right-start";
   }
-  if (props.position === "right") {
+  if (position === "right") {
     return "left-start";
   }
-  if (props.position === "bottom") {
+  if (position === "bottom") {
     return "top-start";
   }
   return "bottom-start"; // top
@@ -133,13 +133,13 @@ const startPlacement = computed<PopoverPlacement>(() => {
 
 // End-aligned popover (export menu)
 const endPlacement = computed<PopoverPlacement>(() => {
-  if (props.position === "left") {
+  if (position === "left") {
     return "right-end";
   }
-  if (props.position === "right") {
+  if (position === "right") {
     return "left-end";
   }
-  if (props.position === "bottom") {
+  if (position === "bottom") {
     return "top-end";
   }
   return "bottom-end"; // top
@@ -226,19 +226,19 @@ onBeforeUnmount(() => {
 });
 
 // Whether toolbar is vertical (left/right)
-const isVertical = computed(() => props.position === "left" || props.position === "right");
+const isVertical = computed(() => position === "left" || position === "right");
 
 // Root — background, border, z-index, and structural placement only.
 // Deliberately NO overflow here, so it never clips the popovers.
 const rootClasses = computed(() => {
   const base = "bg-rose-surface border-rose-border z-20 relative ";
-  if (props.position === "left") {
+  if (position === "left") {
     return `${base} border-r w-12 shrink-0`;
   }
-  if (props.position === "right") {
+  if (position === "right") {
     return `${base} w-12 shrink-0`;
   }
-  if (props.position === "bottom") {
+  if (position === "bottom") {
     return `${base} border-t absolute bottom-0 left-0 right-0`;
   }
   return `${base} border sticky top-0`; // top
@@ -246,7 +246,7 @@ const rootClasses = computed(() => {
 
 // Scroll container — holds ONLY the buttons, owns the overflow clipping.
 const scrollClasses = computed(() => {
-  if (props.position === "left" || props.position === "right") {
+  if (position === "left" || position === "right") {
     return "flex flex-col items-center gap-1 p-1.5 overflow-y-auto overflow-x-hidden w-full h-full";
   }
   // top / bottom
@@ -268,25 +268,25 @@ function btnClass(active: boolean) {
 
 function applyTextColor(color: string | null) {
   if (color) {
-    props.editor.chain().focus().setColor(color).run();
+    editor.chain().focus().setColor(color).run();
   } else {
-    props.editor.chain().focus().unsetColor().run();
+    editor.chain().focus().unsetColor().run();
   }
   closeAllPopovers();
 }
 
 function applyHighlight(color: string | null) {
   if (color) {
-    props.editor.chain().focus().toggleHighlight({ color }).run();
+    editor.chain().focus().toggleHighlight({ color }).run();
   } else {
-    props.editor.chain().focus().unsetHighlight().run();
+    editor.chain().focus().unsetHighlight().run();
   }
   closeAllPopovers();
 }
 
 function handleInsertTable() {
-  const rows = Math.min(Math.max(tableRowCount.value, 1), props.maxTableRows);
-  const cols = Math.min(Math.max(tableColCount.value, 1), props.maxTableCols);
+  const rows = Math.min(Math.max(tableRowCount.value, 1), maxTableRows);
+  const cols = Math.min(Math.max(tableColCount.value, 1), maxTableCols);
   emit("insertTable", rows, cols);
   closeAllPopovers();
 }
@@ -300,7 +300,7 @@ function handleTriggerCsvPick() {
 <template>
   <div ref="rootRef" :class="rootClasses">
     <!-- Backdrop: closes whichever popover is open on outside click -->
-    <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-30" @click="closeAllPopovers"></div>
+    <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-30" aria-hidden="true" tabindex="-1" @click="closeAllPopovers"></div>
 
     <div ref="scrollRef" :class="scrollClasses">
       <!-- Group: History -->
@@ -308,6 +308,7 @@ function handleTriggerCsvPick() {
         :class="btnClass(false)"
         :disabled="!editor.can().undo()"
         title="Undo"
+        aria-label="Undo"
         @click="editor.chain().focus().undo().run()"
       >
         <Undo2Icon class="w-4 h-4" />
@@ -316,6 +317,7 @@ function handleTriggerCsvPick() {
         :class="btnClass(false)"
         :disabled="!editor.can().redo()"
         title="Redo"
+        aria-label="Redo"
         @click="editor.chain().focus().redo().run()"
       >
         <Redo2Icon class="w-4 h-4" />
@@ -327,6 +329,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('bold'))"
         title="Bold"
+        aria-label="Bold"
         @click="editor.chain().focus().toggleBold().run()"
       >
         <BoldIcon class="w-4 h-4" />
@@ -334,6 +337,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('italic'))"
         title="Italic"
+        aria-label="Italic"
         @click="editor.chain().focus().toggleItalic().run()"
       >
         <ItalicIcon class="w-4 h-4" />
@@ -341,6 +345,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('strike'))"
         title="Strikethrough"
+        aria-label="Strikethrough"
         @click="editor.chain().focus().toggleStrike().run()"
       >
         <StrikethroughIcon class="w-4 h-4" />
@@ -348,6 +353,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('underline'))"
         title="Underline"
+        aria-label="Underline"
         @click="editor.chain().focus().toggleUnderline().run()"
       >
         <UnderlineIcon class="w-4 h-4" />
@@ -359,6 +365,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('heading', { level: 1 }))"
         title="Heading 1"
+        aria-label="Heading 1"
         @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
       >
         <Heading1Icon class="w-4 h-4" />
@@ -366,6 +373,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('heading', { level: 2 }))"
         title="Heading 2"
+        aria-label="Heading 2"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
       >
         <Heading2Icon class="w-4 h-4" />
@@ -373,6 +381,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('heading', { level: 3 }))"
         title="Heading 3"
+        aria-label="Heading 3"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
       >
         <Heading3Icon class="w-4 h-4" />
@@ -383,6 +392,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('subscript'))"
         title="Subscript"
+        aria-label="Subscript"
         @click="editor.chain().focus().toggleSubscript().run()"
       >
         <SubscriptIcon class="w-4 h-4" />
@@ -390,6 +400,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('superscript'))"
         title="Superscript"
+        aria-label="Superscript"
         @click="editor.chain().focus().toggleSuperscript().run()"
       >
         <SuperscriptIcon class="w-4 h-4" />
@@ -401,6 +412,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('bulletList'))"
         title="Bullet list"
+        aria-label="Bullet list"
         @click="editor.chain().focus().toggleBulletList().run()"
       >
         <ListIcon class="w-4 h-4" />
@@ -408,6 +420,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('orderedList'))"
         title="Ordered list"
+        aria-label="Ordered list"
         @click="editor.chain().focus().toggleOrderedList().run()"
       >
         <ListOrderedIcon class="w-4 h-4" />
@@ -415,6 +428,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('taskList'))"
         title="Task list"
+        aria-label="Task list"
         @click="editor.chain().focus().toggleTaskList().run()"
       >
         <CheckSquareIcon class="w-4 h-4" />
@@ -426,6 +440,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('blockquote'))"
         title="Blockquote"
+        aria-label="Blockquote"
         @click="editor.chain().focus().toggleBlockquote().run()"
       >
         <QuoteIcon class="w-4 h-4" />
@@ -433,6 +448,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive('codeBlock'))"
         title="Code block"
+        aria-label="Code block"
         @click="editor.chain().focus().toggleCodeBlock().run()"
       >
         <CodeIcon class="w-4 h-4" />
@@ -440,6 +456,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(false)"
         title="Horizontal rule"
+        aria-label="Horizontal rule"
         @click="editor.chain().focus().setHorizontalRule().run()"
       >
         <MinusIcon class="w-4 h-4" />
@@ -448,10 +465,10 @@ function handleTriggerCsvPick() {
       <div :class="dividerClass"></div>
 
       <!-- Group: Insert -->
-      <button :class="btnClass(editor.isActive('link'))" title="Link" @click="emit('setLink')">
+      <button :class="btnClass(editor.isActive('link'))" title="Link" aria-label="Link" @click="emit('setLink')">
         <LinkIcon class="w-4 h-4" />
       </button>
-      <button :class="btnClass(false)" title="Image" @click="emit('triggerImagePick')">
+      <button :class="btnClass(false)" title="Image" aria-label="Image" @click="emit('triggerImagePick')">
         <ImageIcon class="w-4 h-4" />
       </button>
 
@@ -459,6 +476,7 @@ function handleTriggerCsvPick() {
         ref="tableTriggerRef"
         :class="btnClass(isTableInsertOpen)"
         title="Table"
+        aria-label="Table"
         :aria-expanded="isTableInsertOpen"
         @click="toggleTableInsert"
       >
@@ -471,6 +489,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive({ textAlign: 'left' }))"
         title="Align left"
+        aria-label="Align left"
         @click="editor.chain().focus().setTextAlign('left').run()"
       >
         <AlignLeftIcon class="w-4 h-4" />
@@ -478,6 +497,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive({ textAlign: 'center' }))"
         title="Align center"
+        aria-label="Align center"
         @click="editor.chain().focus().setTextAlign('center').run()"
       >
         <AlignCenterIcon class="w-4 h-4" />
@@ -485,6 +505,7 @@ function handleTriggerCsvPick() {
       <button
         :class="btnClass(editor.isActive({ textAlign: 'right' }))"
         title="Align right"
+        aria-label="Align right"
         @click="editor.chain().focus().setTextAlign('right').run()"
       >
         <AlignRightIcon class="w-4 h-4" />
@@ -497,6 +518,7 @@ function handleTriggerCsvPick() {
         ref="colorTriggerRef"
         :class="btnClass(isColorPickerOpen)"
         title="Text color"
+        aria-label="Text color"
         :aria-expanded="isColorPickerOpen"
         @click="toggleColorPicker"
       >
@@ -506,6 +528,7 @@ function handleTriggerCsvPick() {
         ref="highlightTriggerRef"
         :class="btnClass(isHighlightPickerOpen)"
         title="Highlight"
+        aria-label="Highlight"
         :aria-expanded="isHighlightPickerOpen"
         @click="toggleHighlightPicker"
       >
@@ -519,6 +542,7 @@ function handleTriggerCsvPick() {
         ref="exportTriggerRef"
         :class="btnClass(isExportMenuOpen)"
         title="Export"
+        aria-label="Export"
         :aria-expanded="isExportMenuOpen"
         @click="toggleExportMenu"
       >
@@ -580,6 +604,7 @@ function handleTriggerCsvPick() {
         class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
         :style="color.value ? { backgroundColor: color.value } : {}"
         :title="color.label"
+        :aria-label="color.label"
         @click="applyTextColor(color.value)"
       >
         <span v-if="!color.value" class="text-rose-text-muted">×</span>
@@ -587,6 +612,7 @@ function handleTriggerCsvPick() {
       <label
         class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
         title="Custom color"
+        aria-label="Custom color"
       >
         <input
           v-model="customTextColor"
@@ -609,6 +635,7 @@ function handleTriggerCsvPick() {
         class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
         :style="color.value ? { backgroundColor: color.value } : {}"
         :title="color.label"
+        :aria-label="color.label"
         @click="applyHighlight(color.value)"
       >
         <span v-if="!color.value" class="text-rose-text-muted">×</span>
@@ -616,6 +643,7 @@ function handleTriggerCsvPick() {
       <label
         class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
         title="Custom color"
+        aria-label="Custom color"
       >
         <input
           v-model="customHighlightColor"

@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "../db";
 import type { Doc } from "../db/types";
+import { useActivityStore } from "./activity";
 
 export const useDocsStore = defineStore("docs", () => {
   const docs = ref<Doc[]>([]);
@@ -30,6 +31,7 @@ export const useDocsStore = defineStore("docs", () => {
       updatedAt: now,
     };
     await db.docs.add(doc);
+    await useActivityStore().record("doc_created", doc.id);
     await loadDocs();
     return doc.id;
   }
@@ -50,6 +52,9 @@ export const useDocsStore = defineStore("docs", () => {
       sanitized.contentJSON = changes.contentJSON ? structuredClone(changes.contentJSON) : null;
     }
     await db.docs.update(id, { ...sanitized, updatedAt: Date.now() });
+    if ("contentJSON" in changes) {
+      await useActivityStore().record("doc_updated", id);
+    }
   }
 
   async function deleteDoc(id: string) {

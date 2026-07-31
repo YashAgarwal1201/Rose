@@ -17,15 +17,19 @@ import { FileTextIcon, ListTodoIcon } from "@lucide/vue";
 import { formatRelativeTime } from "../../utils/formatRelativeTime";
 import type { HomeItem } from "../../composables/useHomeSummary";
 
-const props = defineProps<{ item: HomeItem }>();
+const { item, timestampLabel = "opened" } = defineProps<{
+  item: HomeItem;
+  timestampLabel?: "opened" | "updated";
+}>();
 const emit = defineEmits<{ open: [] }>();
 
-const icon = computed(() => (props.item.type === "todo" ? ListTodoIcon : FileTextIcon));
+const icon = computed(() => (item.type === "todo" ? ListTodoIcon : FileTextIcon));
 
 const subtitle = computed(() => {
+  const timestamp = timestampLabel === "updated" ? item.updatedAt : item.lastOpenedAt;
   const parts = [
-    props.item.folderName,
-    props.item.lastOpenedAt ? `opened ${formatRelativeTime(props.item.lastOpenedAt)}` : null,
+    item.folderName,
+    timestamp ? `${timestampLabel} ${formatRelativeTime(timestamp)}` : null,
   ].filter(Boolean);
   return parts.join(" · ");
 });

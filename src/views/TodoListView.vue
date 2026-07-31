@@ -323,6 +323,7 @@ watch(() => pathMatch, loadList);
           v-model="renameValue"
           type="text"
           autofocus
+          aria-label="Rename list"
           class="text-2xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none"
           @keyup.enter="confirmRenameList"
           @keyup.escape="cancelRenameList"
@@ -331,7 +332,9 @@ watch(() => pathMatch, loadList);
         <template v-else>
           <h1 class="text-2xl font-bold text-rose-text truncate">{{ currentList?.name }}</h1>
           <button
-            class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
+            type="button"
+            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded p-1"
+            aria-label="Rename list"
             @click="startRenameList"
           >
             <PencilIcon class="w-4 h-4" />
@@ -351,12 +354,15 @@ watch(() => pathMatch, loadList);
         <input
           v-model="newTodoTitle"
           type="text"
+          aria-label="Add a todo"
           placeholder="Add a todo..."
           class="flex-1 px-4 py-2.5 rounded-lg bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus:ring-1 focus:ring-rose-primary"
           @keyup.enter="handleCreateTodo"
         />
         <button
-          class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0"
+          type="button"
+          aria-label="Create todo"
+          class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary-hover"
           @click="handleCreateTodo"
         >
           <PlusIcon class="w-5 h-5" />
@@ -377,12 +383,14 @@ watch(() => pathMatch, loadList);
           class="flex items-center gap-3 px-4 py-3 rounded-lg bg-rose-surface hover:bg-rose-surface-alt transition-colors"
         >
           <button
-            class="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+            type="button"
+            class="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             :class="
               todo.done
                 ? 'bg-rose-primary border-rose-primary'
                 : 'border-rose-border hover:border-rose-primary'
             "
+            :aria-label="todo.done ? 'Mark as pending' : 'Mark as completed'"
             @click="todosStore.toggleDone(todo.id)"
           >
             <svg v-if="todo.done" viewBox="0 0 20 20" fill="none" class="w-3 h-3 text-white">
@@ -401,6 +409,7 @@ watch(() => pathMatch, loadList);
             v-model="editingTitle"
             type="text"
             autofocus
+            aria-label="Edit todo"
             class="flex-1 text-base px-2 py-1 rounded border border-rose-primary bg-rose-bg text-rose-text focus:outline-none"
             @keyup.enter="confirmEdit"
             @keyup.escape="cancelEdit"
@@ -432,8 +441,10 @@ watch(() => pathMatch, loadList);
           </span>
 
           <button
+            type="button"
             data-todo-menu-trigger
-            class="p-1.5 rounded text-rose-text-muted hover:text-rose-primary shrink-0"
+            class="p-1.5 rounded text-rose-text-muted hover:text-rose-primary shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            aria-label="Todo options"
             @click.stop="openTodoMenu(todo.id, $event)"
           >
             <MoreVerticalIcon class="w-4 h-4" />
@@ -448,12 +459,15 @@ watch(() => pathMatch, loadList);
       <input
         v-model="newTodoTitle"
         type="text"
+        aria-label="Add a todo"
         placeholder="Add a todo..."
         class="flex-1 px-4 py-2.5 rounded-lg bg-rose-surface border border-rose-border text-rose-text placeholder:text-rose-text-muted focus:outline-none focus:ring-1 focus:ring-rose-primary"
         @keyup.enter="handleCreateTodo"
       />
       <button
-        class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0"
+        type="button"
+        aria-label="Create todo"
+        class="w-11 h-11 rounded-lg bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors flex items-center justify-center shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary-hover"
         @click="handleCreateTodo"
       >
         <PlusIcon class="w-5 h-5" />
@@ -493,7 +507,8 @@ watch(() => pathMatch, loadList);
           </p>
           <input
             type="date"
-            class="w-full text-sm px-2 py-1 rounded border border-rose-border bg-rose-bg text-rose-text focus:outline-none"
+            aria-label="Due date"
+            class="w-full text-sm px-2 py-1 rounded border border-rose-border bg-rose-bg text-rose-text focus:outline-none focus:ring-1 focus:ring-rose-primary"
             :value="
               dateInputValue(todosStore.todos.find((t) => t.id === openMenuTodoId)?.dueDate ?? null)
             "
@@ -536,7 +551,7 @@ watch(() => pathMatch, loadList);
           >
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-rose-text">List properties</h3>
-              <button class="text-rose-text-muted hover:text-rose-text" @click="isInfoOpen = false">
+              <button type="button" aria-label="Close properties" class="text-rose-text-muted hover:text-rose-text focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded p-0.5" @click="isInfoOpen = false">
                 <XIcon class="w-5 h-5" />
               </button>
             </div>

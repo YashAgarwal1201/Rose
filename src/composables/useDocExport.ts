@@ -190,7 +190,7 @@ export function useDocExport(
       return;
     }
     downloadFile(
-      (editor.value as Editor & { getMarkdown(): string }).getMarkdown(),
+      (editor.value as Editor & { getMarkdown: () => string }).getMarkdown(),
       `${sanitizeFilename(docTitle.value)}.md`,
       "text/markdown",
     );

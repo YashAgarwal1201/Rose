@@ -13,10 +13,10 @@ import ExplorerGrid from "../../components/ExplorerGrid.vue";
 // ─── Composable mocks ─────────────────────────────────────────────────────────
 vi.mock(import("../../composables/useToast"), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 vi.mock(import("../../composables/useConfirm"), () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),
-}));
+} as any));
 vi.mock(import("../../composables/useExplorerViewMode"), () => {
   const { ref } = require("vue");
   return {
@@ -33,13 +33,13 @@ vi.mock(import("../../composables/useExplorerViewMode"), () => {
 // ─── Child component stubs ────────────────────────────────────────────────────
 vi.mock(import("../../components/FolderTree.vue"), () => ({
   default: { template: "<div data-testid='folder-tree' />" },
-}));
+} as any));
 vi.mock(import("../../components/FolderTreeDrawer.vue"), () => ({
   default: { template: "<div data-testid='folder-tree-drawer' />" },
-}));
+} as any));
 vi.mock(import("../../components/Breadcrumbs.vue"), () => ({
   default: { template: "<div data-testid='breadcrumbs' />" },
-}));
+} as any));
 vi.mock(import("../../components/ExplorerActions.vue"), () => ({
   default: {
     template: `<div data-testid='explorer-actions'>
@@ -47,7 +47,7 @@ vi.mock(import("../../components/ExplorerActions.vue"), () => ({
       <button data-testid='create-file-btn' @click="$emit('create-file')">New Doc</button>
     </div>`,
     emits: ["create-folder", "create-file"],
-  },
+  } as any,
 }));
 
 // ─── Router factory ───────────────────────────────────────────────────────────
@@ -172,14 +172,16 @@ describe("DocsView", () => {
             title: "In Root",
             folderId: null,
             contentJSON: null,
+            lastOpenedAt: null,
             createdAt: 1,
             updatedAt: 1,
           },
           {
             id: "d-other",
             title: "In Other",
-            folderId: "folder-xyz",
+            folderId: "f-root",
             contentJSON: null,
+            lastOpenedAt: null,
             createdAt: 2,
             updatedAt: 2,
           },
@@ -287,6 +289,7 @@ describe("DocsView", () => {
         title: "OldTitle",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -302,6 +305,7 @@ describe("DocsView", () => {
         title: "HasTitle",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });
@@ -320,6 +324,7 @@ describe("DocsView", () => {
         title: "ToDelete",
         folderId: null,
         contentJSON: null,
+        lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
       });

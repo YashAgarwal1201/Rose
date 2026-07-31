@@ -3,20 +3,20 @@
 export interface DebouncedFunction<Args extends unknown[]> {
   (...args: Args): void;
   // Cancels a pending call without running it.
-  cancel(): void;
+  cancel: () => void;
   // Runs a pending call immediately (if one is scheduled) instead of
   // waiting for the delay to elapse. Needed before the page can actually
   // unload/reload — a pending setTimeout is otherwise discarded along
   // with the JS context, silently dropping the write.
-  flush(): void;
+  flush: () => void;
 }
 
 export function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
   delayMs: number,
 ): DebouncedFunction<Args> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  let pendingArgs: Args | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
+  let pendingArgs: Args | undefined = undefined;
 
   const debounced = ((...args: Args) => {
     pendingArgs = args;

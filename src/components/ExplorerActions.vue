@@ -51,7 +51,9 @@ function handleFileClick() {
             >New {{ fileLabel }}</span
           >
           <button
-            class="w-11 h-11 rounded-full bg-rose-primary text-white shadow-lg flex items-center justify-center"
+            type="button"
+            class="w-11 h-11 rounded-full bg-rose-primary text-white shadow-lg flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary-hover"
+            :aria-label="'New ' + fileLabel"
             @click="handleFileClick"
           >
             <PlusIcon class="w-5 h-5" />
@@ -62,7 +64,9 @@ function handleFileClick() {
             >New folder</span
           >
           <button
-            class="w-11 h-11 rounded-full bg-rose-surface-alt text-rose-text shadow-lg flex items-center justify-center"
+            type="button"
+            class="w-11 h-11 rounded-full bg-rose-surface-alt text-rose-text shadow-lg flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            aria-label="New folder"
             @click="handleFolderClick"
           >
             <FolderPlusIcon class="w-5 h-5" />
@@ -72,8 +76,11 @@ function handleFileClick() {
     </Transition>
 
     <button
-      class="w-14 h-14 rounded-full bg-rose-primary text-white shadow-xl flex items-center justify-center transition-transform"
+      type="button"
+      class="w-14 h-14 rounded-full bg-rose-primary text-white shadow-xl flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-primary-hover"
       :class="fabOpen ? 'rotate-45' : ''"
+      :aria-label="fabOpen ? 'Close action menu' : 'Open action menu'"
+      :aria-expanded="fabOpen"
       @click="fabOpen = !fabOpen"
     >
       <XIcon v-if="fabOpen" class="w-6 h-6" />
@@ -82,5 +89,5 @@ function handleFileClick() {
   </div>
 
   <!-- Backdrop to close FAB on outside tap -->
-  <div v-if="fabOpen" class="md:hidden fixed inset-0 z-20" @click="fabOpen = false"></div>
+  <div v-if="fabOpen" class="md:hidden fixed inset-0 z-20" aria-hidden="true" tabindex="-1" @click="fabOpen = false"></div>
 </template>

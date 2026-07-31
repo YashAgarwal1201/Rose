@@ -2,6 +2,10 @@
 
 export type FeatureType = "todo" | "note" | "doc";
 
+export type PenTool = "pencil" | "pen" | "marker";
+export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow";
+export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
+
 export interface Folder {
   id: string;
   name: string;
@@ -48,4 +52,34 @@ export interface AppSettings {
   onboardingCompleted: boolean;
   onboardingStep: number;
   createdAt: number;
+}
+
+export type ActivityAction =
+  | "folder_created"
+  | "todo_list_created"
+  | "todo_created"
+  | "todo_toggled"
+  | "todo_updated"
+  | "doc_created"
+  | "doc_updated"
+  | "note_created"
+  | "note_updated";
+
+export interface ActivityEntry {
+  id: string;
+  type: ActivityAction;
+  entityId: string;
+  timestamp: number;
+}
+
+export interface Note {
+  id: string;
+  folderId: string | null;
+  title: string;
+  canvasJSON: Record<string, unknown> | null; // fabric.Canvas.toJSON() output
+  backgroundColor: string; // page background, independent of pen color
+  thumbnail: string | null; // low-res dataURL for the grid card
+  createdAt: number;
+  updatedAt: number;
+  lastOpenedAt: number | null;
 }

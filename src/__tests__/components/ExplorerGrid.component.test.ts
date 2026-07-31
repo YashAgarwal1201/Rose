@@ -178,16 +178,14 @@ describe("ExplorerGrid", () => {
     it("shows a rename input after clicking the pencil (rename) button", async () => {
       const wrapper = mountGrid();
       // Action buttons are inside .absolute div: first = pencil, second = trash
-      const actionButtons = wrapper.findAll(".group .absolute button");
-      await actionButtons[0]!.trigger("click");
+      await wrapper.find('button[aria-label="Rename"]').trigger("click");
       const input = wrapper.find("input[type='text']:not([placeholder])");
       expect(input.exists()).toBe(true);
     });
 
     it("emits renameFolder with the new name on Enter", async () => {
       const wrapper = mountGrid();
-      const actionButtons = wrapper.findAll(".group .absolute button");
-      await actionButtons[0]!.trigger("click");
+      await wrapper.find('button[aria-label="Rename"]').trigger("click");
       const input = wrapper.find("input[type='text']:not([placeholder])");
       await input.setValue("Renamed");
       await input.trigger("keyup.enter");
@@ -198,24 +196,21 @@ describe("ExplorerGrid", () => {
   describe("delete", () => {
     it("calls confirm() when the trash button is clicked", async () => {
       const wrapper = mountGrid();
-      const actionButtons = wrapper.findAll(".group .absolute button");
-      await actionButtons[1]!.trigger("click");
+      await wrapper.find('button[aria-label="Delete"]').trigger("click");
       expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
     });
 
     it("emits deleteFolder when confirm returns true", async () => {
       mockConfirm.mockResolvedValueOnce(true);
       const wrapper = mountGrid();
-      const actionButtons = wrapper.findAll(".group .absolute button");
-      await actionButtons[1]!.trigger("click");
+      await wrapper.find('button[aria-label="Delete"]').trigger("click");
       await wrapper.vm.$nextTick();
       expect(wrapper.emitted("deleteFolder")).toBeTruthy();
     });
 
     it("does not emit deleteFolder when confirm returns false", async () => {
       const wrapper = mountGrid();
-      const actionButtons = wrapper.findAll(".group .absolute button");
-      await actionButtons[1]!.trigger("click");
+      await wrapper.find('button[aria-label="Delete"]').trigger("click");
       await wrapper.vm.$nextTick();
       expect(wrapper.emitted("deleteFolder")).toBeFalsy();
     });
