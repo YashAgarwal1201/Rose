@@ -15,7 +15,7 @@
         @click.self="handleCancel"
       >
         <div
-          class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+          class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40"
         >
           <h3 v-if="options.title" class="text-xl font-semibold text-rose-text mb-2">
             {{ options.title }}

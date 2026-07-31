@@ -34,7 +34,7 @@ describe("debounce", () => {
 
     it("passes all arguments through to fn", () => {
       expect.hasAssertions();
-      const fn = vi.fn<[string, number]>();
+      const fn = vi.fn<(a: string, b: number) => void>();
       const debounced = debounce(fn, 50);
       debounced("hello", 42);
       vi.advanceTimersByTime(50);
@@ -43,7 +43,7 @@ describe("debounce", () => {
 
     it("resets the timer on successive calls — only latest args fire", () => {
       expect.hasAssertions();
-      const fn = vi.fn<[string]>();
+      const fn = vi.fn<(a: string) => void>();
       const debounced = debounce(fn, 100);
       debounced("first");
       vi.advanceTimersByTime(80);
@@ -94,7 +94,7 @@ describe("debounce", () => {
   describe("flush", () => {
     it("fires a pending call immediately", () => {
       expect.hasAssertions();
-      const fn = vi.fn<[string]>();
+      const fn = vi.fn<(a: string) => void>();
       const debounced = debounce(fn, 100);
       debounced("flushed");
       debounced.flush();

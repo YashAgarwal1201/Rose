@@ -11,6 +11,11 @@
   --rose-border: #e6d3d7;
   --rose-text: #2b1a1e;
   --rose-text-muted: #7a6367;
+  
+  /* Additional accents */
+  --rose-cream: #F5EFE6;
+  --rose-green: #527A59;
+  --rose-green-muted: #9BB89E;
 }
 
 .dark {
@@ -24,6 +29,11 @@
   --rose-border: #3d2b2f;
   --rose-text: #f3e6e8;
   --rose-text-muted: #b39ba0;
+  
+  /* Additional accents */
+  --rose-cream: #EAE6DF;
+  --rose-green: #8EBA93;
+  --rose-green-muted: #4B634E;
 }
 
 @theme {
@@ -36,6 +46,10 @@
   --color-rose-border: var(--rose-border);
   --color-rose-text: var(--rose-text);
   --color-rose-text-muted: var(--rose-text-muted);
+  
+  --color-rose-cream: var(--rose-cream);
+  --color-rose-green: var(--rose-green);
+  --color-rose-green-muted: var(--rose-green-muted);
 
   --font-content: "Manrope", sans-serif;
   --font-heading: "Petrona", serif;

@@ -25,13 +25,13 @@ function handleFileClick() {
       class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-surface-alt text-rose-text hover:bg-rose-border transition-colors text-sm"
       @click="handleFolderClick"
     >
-      <FolderPlusIcon class="w-4 h-4" /> New folder
+      <FolderPlusIcon class="w-4 h-4 text-rose-green" /> New folder
     </button>
     <button
       class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors text-sm"
       @click="handleFileClick"
     >
-      <PlusIcon class="w-4 h-4" /> New {{ fileLabel }}
+      <PlusIcon class="w-4 h-4 text-rose-cream" /> New {{ fileLabel }}
     </button>
   </div>
 
@@ -56,7 +56,7 @@ function handleFileClick() {
             :aria-label="'New ' + fileLabel"
             @click="handleFileClick"
           >
-            <PlusIcon class="w-5 h-5" />
+            <PlusIcon class="w-5 h-5 text-rose-cream" />
           </button>
         </div>
         <div class="flex items-center gap-2">
@@ -69,7 +69,7 @@ function handleFileClick() {
             aria-label="New folder"
             @click="handleFolderClick"
           >
-            <FolderPlusIcon class="w-5 h-5" />
+            <FolderPlusIcon class="w-5 h-5 text-rose-green" />
           </button>
         </div>
       </div>
@@ -83,8 +83,8 @@ function handleFileClick() {
       :aria-expanded="fabOpen"
       @click="fabOpen = !fabOpen"
     >
-      <XIcon v-if="fabOpen" class="w-6 h-6" />
-      <PlusIcon v-else class="w-6 h-6" />
+      <XIcon v-if="fabOpen" class="w-6 h-6 text-rose-cream" />
+      <PlusIcon v-else class="w-6 h-6 text-rose-cream" />
     </button>
   </div>
 

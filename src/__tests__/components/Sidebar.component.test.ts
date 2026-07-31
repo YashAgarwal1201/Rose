@@ -6,7 +6,7 @@ import { createRouter, createMemoryHistory } from "vue-router";
 import Sidebar from "../../components/Sidebar.vue";
 
 // Mock the settings store to control enabled features
-const mockEnabledFeatures = vi.fn<[], string[]>().mockReturnValue(["todo", "note", "doc"]);
+const mockEnabledFeatures = vi.fn<() => string[]>().mockReturnValue(["todo", "note", "doc"]);
 const mockIsFeatureEnabled = vi.fn((feature: string) => mockEnabledFeatures().includes(feature));
 
 vi.mock("../../stores/settings", () => ({

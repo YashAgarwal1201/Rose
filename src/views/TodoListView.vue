@@ -387,8 +387,8 @@ watch(() => pathMatch, loadList);
             class="w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             :class="
               todo.done
-                ? 'bg-rose-primary border-rose-primary'
-                : 'border-rose-border hover:border-rose-primary'
+                ? 'bg-rose-green border-rose-green'
+                : 'border-rose-border hover:border-rose-green'
             "
             :aria-label="todo.done ? 'Mark as pending' : 'Mark as completed'"
             @click="todosStore.toggleDone(todo.id)"
@@ -418,7 +418,7 @@ watch(() => pathMatch, loadList);
           <span
             v-else
             class="flex-1 text-base truncate"
-            :class="todo.done ? 'text-rose-text-muted line-through' : 'text-rose-text'"
+            :class="todo.done ? 'text-rose-cream line-through' : 'text-rose-text'"
             @click="startEdit(todo.id, todo.title)"
           >
             {{ todo.title }}

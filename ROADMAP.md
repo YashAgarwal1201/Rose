@@ -91,10 +91,8 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] Storage usage indicator (`navigator.storage.estimate()` via `useStorageEstimate.ts`)
 - [ ] Export data → JSON download (all tables) — not started
 - [ ] Import data → JSON upload with merge vs. overwrite — not started
-- [x] "Clear all content" — wipes folders/todos/docs, keeps `settings`/theme intact, lands on Home empty state
-  - ⚠️ **Bug found:** the Dexie transaction in `handleClearContent()` clears `folders`/`todoLists`/`todos`/`docs` but not `notes` — notes silently survive a "clear all content." Needs `db.notes` added to that transaction.
+- [x] "Clear all content" — wipes folders/todos/docs/notes, keeps `settings`/theme intact, lands on Home empty state
 - [x] "Reset app completely" — typed `RESET` confirmation, wipes settings too
-  - ⚠️ Same bug here — `confirmReset()`'s transaction also omits `db.notes`.
 - [ ] About section (version, tech stack, keyboard shortcuts) inside Settings — this info currently still only lives in `MenuOverlay.vue`, never migrated in
 - [x] Sidebar: Settings nav entry
 - [x] **Checkpoint: Rose has a real home screen, onboarding, and a proper settings page** _(modulo the Export/Import and About-section gaps above)_
@@ -135,7 +133,9 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [ ] Responsive layout validation on tablet widths
 - [ ] Accessibility pass — partial: focus-visible rings and `aria-labelledby`/`aria-describedby` are used throughout Settings and dialogs, but folder tree keyboard navigation specifically hasn't been addressed
 - [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance
-- [ ] Final design pass on rose color palette across light/dark
+- [x] Final design pass on rose color palette across light/dark (added cream/green accents)
+- [x] Deployment setup (Cloudflare Pages SPA routing via _redirects)
+- [x] Add branding assets (favicon, logo, Open Graph tags)
 
 ## Backlog / Ideas (not committed to a phase yet)
 
@@ -145,6 +145,6 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [ ] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
 - [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp (blocked on Export/Import existing first)
 - [ ] Pinned items section on Home (beyond recents)
-- [ ] Fix: `notes` table omitted from both "Clear all content" and "Reset app completely" Dexie transactions in `SettingsView.vue`
+- [x] Fix: `notes` table omitted from both "Clear all content" and "Reset app completely" Dexie transactions in `SettingsView.vue`
 
 ---
