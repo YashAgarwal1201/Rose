@@ -1,4 +1,4 @@
-# 🌹 Rose
+# Rose
 
 A local-first, client-side productivity app combining todos, handwritten sketching, and lightweight document creation — organized into folders, themeable, and backed entirely by IndexedDB. No backend, no server, no accounts.
 
@@ -6,7 +6,7 @@ A local-first, client-side productivity app combining todos, handwritten sketchi
 
 Color palette and visual identity are inspired by the rose flower — deep reds/pinks for accents, soft neutrals for surfaces, in both light and dark variants.
 
-## Features (Planned)
+## Features
 
 - **Todos** — nested folders, list view + inline edit, priorities, due dates
 - **Notes** — freehand sketching/handwriting via canvas, with pointer-based palm rejection (pen vs. touch vs. mouse)
@@ -24,7 +24,7 @@ Color palette and visual identity are inspired by the rose flower — deep reds/
 | State                     | Pinia                                                              |
 | Persistence               | Dexie.js (IndexedDB wrapper)                                       |
 | Sketching/Handwriting     | Fabric.js                                                          |
-| Rich text (Docs, Phase 3) | TipTap                                                             |
+| Rich text (Docs)          | TipTap                                                             |
 | Styling                   | Tailwind CSS (v4, Vite plugin) + CSS custom properties for theming |
 | Unit/Component testing    | Vitest + Vue Testing Library + @vue/test-utils                     |
 | E2E testing               | Playwright                                                         |
@@ -40,11 +40,14 @@ npm run dev
 ## Testing
 
 ```bash
-npm run test:unit     # Vitest
-npm run test:e2e      # Playwright
+npm run test:unit             # Run Vitest unit tests
+npx vitest run --coverage     # Run Vitest with coverage report (V8 + HTML)
+npm run test:e2e              # Run Playwright E2E tests
 ```
 
-## Project Structure (target)
+Test reports and coverage output are generated in `html/` and `coverage/` directories.
+
+## Project Structure
 
 ```
 src/
