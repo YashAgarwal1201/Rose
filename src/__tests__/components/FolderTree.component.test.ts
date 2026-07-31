@@ -61,7 +61,7 @@ describe("FolderTree", () => {
       const wrapper = mountTree();
       // f1 has child f3, f2 does not — only one chevron button
       const chevronBtns = wrapper
-        .findAll("ul > li div.cursor-pointer button")
+        .findAll('button[aria-label="Toggle folder expansion"]')
         .filter((btn) => !btn.classes().includes("opacity-0"));
       expect(chevronBtns).toHaveLength(1);
     });
@@ -70,14 +70,14 @@ describe("FolderTree", () => {
   describe("expand/collapse", () => {
     it("shows child folder after clicking the expand chevron", async () => {
       const wrapper = mountTree();
-      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      const chevron = wrapper.find('button[aria-label="Toggle folder expansion"]');
       await chevron.trigger("click");
       expect(wrapper.text()).toContain("Child");
     });
 
     it("hides child folder after collapsing an expanded parent", async () => {
       const wrapper = mountTree();
-      const chevron = wrapper.find("ul > li div.cursor-pointer button");
+      const chevron = wrapper.find('button[aria-label="Toggle folder expansion"]');
       await chevron.trigger("click");
       await chevron.trigger("click");
       expect(wrapper.text()).not.toContain("Child");
@@ -124,7 +124,7 @@ describe("FolderTree", () => {
   describe("select emit", () => {
     it("emits select with the folder id when a folder row is clicked", async () => {
       const wrapper = mountTree();
-      await wrapper.find("li div.cursor-pointer").trigger("click");
+      await wrapper.find('button[aria-label^="Select folder "]').trigger("click");
       expect(wrapper.emitted("select")?.[0]).toStrictEqual(["f1"]);
     });
   });
