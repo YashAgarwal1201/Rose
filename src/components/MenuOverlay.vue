@@ -75,16 +75,27 @@
             :is-open="openPanel === 1"
             @toggle="togglePanel(1)"
           >
-            <ul class="flex flex-col gap-y-2 px-1 py-2 text-sm">
-              <li v-for="s in shortcuts" :key="s.action" class="flex items-center justify-between">
-                <span class="text-rose-text-muted">{{ s.action }}</span>
-                <kbd
-                  class="px-2 py-0.5 rounded bg-rose-surface border border-rose-border text-rose-text text-xs font-mono"
-                >
-                  {{ s.keys }}
-                </kbd>
-              </li>
-            </ul>
+            <div class="flex flex-col gap-y-4 px-1 py-2 text-sm">
+              <div v-for="cat in shortcutCategories" :key="cat.label">
+                <h4 class="text-xs font-semibold text-rose-text-muted uppercase tracking-wider mb-2">
+                  {{ cat.label }}
+                </h4>
+                <ul class="flex flex-col gap-y-1.5">
+                  <li
+                    v-for="s in cat.items"
+                    :key="s.action"
+                    class="flex items-center justify-between py-0.5"
+                  >
+                    <span class="text-rose-text-muted">{{ s.action }}</span>
+                    <kbd
+                      class="px-2 py-0.5 rounded bg-rose-surface border border-rose-border text-rose-text text-xs font-mono"
+                    >
+                      {{ s.keys }}
+                    </kbd>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </PanelSection>
 
           <div class="divider" />
@@ -166,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   InfoIcon,
   KeyboardIcon,
@@ -182,7 +193,7 @@ import { useThemeStore } from "../stores/theme";
 import PanelSection from "./PanelSection.vue";
 import { useRouter } from "vue-router";
 
-defineProps<{ isOpen: boolean }>();
+const { isOpen, initialPanel } = defineProps<{ isOpen: boolean; initialPanel?: number }>();
 const emit = defineEmits<{ close: [] }>();
 
 const themeStore = useThemeStore();
@@ -197,6 +208,18 @@ const openPanel = ref(-1);
 function togglePanel(index: number) {
   openPanel.value = openPanel.value === index ? -1 : index;
 }
+
+// When the overlay opens with an initialPanel specified, auto-expand that panel
+watch(
+  () => isOpen,
+  (newIsOpen) => {
+    if (newIsOpen && initialPanel !== undefined && initialPanel >= 0) {
+      openPanel.value = initialPanel;
+    } else if (!newIsOpen) {
+      openPanel.value = -1;
+    }
+  },
+);
 
 const copied = ref(false);
 async function handleShare() {
@@ -214,13 +237,52 @@ async function handleShare() {
   setTimeout(() => (copied.value = false), 2000);
 }
 
-const shortcuts = [
-  { action: "Bold", keys: "Ctrl+B" },
-  { action: "Italic", keys: "Ctrl+I" },
-  { action: "Strikethrough", keys: "Ctrl+Shift+X" },
-  { action: "Undo", keys: "Ctrl+Z" },
-  { action: "Redo", keys: "Ctrl+Shift+Z" },
-  { action: "Link", keys: "Ctrl+K" },
+const shortcutCategories = [
+  {
+    label: "Global",
+    items: [
+      { action: "Open Settings", keys: "Ctrl+," },
+      { action: "Keyboard Shortcuts", keys: "Ctrl+/" },
+      { action: "Toggle Theme", keys: "Ctrl+." },
+      { action: "Close Overlay", keys: "Esc" },
+    ],
+  },
+  {
+    label: "Navigation",
+    items: [
+      { action: "Search", keys: "Ctrl+/" },
+      { action: "Go to Home", keys: "Ctrl+Shift+1" },
+      { action: "Go to Todos", keys: "Ctrl+Shift+2" },
+      { action: "Go to Notes", keys: "Ctrl+Shift+3" },
+      { action: "Go to Docs", keys: "Ctrl+Shift+4" },
+    ],
+  },
+  {
+    label: "Create",
+    items: [
+      { action: "New Folder", keys: "Ctrl+Shift+F" },
+      { action: "New Item", keys: "Ctrl+Shift+E" },
+    ],
+  },
+  {
+    label: "Document Editor",
+    items: [
+      { action: "Save", keys: "Ctrl+S" },
+      { action: "Bold", keys: "Ctrl+B" },
+      { action: "Italic", keys: "Ctrl+I" },
+      { action: "Underline", keys: "Ctrl+U" },
+      { action: "Strikethrough", keys: "Ctrl+Alt+X" },
+      { action: "Link", keys: "Ctrl+K" },
+      { action: "Undo", keys: "Ctrl+Z" },
+      { action: "Redo", keys: "Ctrl+Shift+Z" },
+    ],
+  },
+  {
+    label: "Note Canvas",
+    items: [
+      { action: "Save", keys: "Ctrl+S" },
+    ],
+  },
 ];
 
 const appVersion = __APP_VERSION__;
