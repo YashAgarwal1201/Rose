@@ -6,6 +6,9 @@ import { useNoteExport } from "../composables/useNoteExport";
 import { debounce } from "../utils/debounce";
 import NoteToolbar from "./NoteToolbar.vue";
 import type { ToolbarPosition } from "../composables/useToolbarPosition";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
+import { useToast } from "../composables/useToast";
+import { TOAST_AUTO_DISMISS_MS } from "../utils/constants";
 
 // const props = withDefaults(
 //   defineProps<{
@@ -59,6 +62,70 @@ const { exportAsPng, exportAsJpeg, exportAsSvg } = useNoteExport(
   computed(() => props.noteTitle),
   dummyMenuOpen,
 );
+
+const toolbarRef = ref<InstanceType<typeof NoteToolbar> | null>(null);
+const { showToast } = useToast();
+
+useKeyboardShortcuts([
+  // Ctrl + S → Save note immediately
+  {
+    key: "s",
+    ctrl: true,
+    handler: () => {
+      saveNow();
+      showToast("Note saved", "info", TOAST_AUTO_DISMISS_MS);
+    },
+  },
+  // Ctrl + Z → Undo drawing stroke
+  {
+    key: "z",
+    ctrl: true,
+    handler: () => {
+      if (canUndo.value) {
+        undo();
+      } else {
+        return false; // let event propagate if we can't undo (e.g. let text inputs handle undo/redo)
+      }
+    },
+    skipInInput: true, // Only trigger global canvas undo if not typing
+  },
+  // Ctrl + Shift + Z → Redo drawing stroke
+  {
+    key: "z",
+    ctrl: true,
+    shift: true,
+    handler: () => {
+      if (canRedo.value) {
+        redo();
+      } else {
+        return false;
+      }
+    },
+    skipInInput: true,
+  },
+  // Ctrl + Y → Redo drawing stroke (alternative shortcut)
+  {
+    key: "y",
+    ctrl: true,
+    handler: () => {
+      if (canRedo.value) {
+        redo();
+      } else {
+        return false;
+      }
+    },
+    skipInInput: true,
+  },
+  // Ctrl + Shift + S → Toggle Export Menu
+  {
+    key: "s",
+    ctrl: true,
+    shift: true,
+    handler: () => {
+      toolbarRef.value?.toggleExportMenu();
+    },
+  },
+]);
 
 function saveNow() {
   const json = toJSON();
@@ -159,6 +226,7 @@ async function handleImageSelected(event: Event) {
   <div class="flex flex-col h-full overflow-hidden">
     <div class="note-canvas">
       <NoteToolbar
+        ref="toolbarRef"
         v-model:tool="tool"
         v-model:pen-tool="penTool"
         v-model:shape-tool="shapeTool"

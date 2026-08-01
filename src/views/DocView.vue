@@ -21,6 +21,7 @@ import { useDocsStore } from "../stores/docs";
 import { useFoldersStore } from "../stores/folders";
 import { useToast } from "../composables/useToast";
 import { useDocExport } from "../composables/useDocExport";
+import { useInput } from "../composables/useInput";
 import { debounce } from "../utils/debounce";
 import { formatRelativeTime } from "../utils/formatRelativeTime";
 import type { Doc } from "../db/types";
@@ -37,6 +38,8 @@ import { type PopoverPlacement, usePopoverPosition } from "../composables/usePop
 import Underline from "@tiptap/extension-underline";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
+import { TOAST_AUTO_DISMISS_MS } from "../utils/constants";
 
 const AUTOSAVE_DELAY_MS = 600;
 const MAX_TABLE_ROWS = 20;
@@ -48,6 +51,7 @@ const router = useRouter();
 const docsStore = useDocsStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
+const { requestInput } = useInput();
 
 const segments = computed(() => pathMatch ?? []);
 
@@ -441,16 +445,24 @@ async function handleImageSelect(event: Event) {
   (event.target as HTMLInputElement).value = "";
 }
 
-function setLink() {
+async function setLink() {
   const previousUrl = editor.value?.getAttributes("link").url as string | undefined;
   if (previousUrl) {
     editor.value?.chain().focus().unsetLink().run();
     return;
   }
-  const url = globalThis.prompt("Link URL");
+  const url = await requestInput({
+    title: "Insert Link",
+    message: "Enter the URL you want to link to:",
+    placeholder: "https://example.com",
+    confirmLabel: "Add Link",
+  });
+  
   if (!url) {
     return;
   }
+  
+  // Re-focus the editor before setting the link so it applies to the current selection
   editor.value?.chain().focus().setLink({ href: url }).run();
 }
 
@@ -590,6 +602,80 @@ function flushPendingSave() {
   saveContent.flush();
 }
 
+const toolbarRef = ref<InstanceType<typeof DocToolbar> | null>(null);
+
+useKeyboardShortcuts([
+  // Ctrl + S → flush pending save and show toast
+  {
+    key: "s",
+    ctrl: true,
+    handler: () => {
+      flushPendingSave();
+      showToast("Document saved", "info", TOAST_AUTO_DISMISS_MS);
+    },
+  },
+  // Ctrl + B → Bold
+  {
+    key: "b",
+    ctrl: true,
+    handler: () => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      editor.value?.chain().focus().toggleBold().run();
+    },
+  },
+  // Ctrl + I → Italic
+  {
+    key: "i",
+    ctrl: true,
+    handler: () => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      editor.value?.chain().focus().toggleItalic().run();
+    },
+  },
+  // Ctrl + U → Underline
+  {
+    key: "u",
+    ctrl: true,
+    handler: () => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      editor.value?.chain().focus().toggleUnderline().run();
+    },
+  },
+  // Ctrl + Alt + X → Strikethrough
+  {
+    key: "x",
+    ctrl: true,
+    alt: true,
+    handler: () => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      editor.value?.chain().focus().toggleStrike().run();
+    },
+  },
+  // Ctrl + K → Link
+  {
+    key: "k",
+    ctrl: true,
+    handler: () => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      setLink();
+    },
+  },
+  // Ctrl + Shift + S → Toggle Export Menu
+  {
+    key: "s",
+    ctrl: true,
+    shift: true,
+    handler: () => {
+      toolbarRef.value?.toggleExportMenu();
+    },
+  },
+]);
+
 function handleVisibilityChange() {
   if (document.visibilityState === "hidden") {
     flushPendingSave();
@@ -681,6 +767,7 @@ onBeforeUnmount(() => {
     <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
       <!-- Toolbar: left or top -->
       <DocToolbar
+        ref="toolbarRef"
         v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
         :editor="editor"
         :max-table-rows="MAX_TABLE_ROWS"
@@ -832,6 +919,7 @@ onBeforeUnmount(() => {
 
       <!-- Toolbar: right position -->
       <DocToolbar
+        ref="toolbarRef"
         v-if="editor && effectivePosition === 'right'"
         :editor="editor"
         :max-table-rows="MAX_TABLE_ROWS"
@@ -849,6 +937,7 @@ onBeforeUnmount(() => {
 
       <!-- Toolbar: bottom position (fixed, rendered outside flow but still here for v-if) -->
       <DocToolbar
+        ref="toolbarRef"
         v-if="editor && effectivePosition === 'bottom'"
         :editor="editor"
         :max-table-rows="MAX_TABLE_ROWS"

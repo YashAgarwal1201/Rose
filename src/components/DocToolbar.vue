@@ -295,6 +295,8 @@ function handleTriggerCsvPick() {
   emit("triggerCsvPick");
   closeAllPopovers();
 }
+
+defineExpose({ toggleExportMenu });
 </script>
 
 <template>

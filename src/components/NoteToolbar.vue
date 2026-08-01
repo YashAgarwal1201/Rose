@@ -176,6 +176,8 @@ function toggleExportMenu() {
 
 const activeBtn = "bg-rose-surface-alt text-rose-green";
 const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text";
+
+defineExpose({ toggleExportMenu });
 </script>
 
 <template>

@@ -12,6 +12,7 @@ import type { Crumb } from "../types/explorer";
 import { useFoldersStore } from "../stores/folders";
 import { useDocsStore } from "../stores/docs";
 import { useToast } from "../composables/useToast";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
@@ -206,6 +207,26 @@ function handleMobileSelect(id: string | null) {
 
 onMounted(loadCurrentFolder);
 watch(() => pathMatch, loadCurrentFolder);
+
+// Ctrl+Shift+F → new folder, Ctrl+Shift+E → new doc
+useKeyboardShortcuts([
+  {
+    key: "f",
+    ctrl: true,
+    shift: true,
+    handler: () => {
+      explorerGridRef.value?.startCreate("folder");
+    },
+  },
+  {
+    key: "e",
+    ctrl: true,
+    shift: true,
+    handler: () => {
+      explorerGridRef.value?.startCreate("file");
+    },
+  },
+]);
 </script>
 <template>
   <div class="flex h-full">
