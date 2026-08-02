@@ -296,7 +296,6 @@ const techStack = [
 ];
 
 function goToSettings() {
-  close();
   router.push({ name: "settings" });
 }
 

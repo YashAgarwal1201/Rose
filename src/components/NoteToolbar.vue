@@ -177,14 +177,54 @@ function toggleExportMenu() {
 const activeBtn = "bg-rose-surface-alt text-rose-green";
 const idleBtn = "text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text";
 
+const isAnyPopoverOpen = computed(
+  () =>
+    isPenPopoverOpen.value ||
+    isShapePopoverOpen.value ||
+    isColorPopoverOpen.value ||
+    isBackgroundPopoverOpen.value ||
+    isExportMenuOpen.value,
+);
+
+const isVertical = computed(() => position === "left" || position === "right");
+
+const rootClasses = computed(() => {
+  const base = "bg-rose-surface border-rose-border z-20 relative flex";
+  if (position === "left") {
+    return `${base} border-r w-12 flex-col shrink-0`;
+  }
+  if (position === "right") {
+    return `${base} border-l w-12 flex-col shrink-0`;
+  }
+  if (position === "bottom") {
+    return `${base} border-t absolute bottom-0 left-0 right-0 w-full`;
+  }
+  return `${base} border-b w-full shrink-0`; // top
+});
+
+const scrollClasses = computed(() => {
+  if (position === "left" || position === "right") {
+    return "flex-1 flex flex-col items-center gap-1 p-1.5 overflow-y-auto overflow-x-hidden w-full";
+  }
+  return "flex-1 flex flex-row items-center gap-1 p-1.5 overflow-x-auto overflow-y-hidden w-full";
+});
+
+const dividerClass = computed(() =>
+  isVertical.value
+    ? "h-px w-6 bg-rose-cream/10 my-0.5 shrink-0"
+    : "w-px h-5 bg-rose-cream/10 mx-0.5 shrink-0",
+);
+
 defineExpose({ toggleExportMenu });
 </script>
 
 <template>
-  <div ref="rootRef"
-    class="relative flex items-center gap-1 px-2 py-1.5 border-b border-rose-border bg-rose-surface overflow-x-auto shrink-0"
-    style="scrollbar-width: none">
-    <button type="button" class="p-2 rounded-md transition-colors" :class="tool === 'select' ? activeBtn : idleBtn"
+  <div ref="rootRef" :class="rootClasses">
+    <!-- Backdrop: closes whichever popover is open on outside click -->
+    <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-10" aria-hidden="true" tabindex="-1" @click="closeAllPopovers"></div>
+
+    <div :class="scrollClasses" style="scrollbar-width: none">
+      <button type="button" class="p-2 rounded-md transition-colors" :class="tool === 'select' ? activeBtn : idleBtn"
       title="Select" @click="selectTool('select')">
       <MousePointer2Icon class="w-4.5 h-4.5" />
     </button>
@@ -217,7 +257,7 @@ defineExpose({ toggleExportMenu });
       <PaletteIcon class="w-4.5 h-4.5" />
     </button>
 
-    <div class="w-px h-5 bg-rose-cream/10 mx-1 shrink-0"></div>
+    <div :class="dividerClass"></div>
 
     <button type="button" class="p-2 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
       :class="idleBtn" :disabled="!canUndo" title="Undo" @click="emit('undo')">
@@ -228,12 +268,13 @@ defineExpose({ toggleExportMenu });
       <Redo2Icon class="w-4.5 h-4.5" />
     </button>
 
-    <div class="w-px h-5 bg-rose-cream/10 mx-1 shrink-0"></div>
+    <div :class="dividerClass"></div>
 
     <button ref="exportTriggerRef" type="button" class="p-2 rounded-md transition-colors"
       :class="isExportMenuOpen ? activeBtn : idleBtn" title="Export" @click="toggleExportMenu">
       <DownloadIcon class="w-4.5 h-4.5" />
     </button>
+    </div> <!-- Close inner scroll container -->
 
     <div v-if="isPenPopoverOpen" ref="penPopoverRef"
       class="absolute z-20 flex flex-col gap-0.5 p-1.5 min-w-28 rounded-lg bg-rose-surface border border-rose-border shadow-lg"

@@ -38,6 +38,7 @@ import { useToast } from "./composables/useToast";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 import { useThemeStore } from "./stores/theme";
 import { useSettingsStore } from "./stores/settings";
+import { useBackButtonClose } from "./composables/useBackButtonClose";
 import { TOAST_AUTO_DISMISS_MS } from "./utils/constants.ts";
 
 const { showToast } = useToast();
@@ -48,6 +49,15 @@ const router = useRouter();
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+
+useBackButtonClose(
+  isMenuOpen,
+  "menu",
+  handleMenuClose,
+  () => {
+    isMenuOpen.value = true;
+  }
+);
 
 function cycleTheme() {
   const modes = ["light", "dark", "system"] as const;
