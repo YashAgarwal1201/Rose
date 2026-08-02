@@ -89,7 +89,7 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] Appearance section — theme
 - [x] Features section — toggle Todos/Notes/Docs on/off post-onboarding
 - [x] Storage usage indicator (`navigator.storage.estimate()` via `useStorageEstimate.ts`)
-- [ ] Export data → JSON download (all tables) — not started
+- [x] Export data → JSON download (all tables) — not started
 - [ ] Import data → JSON upload with merge vs. overwrite — not started
 - [x] "Clear all content" — wipes folders/todos/docs/notes, keeps `settings`/theme intact, lands on Home empty state
 - [x] "Reset app completely" — typed `RESET` confirmation, wipes settings too
