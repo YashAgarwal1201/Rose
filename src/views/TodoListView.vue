@@ -59,13 +59,13 @@ const infoRef = ref<HTMLElement | null>(null);
 const detailRef = ref<HTMLElement | null>(null);
 
 const { activate: activateMenu, deactivate: deactivateMenu } = useFocusTrap(menuRef, { escapeDeactivates: false });
-watch(menuRef, (el) => el ? nextTick(() => activateMenu()) : deactivateMenu());
+watch(menuRef, (el) => el ? nextTick().then(() => activateMenu()) : deactivateMenu());
 
 const { activate: activateInfo, deactivate: deactivateInfo } = useFocusTrap(infoRef, { escapeDeactivates: false });
-watch(infoRef, (el) => el ? nextTick(() => activateInfo()) : deactivateInfo());
+watch(infoRef, (el) => el ? nextTick().then(() => activateInfo()) : deactivateInfo());
 
 const { activate: activateDetail, deactivate: deactivateDetail } = useFocusTrap(detailRef, { escapeDeactivates: false });
-watch(detailRef, (el) => el ? nextTick(() => activateDetail()) : deactivateDetail());
+watch(detailRef, (el) => el ? nextTick().then(() => activateDetail()) : deactivateDetail());
 
 const priorityOptions: { value: Todo["priority"]; label: string; icon: Component }[] = [
   { label: "None", value: null, icon: CircleDashedIcon },

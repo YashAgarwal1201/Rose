@@ -68,7 +68,7 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const dialogRef = ref<HTMLElement | null>(null);
 
 const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: false });
-watch(dialogRef, (el) => el ? nextTick(() => activate()) : deactivate());
+watch(dialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
 
 useBackButtonClose(isOpen, "input", handleCancel);
 
