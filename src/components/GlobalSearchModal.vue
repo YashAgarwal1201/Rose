@@ -124,13 +124,17 @@ function selectResult(index: number) {
     const result = searchResults.value[index];
     if (!result) { return };
 
-    if (result.type === "todo") {
-      router.push(`/todos/list/${result.id}`);
-    } else if (result.type === "note") {
-      router.push(`/notes/note/${result.id}`);
-    } else if (result.type === "doc") {
-      router.push(`/docs/doc/${result.id}`);
-    }
+    uiStore.closeSearch();
+
+    setTimeout(() => {
+      if (result.type === "todo") {
+        router.push({ name: "todos-list", params: { pathMatch: result.path } });
+      } else if (result.type === "note") {
+        router.push({ name: "notes-note", params: { pathMatch: result.path } });
+      } else if (result.type === "doc") {
+        router.push({ name: "docs-doc", params: { pathMatch: result.path } });
+      }
+    }, 100);
   }
 }
 </script>

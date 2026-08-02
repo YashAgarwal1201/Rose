@@ -7,13 +7,26 @@
       <Sidebar @toggle-menu="isMenuOpen = true" />
     </div>
 
-    <main class="grow h-full relative overflow-y-auto">
-      <RouterView v-slot="{ Component }">
-        <Transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </Transition>
-      </RouterView>
-    </main>
+    <div class="grow h-full relative overflow-hidden">
+      <main ref="mainRef" class="h-full w-full overflow-y-auto">
+        <RouterView v-slot="{ Component }">
+          <Transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
+      </main>
+
+      <Transition name="fade">
+        <button
+          v-if="y > 300"
+          @click="scrollToTop"
+          class="absolute bottom-6 right-6 md:bottom-8 md:right-8 p-3 rounded-full bg-rose-primary text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:scale-105 transition-all duration-200 z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpIcon class="w-6 h-6" />
+        </button>
+      </Transition>
+    </div>
 
     <MenuOverlay :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" />
     <ToastContainer />
@@ -40,10 +53,18 @@ import { useThemeStore } from "./stores/theme";
 import { useSettingsStore } from "./stores/settings";
 import { useBackButtonClose } from "./composables/useBackButtonClose";
 import { TOAST_AUTO_DISMISS_MS } from "./utils/constants.ts";
+import { useScroll } from "@vueuse/core";
+import { ArrowUpIcon } from "@lucide/vue";
 
 const { showToast } = useToast();
 const isMenuOpen = ref(false);
 const menuInitialPanel = ref(-1);
+const mainRef = ref<HTMLElement | null>(null);
+const { y } = useScroll(mainRef);
+
+function scrollToTop() {
+  mainRef.value?.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 const router = useRouter();
 const themeStore = useThemeStore();
@@ -89,7 +110,7 @@ useKeyboardShortcuts([
     key: "s",
     ctrl: true,
     handler: () => {
-      const name = router.currentRoute.value.name;
+      const { name } = router.currentRoute.value;
       if (name === "docs-doc" || name === "notes-note") {
         return false; // let the specific view handler save the doc/note!
       }

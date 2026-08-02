@@ -1,7 +1,16 @@
 <!-- src/views/SettingsView.vue -->
 <template>
   <div class="p-4 md:p-8 lg:p-10">
-    <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
+    <div class="flex items-center gap-3">
+      <button
+        @click="goBack"
+        class="p-1.5 -ml-1.5 rounded-lg text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+        aria-label="Go back"
+      >
+        <ArrowLeftIcon class="w-6 h-6" />
+      </button>
+      <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
+    </div>
     <p class="text-sm sm:text-base text-rose-cream mt-1">
       Manage your profile, enabled features, and app data.
     </p>
@@ -65,6 +74,15 @@
           </span>
         </SettingsRow>
 
+        <SettingsRow label="Export data"
+          description="Download a backup of your app data as a JSON file." v-slot="{ descriptionId }">
+          <button type="button" :aria-describedby="descriptionId"
+            class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            @click="openExportDialog">
+            Export...
+          </button>
+        </SettingsRow>
+
         <SettingsRow label="Clear all content"
           description="Deletes folders, todos, and docs. Keeps your profile and preferences."
           v-slot="{ descriptionId }">
@@ -85,6 +103,64 @@
         </SettingsRow>
       </SettingsSection>
     </div>
+
+    <!-- Export dialog -->
+    <Teleport to="body">
+      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
+        enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
+        leave-to-class="opacity-0">
+        <div v-if="isExportDialogOpen" ref="exportDialogRef"
+          class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog"
+          aria-modal="true" aria-labelledby="export-dialog-title" @click.self="cancelExport"
+          @keydown.escape="cancelExport">
+          <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border">
+            <h3 id="export-dialog-title" class="text-xl font-semibold text-rose-text mb-2">
+              Export data
+            </h3>
+            <p class="text-sm text-rose-text-muted mb-4">
+              Select the data you want to include in your backup. Folders will be automatically included if you select Notes, Docs, or Todos.
+            </p>
+            
+            <div class="flex flex-col gap-3 mb-6">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" v-model="exportOptions.settings" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <span class="text-sm text-rose-text">Settings & Profile</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" v-model="exportOptions.notes" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <span class="text-sm text-rose-text">Notes</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" v-model="exportOptions.docs" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <span class="text-sm text-rose-text">Documents</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" v-model="exportOptions.todos" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <span class="text-sm text-rose-text">Todos</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" v-model="exportOptions.activity" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <span class="text-sm text-rose-text">Recent Activity</span>
+              </label>
+            </div>
+
+            <div class="flex justify-end gap-2">
+              <button
+                class="px-4 py-2 text-sm rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+                @click="cancelExport">
+                Cancel
+              </button>
+              <button
+                class="px-4 py-2 text-sm rounded-md bg-rose-primary text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+                :disabled="!exportOptions.settings && !exportOptions.notes && !exportOptions.docs && !exportOptions.todos && !exportOptions.activity"
+                @click="confirmExport">
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Typed-confirmation dialog for the more destructive "Reset app" action -->
     <Teleport to="body">
@@ -131,13 +207,14 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { DatabaseIcon, RotateCcwIcon, SlidersHorizontalIcon, UserIcon } from "@lucide/vue";
+import { ArrowLeftIcon, DatabaseIcon, RotateCcwIcon, SlidersHorizontalIcon, UserIcon } from "@lucide/vue";
 import { useSettingsStore } from "../stores/settings";
 import { useConfirm } from "../composables/useConfirm";
 import { useToast } from "../composables/useToast";
 import { useStorageEstimate } from "../composables/useStorageEstimate";
 import { formatBytes } from "../utils/formatBytes";
 import db from "../db";
+import { exportData, type ExportOptions } from "../utils/exportData";
 import SettingsSection from "../components/settings/SettingsSection.vue";
 import SettingsRow from "../components/settings/SettingsRow.vue";
 import SettingsSwitch from "../components/settings/SettingsSwitch.vue";
@@ -151,9 +228,53 @@ const { confirm } = useConfirm();
 const { showToast } = useToast();
 const storage = useStorageEstimate();
 
+function goBack() {
+  history.go(-1);
+}
+
 const resetDialogRef = ref<HTMLElement | null>(null);
 const { activate, deactivate } = useFocusTrap(resetDialogRef, { escapeDeactivates: false });
 watch(resetDialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
+
+const exportDialogRef = ref<HTMLElement | null>(null);
+const { activate: activateExport, deactivate: deactivateExport } = useFocusTrap(exportDialogRef, { escapeDeactivates: false });
+watch(exportDialogRef, (el) => el ? nextTick().then(() => activateExport()) : deactivateExport());
+
+const exportOptions = ref<ExportOptions>({
+  settings: true,
+  notes: true,
+  docs: true,
+  todos: true,
+  activity: true,
+});
+const isExportDialogOpen = ref(false);
+
+function openExportDialog() {
+  isExportDialogOpen.value = true;
+}
+
+function cancelExport() {
+  isExportDialogOpen.value = false;
+}
+
+async function confirmExport() {
+  const options = { ...exportOptions.value };
+  isExportDialogOpen.value = false;
+  
+  // Wait for the modal to close and the focus trap to deactivate completely
+  // FocusTrap intercepts clicks outside the modal, which was blocking the download link
+  await nextTick();
+  await new Promise((resolve) => setTimeout(resolve, 150));
+
+  try {
+    await exportData(options);
+    showToast("Data exported successfully.", "success");
+  } catch (error: unknown) {
+    console.error("Export error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    showToast(`Failed to export data: ${message}`, "error");
+  }
+}
 
 const usernameDraft = ref(settingsStore.username ?? "");
 

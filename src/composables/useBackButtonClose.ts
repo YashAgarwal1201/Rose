@@ -1,6 +1,6 @@
 // src/composables/useBackButtonClose.ts
-import { watch, type Ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { type Ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 export function useBackButtonClose(
   isOpen: Ref<boolean>,
@@ -15,7 +15,7 @@ export function useBackButtonClose(
 
   // Watch the open state of the modal
   watch(isOpen, async (newVal) => {
-    if (isInternalChange) return;
+    if (isInternalChange) {return;}
 
     if (newVal) {
       // Modal opened: Push hash to URL
@@ -41,7 +41,7 @@ export function useBackButtonClose(
   watch(
     () => route.hash,
     (newHash) => {
-      if (isInternalChange) return;
+      if (isInternalChange) {return;}
 
       if (isOpen.value && newHash !== `#${hashName}`) {
         // Navigated away (e.g. Back button)
