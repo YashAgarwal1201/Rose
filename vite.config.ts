@@ -11,7 +11,7 @@ function getBuildVersion() {
   const day = String(now.getDate()).padStart(2, "0");
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const year = now.getFullYear();
-  return `v0.${day}.${month}.${year}`;
+  return `v1.${day}.${month}.${year}`;
 }
 
 // Injects the emitted asset list into the built sw.js at build time.

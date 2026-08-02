@@ -11,8 +11,10 @@
     >
       <div
         v-if="isOpen"
+        ref="dialogRef"
         class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
         @click.self="handleCancel"
+        @keydown.escape="handleCancel"
       >
         <div
           class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40"
@@ -58,9 +60,17 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
 import { useInput } from "../composables/useInput";
+import { useBackButtonClose } from "../composables/useBackButtonClose";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const { isOpen, options, inputValue, handleConfirm, handleCancel } = useInput();
 const inputRef = ref<HTMLInputElement | null>(null);
+const dialogRef = ref<HTMLElement | null>(null);
+
+const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: false });
+watch(dialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
+
+useBackButtonClose(isOpen, "input", handleCancel);
 
 // Auto-focus the input field when dialog opens
 watch(isOpen, async (open) => {

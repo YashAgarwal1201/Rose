@@ -99,7 +99,7 @@ export const useTodosStore = defineStore("todos", () => {
     const todo: Todo = {
       createdAt: now,
       done: false,
-      dueDate: null,
+      dueDate: now + 24 * 60 * 60 * 1000,
       id: crypto.randomUUID(),
       listId,
       priority: null,

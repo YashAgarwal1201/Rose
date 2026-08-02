@@ -21,7 +21,12 @@ import { TOAST_AUTO_DISMISS_MS } from "../utils/constants";
 //   },
 // );
 
-const props = defineProps<{
+const {
+  initialCanvasJson,
+  initialBackgroundColor,
+  toolbarPosition,
+  noteTitle,
+} = defineProps<{
   initialCanvasJson: Record<string, unknown> | null;
   initialBackgroundColor: string;
   toolbarPosition: ToolbarPosition;
@@ -59,7 +64,7 @@ const {
 const dummyMenuOpen = ref(false);
 const { exportAsPng, exportAsJpeg, exportAsSvg } = useNoteExport(
   fabricCanvas,
-  computed(() => props.noteTitle),
+  computed(() => noteTitle),
   dummyMenuOpen,
 );
 
@@ -147,14 +152,14 @@ function handleBeforeUnload() {
 const isCanvasReady = false;
 
 onMounted(async () => {
-  // console.log("NoteCanvas mounted, initialCanvasJSON prop:", props.initialCanvasJson);
+  // console.log("NoteCanvas mounted, initialCanvasJSON prop:", initialCanvasJson);
   if (!canvasEl.value) {
     return;
   }
   init(canvasEl.value);
-  await loadFromJSON(props.initialCanvasJson, props.initialBackgroundColor);
+  await loadFromJSON(initialCanvasJson, initialBackgroundColor);
 
-  // await loadFromJSON(props.initialCanvasJSON, props.initialBackgroundColor);
+  // await loadFromJSON(initialCanvasJson, initialBackgroundColor);
   // console.log("objects after load:", fabricCanvas.value?.getObjects().length);
 
   fabricCanvas.value?.on("object:added", scheduleSave);
@@ -175,13 +180,13 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => props.initialCanvasJson,
+  () => initialCanvasJson,
   async (canvasJSON) => {
     if (!isCanvasReady || !canvasJSON) {
       return;
     }
 
-    await loadFromJSON(canvasJSON, props.initialBackgroundColor);
+    await loadFromJSON(canvasJSON, initialBackgroundColor);
   },
 );
 
@@ -224,8 +229,11 @@ async function handleImageSelected(event: Event) {
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
-    <div class="note-canvas">
+    <!-- Body: toolbar + editor, direction depends on position -->
+    <div class="flex flex-1 min-h-0" :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'">
+      <!-- Toolbar: left or top -->
       <NoteToolbar
+        v-if="toolbarPosition === 'top' || toolbarPosition === 'left'"
         ref="toolbarRef"
         v-model:tool="tool"
         v-model:pen-tool="penTool"
@@ -245,6 +253,25 @@ async function handleImageSelected(event: Event) {
       <div class="note-canvas__scroll">
         <canvas ref="canvasEl" />
       </div>
+      <!-- Toolbar: right or bottom -->
+      <NoteToolbar
+        v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'"
+        ref="toolbarRef"
+        v-model:tool="tool"
+        v-model:pen-tool="penTool"
+        v-model:shape-tool="shapeTool"
+        v-model:pen-color="penColor"
+        v-model:background-color="backgroundColor"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :position="toolbarPosition"
+        @undo="undo"
+        @redo="redo"
+        @trigger-image-pick="triggerImagePick"
+        @export-as-png="exportAsPng"
+        @export-as-jpeg="exportAsJpeg"
+        @export-as-svg="exportAsSvg"
+      />
       <input
         ref="imageInputRef"
         type="file"
@@ -257,12 +284,7 @@ async function handleImageSelected(event: Event) {
 </template>
 
 <style scoped>
-.note-canvas {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
+/* Remove the hardcoded flex-direction so the inline class can work */
 
 .note-canvas__scroll {
   flex: 1 1 auto;
