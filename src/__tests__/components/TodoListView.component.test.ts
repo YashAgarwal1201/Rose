@@ -195,8 +195,9 @@ describe("TodoListView.vue", () => {
       const menuBtn = wrapper.find("button[aria-label='Todo options']");
       await menuBtn.trigger("click");
       await new Promise((resolve) => setTimeout(resolve, 50));
-      const deleteBtn = wrapper.find("button.text-red-400"); // Delete option in popover has text-red-400
-      await deleteBtn.trigger("click");
+      const buttons = wrapper.findAll("button.text-red-400");
+      const deleteBtn = buttons.find((b) => b.text().includes("Delete"));
+      await deleteBtn!.trigger("click");
       
       await flushPromises();
       const updatedTodo = await db.todos.get("todo-3");

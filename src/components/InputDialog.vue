@@ -58,9 +58,12 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
 import { useInput } from "../composables/useInput";
+import { useBackButtonClose } from "../composables/useBackButtonClose";
 
 const { isOpen, options, inputValue, handleConfirm, handleCancel } = useInput();
 const inputRef = ref<HTMLInputElement | null>(null);
+
+useBackButtonClose(isOpen, "input", handleCancel);
 
 // Auto-focus the input field when dialog opens
 watch(isOpen, async (open) => {

@@ -44,6 +44,9 @@
 
 <script setup lang="ts">
 import { useConfirm } from "../composables/useConfirm";
+import { useBackButtonClose } from "../composables/useBackButtonClose";
 
 const { isOpen, options, handleConfirm, handleCancel } = useConfirm();
+
+useBackButtonClose(isOpen, "confirm", handleCancel);
 </script>

@@ -134,15 +134,15 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [ ] Accessibility pass — partial: focus-visible rings and `aria-labelledby`/`aria-describedby` are used throughout Settings and dialogs, but folder tree keyboard navigation specifically hasn't been addressed
 - [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance
 - [x] Final design pass on rose color palette across light/dark (added cream/green accents)
-- [x] Deployment setup (Cloudflare Pages SPA routing via _redirects)
+- [x] Deployment setup (Cloudflare Pages SPA routing via \_redirects)
 - [x] Add branding assets (favicon, logo, Open Graph tags)
 
 ## Backlog / Ideas (not committed to a phase yet)
 
 - [ ] Drag-and-drop reordering across folders
 - [ ] Tags in addition to folders
-- [ ] Keyboard shortcuts (new item, search, toggle theme)
-- [ ] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
+- [x] Keyboard shortcuts (new item, search, toggle theme)
+- [x] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
 - [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp (blocked on Export/Import existing first)
 - [ ] Pinned items section on Home (beyond recents)
 - [x] Fix: `notes` table omitted from both "Clear all content" and "Reset app completely" Dexie transactions in `SettingsView.vue`

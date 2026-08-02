@@ -50,13 +50,21 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, XIcon } from "@lucide/vue";
+import { SearchIcon, XIcon, ListTodoIcon, PenLineIcon, FileTextIcon } from "@lucide/vue";
 import { useUiStore } from "../stores/ui";
 import { useHomeSummary } from "../composables/useHomeSummary";
+import { useBackButtonClose } from "../composables/useBackButtonClose";
 
 const uiStore = useUiStore();
 const router = useRouter();
 const summary = useHomeSummary();
+
+useBackButtonClose(
+  computed(() => uiStore.isSearchOpen),
+  "search",
+  () => uiStore.closeSearch(),
+  () => uiStore.openSearch()
+);
 
 const query = ref("");
 const searchInputRef = ref<HTMLInputElement | null>(null);
@@ -110,8 +118,6 @@ function selectResult(index: number) {
   if (index >= 0 && index < searchResults.value.length) {
     const result = searchResults.value[index];
     if (!result) { return };
-
-    uiStore.closeSearch();
 
     if (result.type === "todo") {
       router.push(`/todos/list/${result.id}`);
