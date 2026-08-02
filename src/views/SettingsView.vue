@@ -152,11 +152,13 @@
       >
         <div
           v-if="isResetDialogOpen"
+          ref="resetDialogRef"
           class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="reset-dialog-title"
           @click.self="cancelReset"
+          @keydown.escape="cancelReset"
         >
           <div
             class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
@@ -202,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, nextTick, watch } from "vue";
 import { useRouter } from "vue-router";
 import { DatabaseIcon, RotateCcwIcon, SlidersHorizontalIcon, UserIcon } from "@lucide/vue";
 import { useSettingsStore } from "../stores/settings";
@@ -216,12 +218,17 @@ import SettingsRow from "../components/settings/SettingsRow.vue";
 import SettingsSwitch from "../components/settings/SettingsSwitch.vue";
 import type { FeatureType } from "../db/types";
 import SummaryComp from "@/components/SummaryComp.vue";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
 const { confirm } = useConfirm();
 const { showToast } = useToast();
 const storage = useStorageEstimate();
+
+const resetDialogRef = ref<HTMLElement | null>(null);
+const { activate, deactivate } = useFocusTrap(resetDialogRef, { escapeDeactivates: false });
+watch(resetDialogRef, (el) => el ? nextTick(() => activate()) : deactivate());
 
 const usernameDraft = ref(settingsStore.username ?? "");
 

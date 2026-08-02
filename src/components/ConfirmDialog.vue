@@ -11,8 +11,10 @@
     >
       <div
         v-if="isOpen"
+        ref="dialogRef"
         class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
         @click.self="handleCancel"
+        @keydown.escape="handleCancel"
       >
         <div
           class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40"
@@ -43,8 +45,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, nextTick, watch } from "vue";
 import { useConfirm } from "../composables/useConfirm";
 import { useBackButtonClose } from "../composables/useBackButtonClose";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
+
+const dialogRef = ref<HTMLElement | null>(null);
+const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: false });
+watch(dialogRef, (el) => el ? nextTick(() => activate()) : deactivate());
 
 const { isOpen, options, handleConfirm, handleCancel } = useConfirm();
 

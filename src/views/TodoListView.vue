@@ -1,6 +1,6 @@
 <!-- src/views/TodoListView.vue -->
 <script setup lang="ts">
-import { type Component, computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeftIcon,
@@ -24,6 +24,7 @@ import { useConfirm } from "../composables/useConfirm";
 import { useToast } from "../composables/useToast";
 import { formatRelativeTime } from "../utils/formatRelativeTime";
 import type { Todo, TodoList } from "../db/types";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const MENU_WIDTH_PX = 288;
 const MENU_OFFSET_PX = 8;
@@ -52,6 +53,19 @@ const openMenuTodoId = ref<string | null>(null);
 const menuStyle = ref({ left: "0px", top: "0px" });
 const isInfoOpen = ref(false);
 let activeLoadToken = 0;
+
+const menuRef = ref<HTMLElement | null>(null);
+const infoRef = ref<HTMLElement | null>(null);
+const detailRef = ref<HTMLElement | null>(null);
+
+const { activate: activateMenu, deactivate: deactivateMenu } = useFocusTrap(menuRef, { escapeDeactivates: false });
+watch(menuRef, (el) => el ? nextTick(() => activateMenu()) : deactivateMenu());
+
+const { activate: activateInfo, deactivate: deactivateInfo } = useFocusTrap(infoRef, { escapeDeactivates: false });
+watch(infoRef, (el) => el ? nextTick(() => activateInfo()) : deactivateInfo());
+
+const { activate: activateDetail, deactivate: deactivateDetail } = useFocusTrap(detailRef, { escapeDeactivates: false });
+watch(detailRef, (el) => el ? nextTick(() => activateDetail()) : deactivateDetail());
 
 const priorityOptions: { value: Todo["priority"]; label: string; icon: Component }[] = [
   { label: "None", value: null, icon: CircleDashedIcon },
@@ -444,9 +458,9 @@ watch(() => pathMatch, loadList);
 
     <!-- Per-todo action popover -->
     <Teleport to="body">
-      <div v-if="openMenuTodoId" data-todo-menu
+      <div v-if="openMenuTodoId" data-todo-menu ref="menuRef"
         class="fixed w-72 bg-rose-surface border border-rose-border rounded-xl shadow-2xl z-200 py-3 flex flex-col"
-        :style="menuStyle" role="dialog" aria-label="Todo options">
+        :style="menuStyle" role="dialog" aria-label="Todo options" @keydown.escape="openMenuTodoId = null">
         <div class="px-4 pb-3 mb-2 border-b border-rose-border">
           <p id="popover-priority-label" class="text-sm font-medium text-rose-text-muted mb-2">Priority</p>
           <div class="flex gap-1.5" role="radiogroup" aria-labelledby="popover-priority-label">
@@ -497,9 +511,9 @@ watch(() => pathMatch, loadList);
       <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
         enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
         leave-to-class="opacity-0">
-        <div v-if="isInfoOpen" role="dialog" aria-modal="true" aria-labelledby="info-dialog-title"
+        <div v-if="isInfoOpen" role="dialog" aria-modal="true" aria-labelledby="info-dialog-title" ref="infoRef"
           class="fixed inset-0 z-210 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
-          @click.self="isInfoOpen = false">
+          @click.self="isInfoOpen = false" @keydown.escape="isInfoOpen = false">
           <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border">
             <div class="flex items-center justify-between mb-4">
               <h3 id="info-dialog-title" class="text-lg font-semibold text-rose-text">List properties</h3>
@@ -550,9 +564,9 @@ watch(() => pathMatch, loadList);
       <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
         enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
         leave-to-class="opacity-0">
-        <div v-if="detailTodo" role="dialog" aria-modal="true" aria-labelledby="detail-dialog-title"
+        <div v-if="detailTodo" role="dialog" aria-modal="true" aria-labelledby="detail-dialog-title" ref="detailRef"
           class="fixed inset-0 z-210 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
-          @click.self="closeDetail">
+          @click.self="closeDetail" @keydown.escape="closeDetail">
           <div
             class="bg-rose-surface shadow-2xl w-full border border-rose-border flex flex-col transition-all duration-200"
             :class="[

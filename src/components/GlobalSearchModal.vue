@@ -5,8 +5,10 @@
       enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
       leave-to-class="opacity-0">
       <div v-if="uiStore.isSearchOpen"
+        ref="dialogRef"
         class="fixed inset-0 z-120 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-[10vh] px-4"
-        @click.self="uiStore.closeSearch()">
+        @click.self="uiStore.closeSearch()"
+        @keydown.escape="handleEscape">
         <div
           class="w-full max-w-2xl bg-rose-surface border border-rose-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
           <div class="relative shrink-0">
@@ -54,10 +56,15 @@ import { SearchIcon, XIcon, ListTodoIcon, PenLineIcon, FileTextIcon } from "@luc
 import { useUiStore } from "../stores/ui";
 import { useHomeSummary } from "../composables/useHomeSummary";
 import { useBackButtonClose } from "../composables/useBackButtonClose";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 const uiStore = useUiStore();
 const router = useRouter();
 const summary = useHomeSummary();
+
+const dialogRef = ref<HTMLElement | null>(null);
+const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: false });
+watch(dialogRef, (el) => el ? nextTick(() => activate()) : deactivate());
 
 useBackButtonClose(
   computed(() => uiStore.isSearchOpen),
