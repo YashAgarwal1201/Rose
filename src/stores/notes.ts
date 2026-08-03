@@ -1,8 +1,8 @@
 // src/stores/notes.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import db from "../db";
-import type { Note } from "../db/types";
+import db from "@/db";
+import type { Note } from "@/db/types";
 import { useActivityStore } from "./activity";
 
 const DEFAULT_BACKGROUND = "#ffffff";

@@ -1,15 +1,15 @@
 // Src/router/index.ts
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
-import OnboardingView from "../views/OnboardingView.vue";
-import SettingsView from "../views/SettingsView.vue";
-import TodosView from "../views/TodosView.vue";
-import TodoListView from "../views/TodoListView.vue";
-import NotesView from "../views/NotesView.vue";
-import NoteView from "../views/NoteView.vue";
-import DocsView from "../views/DocsView.vue";
-import DocView from "../views/DocView.vue";
-import { useSettingsStore } from "../stores/settings";
+import HomeView from "@/views/home/HomeView.vue";
+import OnboardingView from "@/views/onboarding/OnboardingView.vue";
+import SettingsView from "@/views/settings/SettingsView.vue";
+import TodosView from "@/views/todos/TodosView.vue";
+import TodoListView from "@/views/todos/TodoListView.vue";
+import NotesView from "@/views/notes/NotesView.vue";
+import NoteView from "@/views/notes/NoteView.vue";
+import DocsView from "@/views/docs/DocsView.vue";
+import DocView from "@/views/docs/DocView.vue";
+import { useSettingsStore } from "@/stores/settings";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

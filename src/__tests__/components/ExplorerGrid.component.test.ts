@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 import { ListIcon } from "@lucide/vue";
-import ExplorerGrid from "../../components/ExplorerGrid.vue";
+import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 
 const mockViewMode = ref<"grid" | "list">("grid");
 const mockSortKey = ref<"name" | "updatedAt">("name");

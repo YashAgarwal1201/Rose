@@ -6,17 +6,17 @@ import { IDBFactory } from "fake-indexeddb";
 import db from "../../db";
 import { useTodosStore } from "../../stores/todos";
 import { useFoldersStore } from "../../stores/folders";
-import TodosView from "../../views/TodosView.vue";
-import ExplorerGrid from "../../components/ExplorerGrid.vue";
+import TodosView from "@/views/todos/TodosView.vue";
+import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 
 // ─── Composable mocks ─────────────────────────────────────────────────────────
-vi.mock(import("../../composables/useToast"), () => ({
+vi.mock(import("@/composables/ui/useToast.ts"), () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock(import("../../composables/useConfirm"), () => ({
+vi.mock(import("@/composables/ui/useConfirm.ts"), () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),
 } as any));
-vi.mock(import("../../composables/useExplorerViewMode"), () => {
+vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
   const { ref } = require("vue");
   return {
     useExplorerViewMode: () => ({
@@ -30,16 +30,16 @@ vi.mock(import("../../composables/useExplorerViewMode"), () => {
 });
 
 // ─── Child component stubs ────────────────────────────────────────────────────
-vi.mock(import("../../components/FolderTree.vue"), () => ({
+vi.mock(import("@/components/explorer/FolderTree.vue"), () => ({
   default: { template: "<div data-testid='folder-tree' />" },
 } as any));
-vi.mock(import("../../components/FolderTreeDrawer.vue"), () => ({
+vi.mock(import("@/components/explorer/FolderTreeDrawer.vue"), () => ({
   default: { template: "<div data-testid='folder-tree-drawer' />" },
 } as any));
-vi.mock(import("../../components/Breadcrumbs.vue"), () => ({
+vi.mock(import("@/components/ui/Breadcrumbs.vue"), () => ({
   default: { template: "<div data-testid='breadcrumbs' />" },
 } as any));
-vi.mock(import("../../components/ExplorerActions.vue"), () => ({
+vi.mock(import("@/components/explorer/ExplorerActions.vue"), () => ({
   default: {
     template: `<div data-testid='explorer-actions'>
       <button data-testid='create-folder-btn' @click="$emit('create-folder')">New Folder</button>

@@ -1,7 +1,7 @@
 // src/__tests__/components/ExplorerActions.component.test.ts
 import { beforeEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import ExplorerActions from "../../components/ExplorerActions.vue";
+import ExplorerActions from "@/components/explorer/ExplorerActions.vue";
 
 function mountActions(fileLabel = "note") {
   return mount(ExplorerActions, {

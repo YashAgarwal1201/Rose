@@ -1,7 +1,7 @@
 // src/__tests__/components/Breadcrumbs.component.test.ts
 import { beforeEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import Breadcrumbs from "../../components/Breadcrumbs.vue";
+import Breadcrumbs from "@/components/ui/Breadcrumbs.vue";
 import type { Crumb } from "../../types/explorer";
 
 function mountBreadcrumbs(crumbs: Crumb[] = []) {

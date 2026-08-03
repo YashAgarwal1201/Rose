@@ -1,8 +1,8 @@
 // src/stores/docs.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import db from "../db";
-import type { Doc } from "../db/types";
+import db from "@/db";
+import type { Doc } from "@/db/types";
 import { useActivityStore } from "./activity";
 
 export const useDocsStore = defineStore("docs", () => {

@@ -1,9 +1,9 @@
-// src/__tests__/components/Sidebar.component.test.ts
+// src/__tests__/components/Navbar.component.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { createRouter, createMemoryHistory } from "vue-router";
-import Sidebar from "../../components/Sidebar.vue";
+import Navbar from "@/components/layout/Navbar.vue";
 
 // Mock the settings store to control enabled features
 const mockEnabledFeatures = vi.fn<() => string[]>().mockReturnValue(["todo", "note", "doc"]);
@@ -29,19 +29,19 @@ function createTestRouter(initialRoute = "/") {
   });
 }
 
-async function mountSidebar(initialRoute = "/") {
+async function mountNavbar(initialRoute = "/") {
   const router = createTestRouter(initialRoute);
   await router.push(initialRoute);
   await router.isReady();
 
-  return mount(Sidebar, {
+  return mount(Navbar, {
     global: {
       plugins: [router],
     },
   });
 }
 
-describe("Sidebar", () => {
+describe("Navbar", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     mockEnabledFeatures.mockReturnValue(["todo", "note", "doc"]);
@@ -56,13 +56,13 @@ describe("Sidebar", () => {
   describe("rendering", () => {
     it("renders the Home nav item", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar();
+      const wrapper = await mountNavbar();
       expect(wrapper.text()).toContain("Home");
     });
 
     it("renders all enabled feature nav items", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar();
+      const wrapper = await mountNavbar();
       expect(wrapper.text()).toContain("Todos");
       expect(wrapper.text()).toContain("Notes");
       expect(wrapper.text()).toContain("Docs");
@@ -71,7 +71,7 @@ describe("Sidebar", () => {
     it("hides disabled feature nav items", async () => {
       expect.hasAssertions();
       mockEnabledFeatures.mockReturnValue(["todo"]);
-      const wrapper = await mountSidebar();
+      const wrapper = await mountNavbar();
       expect(wrapper.text()).toContain("Todos");
       expect(wrapper.text()).not.toContain("Notes");
       expect(wrapper.text()).not.toContain("Docs");
@@ -79,7 +79,7 @@ describe("Sidebar", () => {
 
     it("renders the Menu button", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar();
+      const wrapper = await mountNavbar();
       expect(wrapper.text()).toContain("Menu");
     });
   });
@@ -90,7 +90,7 @@ describe("Sidebar", () => {
   describe("toggleMenu emit", () => {
     it("emits toggleMenu when the Menu button is clicked", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar();
+      const wrapper = await mountNavbar();
       const menuBtn = wrapper.find('button[aria-label="Menu"]');
       await menuBtn.trigger("click");
       expect(wrapper.emitted("toggleMenu")).toBeTruthy();
@@ -103,7 +103,7 @@ describe("Sidebar", () => {
   describe("active state", () => {
     it("applies active styling to Home when on '/'", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar("/");
+      const wrapper = await mountNavbar("/");
       const homeLink = wrapper.findAll("a").find((a) => a.text().includes("Home"))!;
       // The active link should have the primary color class
       expect(homeLink.html()).toContain("bg-rose-primary");
@@ -111,14 +111,14 @@ describe("Sidebar", () => {
 
     it("applies active styling to Todos when on a /todos/ route", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar("/todos/folder");
+      const wrapper = await mountNavbar("/todos/folder");
       const todosLink = wrapper.findAll("a").find((a) => a.text().includes("Todos"))!;
       expect(todosLink.html()).toContain("bg-rose-primary");
     });
 
     it("does not apply active styling to Home when on /todos/", async () => {
       expect.hasAssertions();
-      const wrapper = await mountSidebar("/todos/folder");
+      const wrapper = await mountNavbar("/todos/folder");
       const homeLink = wrapper.findAll("a").find((a) => a.text().includes("Home"))!;
       expect(homeLink.html()).not.toContain("bg-rose-primary");
     });
