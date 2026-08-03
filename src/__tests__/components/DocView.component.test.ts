@@ -8,7 +8,7 @@ import { ref } from "vue";
 import db from "../../db";
 import { useDocsStore } from "../../stores/docs";
 import { useFoldersStore } from "../../stores/folders";
-import DocView from "../../views/DocView.vue";
+import DocView from "@/views/docs/DocView.vue";
 
 // \u2500\u2500\u2500 Fake TipTap editor \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const chainMethods = [
@@ -93,10 +93,10 @@ vi.mock(import("@tiptap/pm/tables"), () => ({
 vi.mock(import("@tiptap/markdown"), () => ({ Markdown: extensionStub("markdown") } as any));
 
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-vi.mock(import("../../composables/useToast"), () => ({
+vi.mock(import("@/composables/ui/useToast.ts"), () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock(import("../../composables/useDocExport"), () => ({
+vi.mock(import("@/composables/docs/useDocExport.ts"), () => ({
   useDocExport: () => ({
     exportAsHtml: vi.fn(),
     exportAsMarkdown: vi.fn(),
@@ -104,7 +104,7 @@ vi.mock(import("../../composables/useDocExport"), () => ({
     exportAsPdf: vi.fn(),
   }),
 } as any));
-vi.mock(import("../../composables/useToolbarPosition"), () => ({
+vi.mock(import("@/composables/ui/useToolbarPosition.ts"), () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -113,7 +113,7 @@ vi.mock(import("../../composables/useToolbarPosition"), () => ({
     setPosition: vi.fn(),
   }),
 } as any));
-vi.mock(import("../../composables/usePopoverPosition"), () => ({
+vi.mock(import("@/composables/ui/usePopoverPosition.ts"), () => ({
   usePopoverPosition: () => ({
     style: ref({}),
     open: vi.fn(),
@@ -129,7 +129,7 @@ vi.mock(import("../../utils/debounce"), () => ({
       return debounced;
     },
 } as any));
-vi.mock(import("../../components/DocToolbar.vue"), () => ({
+vi.mock(import("@/components/docs/DocToolbar.vue"), () => ({
   default: { template: "<div data-testid='doc-toolbar' />" },
 } as any));
 

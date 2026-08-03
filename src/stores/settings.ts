@@ -1,8 +1,8 @@
 // src/stores/settings.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import db from "../db";
-import type { AppSettings, FeatureType } from "../db/types";
+import db from "@/db";
+import type { AppSettings, FeatureType } from "@/db/types";
 
 const SETTINGS_ID = 1;
 

@@ -52,7 +52,7 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] New `stores/ui.ts` — app-level UI state
 - [x] New `stores/settings.ts` — wraps the `settings` Dexie row; `completeOnboarding()`, `updateUsername()`, `toggleFeature()`, `resetOnboarding()`
 - [x] `theme.ts` stays as-is (no migration needed)
-- [ ] `composables/useBackup.ts` — export/import logic across all tables (not started; Data & Storage section below is still missing Export/Import entirely)
+- [x] `utils/exportData.ts` and `utils/importData.ts` — export/import logic across all tables
 
 ### Onboarding flow
 
@@ -89,8 +89,8 @@ Development is organized into phases. Each phase should be shippable/usable on i
 - [x] Appearance section — theme
 - [x] Features section — toggle Todos/Notes/Docs on/off post-onboarding
 - [x] Storage usage indicator (`navigator.storage.estimate()` via `useStorageEstimate.ts`)
-- [x] Export data → JSON download (all tables) — not started
-- [ ] Import data → JSON upload with merge vs. overwrite — not started
+- [x] Export data → JSON download (all tables)
+- [x] Import data → JSON upload with merge vs. replace
 - [x] "Clear all content" — wipes folders/todos/docs/notes, keeps `settings`/theme intact, lands on Home empty state
 - [x] "Reset app completely" — typed `RESET` confirmation, wipes settings too
 - [ ] About section (version, tech stack, keyboard shortcuts) inside Settings — this info currently still only lives in `MenuOverlay.vue`, never migrated in

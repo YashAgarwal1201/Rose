@@ -11,18 +11,27 @@
       A local-first home for your todos, notes, and docs — no account, no cloud, nothing leaves your
       device. Let's set a few things up.
     </p>
-    <button
-      type="button"
-      class="mt-6 text-xs font-medium text-rose-text-muted hover:text-rose-text underline underline-offset-2"
-      @click="emit('skip')"
-    >
-      Skip setup, use defaults
-    </button>
+    <div class="mt-6 flex flex-col items-center gap-2">
+      <button
+        type="button"
+        class="text-xs font-medium text-rose-text-muted hover:text-rose-text underline underline-offset-2"
+        @click="emit('skip')"
+      >
+        Skip setup, use defaults
+      </button>
+      <button
+        type="button"
+        class="text-xs font-medium text-rose-primary hover:text-rose-primary/80 underline underline-offset-2"
+        @click="emit('restore')"
+      >
+        Restore from a backup file
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { SparklesIcon } from "@lucide/vue";
 
-const emit = defineEmits<{ skip: [] }>();
+const emit = defineEmits<{ skip: []; restore: [] }>();
 </script>

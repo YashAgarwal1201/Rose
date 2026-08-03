@@ -1,8 +1,8 @@
 // src/stores/todos.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import db from "../db";
-import type { Todo, TodoList } from "../db/types";
+import db from "@/db";
+import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
 
 export const useTodosStore = defineStore("todos", () => {

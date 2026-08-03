@@ -4,7 +4,7 @@
     class="flex flex-col-reverse md:flex-row h-dvh overflow-hidden bg-rose-bg text-rose-text antialiased"
   >
     <div class="w-full md:w-20 h-16 md:h-full shrink-0">
-      <Sidebar @toggle-menu="isMenuOpen = true" />
+      <Navbar @toggle-menu="isMenuOpen = true" />
     </div>
 
     <div class="grow h-full relative overflow-hidden">
@@ -28,7 +28,7 @@
       </Transition>
     </div>
 
-    <MenuOverlay :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" />
+    <SideMenu :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" />
     <ToastContainer />
     <ConfirmDialog />
     <InputDialog />
@@ -39,19 +39,19 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRouter } from "vue-router";
-import Sidebar from "./components/Sidebar.vue";
-import MenuOverlay from "./components/MenuOverlay.vue";
-import ToastContainer from "./components/ToastContainer.vue";
-import ConfirmDialog from "./components/ConfirmDialog.vue";
-import InputDialog from "./components/InputDialog.vue";
-import GlobalSearchModal from "./components/GlobalSearchModal.vue";
+import Navbar from "@/components/layout/Navbar.vue";
+import SideMenu from "@/components/layout/SideMenu.vue";
+import ToastContainer from "@/components/ui/ToastContainer.vue";
+import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import InputDialog from "@/components/ui/InputDialog.vue";
+import GlobalSearchModal from "@/components/explorer/GlobalSearchModal.vue";
 
 import { useUiStore } from "./stores/ui";
-import { useToast } from "./composables/useToast";
-import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
+import { useToast } from "@/composables/ui/useToast.ts";
+import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { useThemeStore } from "./stores/theme";
 import { useSettingsStore } from "./stores/settings";
-import { useBackButtonClose } from "./composables/useBackButtonClose";
+import { useBackButtonClose } from "@/composables/ui/useBackButtonClose.ts";
 import { TOAST_AUTO_DISMISS_MS } from "./utils/constants.ts";
 import { useScroll } from "@vueuse/core";
 import { ArrowUpIcon } from "@lucide/vue";

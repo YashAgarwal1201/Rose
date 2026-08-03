@@ -1,6 +1,6 @@
 // src/__tests__/composables/useConfirm.test.ts
 import { beforeEach, describe, expect, it } from "vitest";
-import { useConfirm } from "../../composables/useConfirm";
+import { useConfirm } from "@/composables/ui/useConfirm.ts";
 
 describe("useConfirm", () => {
   beforeEach(() => {

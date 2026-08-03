@@ -1,7 +1,7 @@
 // src/stores/activity.ts
 import { defineStore } from "pinia";
-import db from "../db";
-import type { ActivityAction, ActivityEntry } from "../db/types";
+import db from "@/db";
+import type { ActivityAction, ActivityEntry } from "@/db/types";
 
 // How long a burst of autosave edits on the same item gets folded into a
 // single contribution, so one editing session doesn't flood the heatmap.

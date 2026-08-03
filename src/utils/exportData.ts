@@ -1,4 +1,4 @@
-import db from "../db";
+import db from "@/db";
 
 import type {
   ActivityEntry,
@@ -8,7 +8,7 @@ import type {
   Note,
   Todo,
   TodoList,
-} from "../db/types";
+} from "@/db/types";
 
 export interface ExportOptions {
   settings: boolean;
