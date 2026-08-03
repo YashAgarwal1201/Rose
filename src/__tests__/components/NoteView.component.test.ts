@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import NoteView from "../../views/NoteView.vue";
+import NoteView from "@/views/notes/NoteView.vue";
 import { createPinia, setActivePinia } from "pinia";
 import db from "../../db";
 import { useFoldersStore } from "../../stores/folders";

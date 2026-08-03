@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import NoteToolbar from "../../components/NoteToolbar.vue";
+import NoteToolbar from "@/components/notes/NoteToolbar.vue";
 
 // Mock the popover position composable
 vi.mock("../../composables/usePopoverPosition", () => ({

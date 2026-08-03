@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { DistributionSegment } from "../../composables/useContributionDistribution";
+import type { DistributionSegment } from "@/composables/home/useContributionDistribution";
 
 const { segments } = defineProps<{ segments: DistributionSegment[] }>();
 
@@ -115,5 +115,5 @@ const polygonPoints = computed(() =>
   axisPoints.value.map((point) => `${point.valueX},${point.valueY}`).join(" "),
 );
 
-const ariaLabel = computed(() => segments?.map((s) => `${s.label} ${s.percentage}%`).join(", "));
+const ariaLabel = computed(() => segments?.map((segment) => `${segment.label} ${segment.percentage}%`).join(", "));
 </script>

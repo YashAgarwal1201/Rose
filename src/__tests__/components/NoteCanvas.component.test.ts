@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import NoteCanvas from "../../components/NoteCanvas.vue";
+import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import { ref } from "vue";
 
 // Mock the debounce utility to run immediately or expose flush

@@ -2,36 +2,22 @@
 <template>
   <div ref="scrollerRef" class="overflow-x-auto no-scrollbar pb-1">
     <div class="inline-flex flex-col gap-1">
-      <div class="flex gap-1 pl-7">
-        <span
-          v-for="(label, index) in monthLabels"
-          :key="index"
-          class="shrink-0 text-[10px] leading-none text-rose-text-muted"
-          :style="cellStyle"
-          >{{ label }}</span
-        >
+      <div class="flex gap-1 pl-8">
+        <span v-for="(label, index) in monthLabels" :key="index"
+          class="shrink-0 text-xs leading-none text-rose-text-muted" :style="cellStyle">{{ label }}</span>
       </div>
 
-      <div class="flex gap-1">
-        <div class="flex flex-col gap-1 pr-1 shrink-0">
-          <span
-            v-for="(label, index) in dayLabels"
-            :key="index"
-            class="flex items-center text-[10px] leading-none text-rose-text-muted"
-            :style="cellStyle"
-            >{{ label }}</span
-          >
+      <div class="flex flex-row gap-2">
+        <div class="flex flex-col gap-1 pr-3 shrink-0 sticky left-0 bg-rose-bg">
+          <span v-for="(label, index) in dayLabels" :key="index"
+            class="w-full flex items-center text-xs leading-none text-rose-text-muted" :style="cellStyle">{{ label
+            }}</span>
         </div>
 
-        <div class="flex gap-1">
+        <div class="grow flex gap-1">
           <div v-for="(week, weekIndex) in weeks" :key="weekIndex" class="flex flex-col gap-1">
-            <div
-              v-for="day in week"
-              :key="day.dateKey"
-              :class="['rounded-sm', levelClasses[day.level]]"
-              :style="cellStyle"
-              :title="tooltipFor(day)"
-            />
+            <div v-for="day in week" :key="day.dateKey" :class="['rounded-sm', levelClasses[day.level]]"
+              :style="cellStyle" :title="tooltipFor(day)" />
           </div>
         </div>
       </div>
@@ -41,11 +27,11 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
-import type { HeatmapDay } from "../../composables/useActivityHeatmap";
+import type { HeatmapDay } from "@/composables/home/useActivityHeatmap";
 
 const { weeks } = defineProps<{ weeks: HeatmapDay[][] }>();
 
-const CELL_SIZE = 11;
+const CELL_SIZE = 13;
 const cellStyle = { height: `${CELL_SIZE}px`, width: `${CELL_SIZE}px` };
 
 const levelClasses = [
@@ -99,6 +85,7 @@ onMounted(async () => {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import TodoListView from "../../views/TodoListView.vue";
+import TodoListView from "@/views/todos/TodoListView.vue";
 import { createPinia, setActivePinia } from "pinia";
 import db from "../../db";
 import "fake-indexeddb/auto";

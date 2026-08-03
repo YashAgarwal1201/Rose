@@ -1,6 +1,6 @@
 // src/__tests__/composables/useToast.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useToast } from "../../composables/useToast";
+import { useToast } from "@/composables/ui/useToast.ts";
 
 describe("useToast", () => {
   beforeEach(() => {

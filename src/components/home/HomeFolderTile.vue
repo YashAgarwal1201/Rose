@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { FolderIcon } from "@lucide/vue";
-import type { FolderSummary } from "../../composables/useHomeSummary";
+import type { FolderSummary } from "@/composables/home/useHomeSummary";
 
 const { folder, routeName } = defineProps<{
   folder: FolderSummary;

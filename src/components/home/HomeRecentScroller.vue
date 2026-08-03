@@ -1,40 +1,25 @@
 <!-- src/components/home/HomeRecentScroller.vue -->
 <template>
   <div v-if="items.length > 0" class="mt-8">
-    <h2 class="text-sm font-semibold text-rose-text-muted uppercase tracking-wide">{{ title }}</h2>
+    <h2 class="text-xl font-semibold text-rose-text-muted uppercase tracking-wide">{{ title }}</h2>
 
     <div class="relative mt-3">
-      <button
-        type="button"
-        aria-label="Scroll left"
+      <button type="button" aria-label="Scroll left"
         class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-rose-surface border border-rose-border shadow-md flex items-center justify-center text-rose-text transition-opacity hover:bg-rose-surface-alt disabled:opacity-0 disabled:pointer-events-none"
-        :disabled="!canScrollLeft"
-        @click="scrollByPage(-1)"
-      >
+        :disabled="!canScrollLeft" @click="scrollByPage(-1)">
         <ChevronLeftIcon :size="16" />
       </button>
 
-      <div
-        ref="scrollerRef"
-        class="no-scrollbar flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1"
-        @scroll="updateScrollState"
-      >
-        <div
-          v-for="item in items"
-          :key="`${item.type}-${item.id}`"
-          class="shrink-0 w-40 sm:w-44 snap-start"
-        >
+      <div ref="scrollerRef" class="no-scrollbar flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1"
+        @scroll="updateScrollState">
+        <div v-for="item in items" :key="`${item.type}-${item.id}`" class="shrink-0 w-64 sm:w-72 snap-start">
           <HomeFileCard :item="item" timestamp-label="updated" @open="emit('open', item)" />
         </div>
       </div>
 
-      <button
-        type="button"
-        aria-label="Scroll right"
+      <button type="button" aria-label="Scroll right"
         class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-rose-surface border border-rose-border shadow-md flex items-center justify-center text-rose-text transition-opacity hover:bg-rose-surface-alt disabled:opacity-0 disabled:pointer-events-none"
-        :disabled="!canScrollRight"
-        @click="scrollByPage(1)"
-      >
+        :disabled="!canScrollRight" @click="scrollByPage(1)">
         <ChevronRightIcon :size="16" />
       </button>
     </div>
@@ -45,7 +30,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ChevronLeftIcon, ChevronRightIcon } from "@lucide/vue";
 import HomeFileCard from "./HomeFileCard.vue";
-import type { HomeItem } from "../../composables/useHomeSummary";
+import type { HomeItem } from "@/composables/home/useHomeSummary";
 
 const { title, items } = defineProps<{
   title: string;
@@ -101,6 +86,7 @@ watch(
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
