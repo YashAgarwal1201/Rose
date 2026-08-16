@@ -1,10 +1,10 @@
 // src/composables/useHandwritingCanvas.ts
 import { ref, type Ref, shallowRef, watch } from "vue";
-import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Rect, Textbox } from "fabric";
+import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Polygon, Rect, Textbox, Triangle } from "fabric";
 import getStroke from "perfect-freehand";
 
 export type PenTool = "pencil" | "pen" | "marker";
-export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow";
+export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
 
 // Stored as tuples directly — avoids a .map() allocation on every hot pointer event.
@@ -538,12 +538,87 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
         case "ellipse": {
           return new Ellipse({ ...common, rx: 60, ry: 40 });
         }
-        case "line":
-        case "arrow": {
-          return new Line([center.x - 60, center.y, center.x + 60, center.y], {
+        case "line": {
+          return new Line([center.x - 60, center.y - 60, center.x + 60, center.y + 60], {
             stroke: color,
             strokeWidth: 2,
+            padding: 10,
           });
+        }
+        case "arrow": {
+          const arrowPath = "M 0 20 L 80 20 L 70 10 M 80 20 L 70 30";
+          return new Path(arrowPath, {
+            ...common,
+            strokeWidth: 2,
+            fill: "",
+            padding: 10,
+          });
+        }
+        case "triangle": {
+          return new Triangle({ ...common, width: 100, height: 100 });
+        }
+        case "diamond": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 100, y: 50 },
+            { x: 50, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "star": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 61, y: 35 },
+            { x: 98, y: 35 },
+            { x: 68, y: 57 },
+            { x: 79, y: 91 },
+            { x: 50, y: 70 },
+            { x: 21, y: 91 },
+            { x: 32, y: 57 },
+            { x: 2, y: 35 },
+            { x: 39, y: 35 }
+          ], { ...common });
+        }
+        case "hexagon": {
+          return new Polygon([
+            { x: 25, y: 0 },
+            { x: 75, y: 0 },
+            { x: 100, y: 50 },
+            { x: 75, y: 100 },
+            { x: 25, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "cloud": {
+          const cloudPath = "M 30 40 C 20 40 20 60 40 60 C 40 70 60 70 70 60 C 80 60 80 40 70 40 C 70 20 40 20 30 40 Z";
+          return new Path(cloudPath, { ...common, strokeWidth: 2, fill: "" });
+        }
+        case "cylinder": {
+          const cylPath = "M 20 20 C 20 5 80 5 80 20 C 80 35 20 35 20 20 L 20 80 C 20 95 80 95 80 80 L 80 20";
+          return new Path(cylPath, { ...common, strokeWidth: 2, fill: "" });
+        }
+        case "parallelogram": {
+          return new Polygon([
+            { x: 20, y: 0 },
+            { x: 100, y: 0 },
+            { x: 80, y: 60 },
+            { x: 0, y: 60 }
+          ], { ...common });
+        }
+        case "rhombus": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 100, y: 50 },
+            { x: 50, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "square": {
+          return new Rect({ ...common, width: 80, height: 80 });
+        }
+        case "double-arrow": {
+          const doubleArrowPath = "M 10 20 L 90 20 M 20 10 L 10 20 L 20 30 M 80 10 L 90 20 L 80 30";
+          return new Path(doubleArrowPath, { ...common, strokeWidth: 2, fill: "", padding: 10 });
         }
       }
     })();
@@ -611,9 +686,9 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     const bounds = img.getBoundingRect();
     maxContentBottom = Math.max(maxContentBottom, bounds.top + bounds.height);
     growCanvasIfNeeded();
-    
+
     tool.value = "select";
-    
+
     canvas.requestRenderAll();
   }
 

@@ -3,7 +3,7 @@
 export type FeatureType = "todo" | "note" | "doc";
 
 export type PenTool = "pencil" | "pen" | "marker";
-export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow";
+export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
 
 export interface Folder {

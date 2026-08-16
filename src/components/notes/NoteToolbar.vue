@@ -2,18 +2,26 @@
 import { computed, ref } from "vue";
 import {
   MoveUpRight as ArrowIcon,
+  Cloud as CloudIcon,
+  Database as CylinderIcon,
+  Diamond as DiamondIcon,
+  ArrowLeftRight as DoubleArrowIcon,
   DownloadIcon,
   Circle as EllipseIcon,
   EraserIcon,
+  Hexagon as HexagonIcon,
   Highlighter as HighlighterIcon,
   ImageIcon,
   Minus as LineIcon,
   MousePointer2Icon,
   PaletteIcon,
+  RectangleHorizontal as ParallelogramIcon,
   Pencil as PencilIcon,
   PenLine as PenIcon,
   Redo2Icon,
   SquareIcon,
+  Star as StarIcon,
+  Triangle as TriangleIcon,
   TypeIcon,
   Undo2Icon,
 } from "@lucide/vue";
@@ -342,6 +350,56 @@ defineExpose({ toggleExportMenu });
         class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
         @click="emit('update:shapeTool', 'arrow'); emit('addShape', 'arrow'); closeAllPopovers();">
         <ArrowIcon class="w-4 h-4" /> Arrow
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'triangle'); emit('addShape', 'triangle'); closeAllPopovers();">
+        <TriangleIcon class="w-4 h-4" /> Triangle
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'diamond'); emit('addShape', 'diamond'); closeAllPopovers();">
+        <DiamondIcon class="w-4 h-4" /> Diamond
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'star'); emit('addShape', 'star'); closeAllPopovers();">
+        <StarIcon class="w-4 h-4" /> Star
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'hexagon'); emit('addShape', 'hexagon'); closeAllPopovers();">
+        <HexagonIcon class="w-4 h-4" /> Hexagon
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'cloud'); emit('addShape', 'cloud'); closeAllPopovers();">
+        <CloudIcon class="w-4 h-4" /> Cloud
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'cylinder'); emit('addShape', 'cylinder'); closeAllPopovers();">
+        <CylinderIcon class="w-4 h-4" /> Cylinder
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'parallelogram'); emit('addShape', 'parallelogram'); closeAllPopovers();">
+        <ParallelogramIcon class="w-4 h-4" /> Parallelogram
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'rhombus'); emit('addShape', 'rhombus'); closeAllPopovers();">
+        <DiamondIcon class="w-4 h-4" /> Rhombus
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'square'); emit('addShape', 'square'); closeAllPopovers();">
+        <SquareIcon class="w-4 h-4" /> Square
+      </button>
+      <button type="button"
+        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-rose-text hover:bg-rose-surface-alt"
+        @click="emit('update:shapeTool', 'double-arrow'); emit('addShape', 'double-arrow'); closeAllPopovers();">
+        <DoubleArrowIcon class="w-4 h-4" /> Double Arrow
       </button>
     </div>
 
