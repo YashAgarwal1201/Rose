@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
           v-if="isRenaming"
           v-model="renameValue"
           type="text"
-          autofocus
+          v-focus
           class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
           @keyup.enter="confirmRenameTitle"
           @keyup.escape="cancelRenameTitle"

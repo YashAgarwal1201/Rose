@@ -56,10 +56,9 @@ const CANVAS_MIN_HEIGHT = 900;
 const CANVAS_GROW_STEP = 600;
 const CANVAS_GROW_THRESHOLD = 200; // grow when content comes within this many px of the bottom
 
-interface HistoryEntry {
-  type: "add" | "remove";
-  object: FabricObject;
-}
+type HistoryEntry =
+  | { type: "add" | "remove"; object: FabricObject }
+  | { type: "bg-color"; old: string; new: string };
 
 export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const fabricCanvas = shallowRef<Canvas | null>(null);
@@ -78,8 +77,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   let redoStack: HistoryEntry[] = [];
   let suppressHistory = false;
 
-  let activePenPointerId: number | null = null;
-  let lastPenActivityAt = 0;
+  let activePointerId: number | null = null;
+  let lastPenDeviceActivityAt = 0;
   let strokePoints: StrokePoint[] = [];
   let drawing = false;
   let erasing = false;
@@ -118,8 +117,11 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     suppressHistory = true;
     if (entry.type === "add") {
       canvas.remove(entry.object);
-    } else {
+    } else if (entry.type === "remove") {
       canvas.add(entry.object);
+    } else if (entry.type === "bg-color") {
+      backgroundColor.value = entry.old;
+      canvas.backgroundColor = entry.old;
     }
     canvas.requestRenderAll();
     suppressHistory = false;
@@ -136,13 +138,29 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     suppressHistory = true;
     if (entry.type === "add") {
       canvas.add(entry.object);
-    } else {
+    } else if (entry.type === "remove") {
       canvas.remove(entry.object);
+    } else if (entry.type === "bg-color") {
+      backgroundColor.value = entry.new;
+      canvas.backgroundColor = entry.new;
     }
     canvas.requestRenderAll();
     suppressHistory = false;
     undoStack.push(entry);
     refreshHistoryFlags();
+  }
+
+  function setBackgroundColor(newColor: string) {
+    const oldColor = backgroundColor.value;
+    if (oldColor !== newColor) {
+      pushHistory({ type: "bg-color", old: oldColor, new: newColor });
+      backgroundColor.value = newColor;
+      const canvas = fabricCanvas.value;
+      if (canvas) {
+        canvas.backgroundColor = newColor;
+        canvas.requestRenderAll();
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -157,7 +175,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       thinning: preset.thinning,
       smoothing: preset.smoothing,
       streamline: preset.streamline,
-      simulatePressure: points.every((p) => p[2] === 0.5),
+      simulatePressure: points.every((point) => point[2] === 0.5),
     });
     if (outline.length === 0) {
       return "";
@@ -168,8 +186,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       return "";
     } // narrows `first` from `number[] | undefined` to `number[]`
 
-    const d = rest.reduce((acc, [x, y]) => `${acc} L ${x} ${y}`, `M ${first[0]} ${first[1]}`);
-    return `${d} Z`;
+    const pathData = rest.reduce((acc, [xCoord, yCoord]) => `${acc} L ${xCoord} ${yCoord}`, `M ${first[0]} ${first[1]}`);
+    return `${pathData} Z`;
   }
 
   // ---------------------------------------------------------------------------
@@ -195,7 +213,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       thinning: preset.thinning,
       smoothing: preset.smoothing,
       streamline: preset.streamline,
-      simulatePressure: strokePoints.every((p) => p[2] === 0.5),
+      simulatePressure: strokePoints.every((point) => point[2] === 0.5),
     });
 
     // Fabric's own helper correctly accounts for retina scaling when clearing —
@@ -316,8 +334,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
 
   function isPalmRejected(event: PointerEvent): boolean {
     if (event.pointerType === "touch") {
-      const withinGrace = Date.now() - lastPenActivityAt < PALM_REJECTION_GRACE_MS;
-      return activePenPointerId !== null || withinGrace;
+      const withinGrace = Date.now() - lastPenDeviceActivityAt < PALM_REJECTION_GRACE_MS;
+      return withinGrace;
     }
     return false;
   }
@@ -326,13 +344,18 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (tool.value !== "pen") {
       return;
     }
+    if (activePointerId !== null) {
+      return;
+    }
     if (isPalmRejected(event)) {
       return;
     }
+
+    activePointerId = event.pointerId;
     if (event.pointerType === "pen" || event.pointerType === "mouse") {
-      activePenPointerId = event.pointerId;
-      lastPenActivityAt = Date.now();
+      lastPenDeviceActivityAt = Date.now();
     }
+
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return;
@@ -348,7 +371,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (!drawing || tool.value !== "pen") {
       return;
     }
-    if (activePenPointerId !== null && event.pointerId !== activePenPointerId) {
+    if (activePointerId !== null && event.pointerId !== activePointerId) {
       return;
     }
     const canvas = fabricCanvas.value;
@@ -357,7 +380,10 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     }
     const point = canvas.getScenePoint(event);
     strokePoints.push([point.x, point.y, event.pressure || 0.5]);
-    lastPenActivityAt = Date.now();
+
+    if (event.pointerType === "pen" || event.pointerType === "mouse") {
+      lastPenDeviceActivityAt = Date.now();
+    }
     strokeDirty = true;
   }
 
@@ -365,12 +391,14 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (!drawing) {
       return;
     }
-    if (activePenPointerId !== null && event.pointerId !== activePenPointerId) {
+    if (activePointerId !== null && event.pointerId !== activePointerId) {
       return;
     }
+    if (event.pointerType === "pen" || event.pointerType === "mouse") {
+      lastPenDeviceActivityAt = Date.now();
+    }
     drawing = false;
-    activePenPointerId = null;
-    lastPenActivityAt = Date.now();
+    activePointerId = null;
     stopPreviewLoop();
     commitStroke();
   }
@@ -555,30 +583,38 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.requestRenderAll();
   }
 
+  function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(reader.result as string));
+      reader.addEventListener("error", () => reject(new Error("Failed to read file")));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function addImage(file: File): Promise<void> {
+    if (file.size > 1024 * 1024) {
+      throw new Error("Image must be smaller than 1MB to keep notes fast.");
+    }
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return;
     }
 
-    // URL.createObjectURL avoids base64-encoding the entire file in memory
-    // (the old FileReader approach doubled peak memory usage for large images).
-    const objectUrl = URL.createObjectURL(file);
-    try {
-      const img = await FabricImage.fromURL(objectUrl);
-      img.scaleToWidth(Math.min(img.width ?? 300, 400));
-      canvas.add(img);
-      canvas.setActiveObject(img);
-      pushHistory({ type: "add", object: img });
+    const base64 = await fileToBase64(file);
+    const img = await FabricImage.fromURL(base64);
+    img.scaleToWidth(Math.min(img.width ?? 300, 400));
+    canvas.add(img);
+    canvas.setActiveObject(img);
+    pushHistory({ type: "add", object: img });
 
-      const bounds = img.getBoundingRect();
-      maxContentBottom = Math.max(maxContentBottom, bounds.top + bounds.height);
-      growCanvasIfNeeded();
-      canvas.requestRenderAll();
-    } finally {
-      // Always revoke — even if fromURL throws — to avoid memory leaks.
-      URL.revokeObjectURL(objectUrl);
-    }
+    const bounds = img.getBoundingRect();
+    maxContentBottom = Math.max(maxContentBottom, bounds.top + bounds.height);
+    growCanvasIfNeeded();
+    
+    tool.value = "select";
+    
+    canvas.requestRenderAll();
   }
 
   // ---------------------------------------------------------------------------
@@ -612,9 +648,10 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     // the flex parent.
     const wrapper = el.parentElement;
     const initialWidth = wrapper?.clientWidth || el.clientWidth || 300;
+    const initialHeight = Math.max(CANVAS_MIN_HEIGHT, wrapper?.clientHeight || 0);
 
     const canvas = new Canvas(el, {
-      height: CANVAS_MIN_HEIGHT,
+      height: initialHeight,
       width: initialWidth,
       backgroundColor: backgroundColor.value,
       selection: false,
@@ -625,24 +662,83 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     overlayCtx = canvas.contextTop; // use Fabric's own reference, not a fresh getContext() call
 
     const interactiveEl = canvas.upperCanvasEl;
+    // Keep touch-action: none so FabricJS never fights the browser for scroll control.
+    // We implement 2-finger scrolling entirely ourselves below.
     interactiveEl.style.touchAction = "none";
 
-    interactiveEl.addEventListener("pointerdown", (e) => {
-      handlePointerDown(e);
-      // handleEraserPointer(e);
+    // ---------------------------------------------------------------------------
+    // Manual 2-finger scroll — the reliable cross-device approach.
+    // FabricJS's internal event handling overrides CSS touch-action and
+    // allowTouchScrolling in many browsers/PWA contexts, so we take full control:
+    //   • 1 finger  → preventDefault, allow drawing as normal
+    //   • 2+ fingers → cancel any active stroke, scroll the parent div manually
+    // ---------------------------------------------------------------------------
+    let twoFingerScrolling = false;
+    let lastScrollMidY = 0;
+
+    function cancelActiveStroke() {
+      if (drawing) {
+        drawing = false;
+        activePointerId = null;
+        strokePoints = [];
+        stopPreviewLoop();
+      }
+      if (erasing) {
+        erasing = false;
+        lastEraserEvent = null;
+      }
+    }
+
+    interactiveEl.addEventListener("touchstart", (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        // Cancel any in-progress stroke and start 2-finger scroll mode
+        cancelActiveStroke();
+        twoFingerScrolling = true;
+        const t1 = e.touches[0]!;
+        const t2 = e.touches[1]!;
+        lastScrollMidY = (t1.clientY + t2.clientY) / 2;
+      } else {
+        twoFingerScrolling = false;
+      }
+      // Always prevent default — we manage everything ourselves
+      e.preventDefault();
+    }, { passive: false });
+
+    interactiveEl.addEventListener("touchmove", (e: TouchEvent) => {
+      e.preventDefault(); // Always block browser scroll (we handle it)
+      if (e.touches.length >= 2 && twoFingerScrolling) {
+        const t1 = e.touches[0]!;
+        const t2 = e.touches[1]!;
+        const midY = (t1.clientY + t2.clientY) / 2;
+        const delta = lastScrollMidY - midY;
+        lastScrollMidY = midY;
+
+        // Scroll the canvas's scrollable parent container directly
+        const scrollEl = canvas.wrapperEl?.parentElement;
+        if (scrollEl) {
+          scrollEl.scrollTop += delta;
+        }
+      }
+    }, { passive: false });
+
+    interactiveEl.addEventListener("touchend", (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        twoFingerScrolling = false;
+      }
     });
-    interactiveEl.addEventListener("pointermove", (e) => {
-      handlePointerMove(e);
-      // handleEraserPointer(e);
+
+    interactiveEl.addEventListener("touchcancel", () => {
+      twoFingerScrolling = false;
     });
-    interactiveEl.addEventListener("pointerup", handlePointerUp);
-    interactiveEl.addEventListener("pointercancel", handlePointerUp);
 
     interactiveEl.addEventListener("pointerdown", (e) => {
+      // Ignore pointer events while in 2-finger scroll mode
+      if (twoFingerScrolling){ return;}
       handlePointerDown(e);
       handleEraserPointerDown(e);
     });
     interactiveEl.addEventListener("pointermove", (e) => {
+      if (twoFingerScrolling) {return;}
       handlePointerMove(e);
       handleEraserPointerMove(e);
     });
@@ -661,7 +757,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     // this is what was missing and caused the squished-left layout.
     if (wrapper) {
       resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
+        const [entry] = entries;
         if (!entry) {
           return;
         }
@@ -685,6 +781,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.backgroundColor = bgColor;
 
     if (!json) {
+      canvas.requestRenderAll();
       return Promise.resolve();
     }
 
@@ -734,6 +831,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     backgroundColor,
     canRedo,
     canUndo,
+
+    setBackgroundColor,
     fabricCanvas,
     generateThumbnail,
     init,

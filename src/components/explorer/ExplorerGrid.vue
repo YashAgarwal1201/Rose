@@ -7,11 +7,14 @@ import {
   FolderIcon,
   LayoutGridIcon,
   ListIcon,
+  MoreVerticalIcon,
   PencilIcon,
   TrashIcon,
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import { useToast } from "@/composables/ui/useToast.ts";
+import ContextMenu from "@/components/ui/ContextMenu.vue";
+import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
@@ -72,6 +75,11 @@ const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerVi
 
 const creatingType = ref<"folder" | "file" | null>(null);
 const newName = ref("");
+
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+};
+
 const renamingId = ref<string | null>(null);
 const renamingKind = ref<"folder" | "file" | null>(null);
 const renamingName = ref("");
@@ -238,27 +246,35 @@ function isRenaming(item: DisplayItem) {
   return renamingId.value === item.id && renamingKind.value === item.kind;
 }
 
+const contextMenu = useContextMenu<DisplayItem>();
+
+function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent | HTMLElement) {
+  if (item.isNew || isRenaming(item)) return;
+  contextMenu.open(item, event);
+}
+
+const mockEvent = { stopPropagation: () => {} } as Event;
+
+function handleMenuRename() {
+  const item = contextMenu.activeItem.value;
+  if (!item) return;
+  contextMenu.close();
+  startRename({ currentName: item.name, event: mockEvent, id: item.id, kind: item.kind });
+}
+
+function handleMenuDelete() {
+  const item = contextMenu.activeItem.value;
+  if (!item) return;
+  contextMenu.close();
+  handleDelete(item, mockEvent);
+}
+
 defineExpose({ startCreate });
 </script>
 <template>
   <div>
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
-      <!-- <div class="flex items-center gap-2">
-        <button
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-surface-alt text-rose-text hover:bg-rose-border transition-colors text-sm"
-          @click="startCreate('folder')"
-        >
-          <FolderPlusIcon class="w-4 h-4" /> New folder
-        </button>
-        <button
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors text-sm"
-          @click="startCreate('file')"
-        >
-          <PlusIcon class="w-4 h-4" /> New {{ fileLabel }}
-        </button>
-      </div> -->
-
       <div class="flex items-center gap-1">
         <button
           class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
@@ -322,8 +338,9 @@ defineExpose({ startCreate });
       <div
         v-for="item in displayItems"
         :key="item.kind + '-' + item.id"
-        class="group relative flex flex-col items-center gap-1.5 p-3 rounded-lg hover:bg-rose-surface-alt transition-colors"
+        class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         role="listitem"
+        v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)"
       >
         <button
           v-if="!item.isNew && !isRenaming(item)"
@@ -332,11 +349,6 @@ defineExpose({ startCreate });
           :aria-label="'Open ' + item.name"
           @click="handleOpen(item)"
         ></button>
-        <!-- <component
-          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
-          class="w-12 h-12 shrink-0"
-          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
-        /> -->
 
         <img
           v-if="item.kind === 'file' && item.thumbnail"
@@ -356,7 +368,7 @@ defineExpose({ startCreate });
           v-model="newName"
           ref="newItemInputRef"
           type="text"
-          autofocus
+          v-focus
           aria-label="New item name"
           :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
           class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
@@ -369,7 +381,7 @@ defineExpose({ startCreate });
           v-else-if="isRenaming(item)"
           v-model="renamingName"
           type="text"
-          autofocus
+          v-focus
           aria-label="Rename item"
           class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
@@ -383,23 +395,15 @@ defineExpose({ startCreate });
 
         <div
           v-if="!item.isNew"
-          class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-20"
+          class="flex items-center gap-1 shrink-0 relative z-10"
         >
           <button
             type="button"
-            aria-label="Rename"
-            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click.stop="handleStartRename(item, $event)"
+            aria-label="More options"
+            class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+            @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
           >
-            <PencilIcon class="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Delete"
-            class="p-1 rounded bg-rose-surface text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click.stop="handleDelete(item, $event)"
-          >
-            <TrashIcon class="w-3.5 h-3.5" />
+            <MoreVerticalIcon class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -424,6 +428,7 @@ defineExpose({ startCreate });
           :key="item.kind + '-' + item.id"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
           role="listitem"
+          v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)"
         >
         <button
           v-if="!item.isNew && !isRenaming(item)"
@@ -432,11 +437,6 @@ defineExpose({ startCreate });
           :aria-label="'Open ' + item.name"
           @click="handleOpen(item)"
         ></button>
-        <!-- <component
-          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
-          class="w-5 h-5 shrink-0"
-          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
-        /> -->
 
         <img
           v-if="item.kind === 'file' && item.thumbnail"
@@ -456,7 +456,7 @@ defineExpose({ startCreate });
           v-model="newName"
           ref="newItemInputRef"
           type="text"
-          autofocus
+          v-focus
           aria-label="New item name"
           :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
           class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
@@ -469,7 +469,7 @@ defineExpose({ startCreate });
           v-else-if="isRenaming(item)"
           v-model="renamingName"
           type="text"
-          autofocus
+          v-focus
           aria-label="Rename item"
           class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
           @click.stop
@@ -493,23 +493,15 @@ defineExpose({ startCreate });
             {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
           </span>
           <div
-            class="w-14 flex justify-end gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity relative z-20"
+            class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10"
           >
             <button
               type="button"
-              aria-label="Rename"
-              class="p-1 rounded text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary bg-rose-surface-alt"
-              @click.stop="handleStartRename(item, $event)"
+              aria-label="More options"
+              class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+              @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
             >
-              <PencilIcon class="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              aria-label="Delete"
-              class="p-1 rounded text-rose-text-muted hover:text-rose-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary bg-rose-surface-alt"
-              @click.stop="handleDelete(item, $event)"
-            >
-              <TrashIcon class="w-3.5 h-3.5" />
+              <MoreVerticalIcon class="w-4 h-4" />
             </button>
           </div>
         </template>
@@ -524,4 +516,24 @@ defineExpose({ startCreate });
       </div>
     </div>
   </div>
+
+  <ContextMenu
+    :is-open="contextMenu.isOpen.value"
+    :x="contextMenu.x.value"
+    :y="contextMenu.y.value"
+    @close="contextMenu.close()"
+  >
+    <button
+      class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
+      @click="handleMenuRename"
+    >
+      <PencilIcon class="w-4 h-4" /> Rename
+    </button>
+    <button
+      class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
+      @click="handleMenuDelete"
+    >
+      <TrashIcon class="w-4 h-4" /> Delete
+    </button>
+  </ContextMenu>
 </template>

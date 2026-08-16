@@ -57,6 +57,7 @@ const {
   addShape,
   addText,
   addImage,
+  setBackgroundColor,
   fabricCanvas,
   destroy,
 } = useHandwritingCanvas(canvasEl);
@@ -190,26 +191,13 @@ watch(
   },
 );
 
-watch(backgroundColor, (color) => {
-  if (fabricCanvas.value) {
-    fabricCanvas.value.backgroundColor = color;
-    fabricCanvas.value.requestRenderAll();
-  }
+watch(backgroundColor, () => {
   scheduleSave();
 });
 
 watch(tool, (value) => {
-  if (value === "shape") {
-    addShape(shapeTool.value, penColor.value);
-  }
   if (value === "text") {
     addText();
-  }
-});
-
-watch(shapeTool, (value) => {
-  if (tool.value === "shape") {
-    addShape(value, penColor.value);
   }
 });
 
@@ -221,7 +209,11 @@ async function handleImageSelected(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (file) {
-    await addImage(file);
+    try {
+      await addImage(file);
+    } catch (error) {
+      showToast((error as Error).message, "error");
+    }
   }
   input.value = "";
 }
@@ -230,55 +222,25 @@ async function handleImageSelected(event: Event) {
 <template>
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Body: toolbar + editor, direction depends on position -->
-    <div class="flex flex-1 min-h-0" :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'">
+    <div class="flex flex-1 min-h-0"
+      :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'">
       <!-- Toolbar: left or top -->
-      <NoteToolbar
-        v-if="toolbarPosition === 'top' || toolbarPosition === 'left'"
-        ref="toolbarRef"
-        v-model:tool="tool"
-        v-model:pen-tool="penTool"
-        v-model:shape-tool="shapeTool"
-        v-model:pen-color="penColor"
-        v-model:background-color="backgroundColor"
-        :can-undo="canUndo"
-        :can-redo="canRedo"
-        :position="toolbarPosition"
-        @undo="undo"
-        @redo="redo"
-        @trigger-image-pick="triggerImagePick"
-        @export-as-png="exportAsPng"
-        @export-as-jpeg="exportAsJpeg"
-        @export-as-svg="exportAsSvg"
-      />
+      <NoteToolbar v-if="toolbarPosition === 'top' || toolbarPosition === 'left'" ref="toolbarRef" v-model:tool="tool"
+        v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
+        :background-color="backgroundColor" @update:background-color="setBackgroundColor" :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition"
+        @undo="undo" @redo="redo" @trigger-image-pick="triggerImagePick" @export-as-png="exportAsPng"
+        @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg" @add-shape="(shape) => addShape(shape, penColor)" />
       <div class="note-canvas__scroll">
         <canvas ref="canvasEl" />
       </div>
       <!-- Toolbar: right or bottom -->
-      <NoteToolbar
-        v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'"
-        ref="toolbarRef"
-        v-model:tool="tool"
-        v-model:pen-tool="penTool"
-        v-model:shape-tool="shapeTool"
-        v-model:pen-color="penColor"
-        v-model:background-color="backgroundColor"
-        :can-undo="canUndo"
-        :can-redo="canRedo"
-        :position="toolbarPosition"
-        @undo="undo"
-        @redo="redo"
-        @trigger-image-pick="triggerImagePick"
-        @export-as-png="exportAsPng"
-        @export-as-jpeg="exportAsJpeg"
-        @export-as-svg="exportAsSvg"
-      />
-      <input
-        ref="imageInputRef"
-        type="file"
-        accept="image/*"
-        class="sr-only"
-        @change="handleImageSelected"
-      />
+      <NoteToolbar v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'" ref="toolbarRef"
+        v-model:tool="tool" v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
+        :background-color="backgroundColor" @update:background-color="setBackgroundColor" :can-undo="canUndo"
+        :can-redo="canRedo" :position="toolbarPosition" @undo="undo" @redo="redo" @trigger-image-pick="triggerImagePick"
+        @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
+        @add-shape="(shape) => addShape(shape, penColor)" />
+      <input ref="imageInputRef" type="file" accept="image/*" class="sr-only" @change="handleImageSelected" />
     </div>
   </div>
 </template>
@@ -288,7 +250,8 @@ async function handleImageSelected(event: Event) {
 
 .note-canvas__scroll {
   flex: 1 1 auto;
-  min-width: 0; /* critical: prevents flex from sizing to canvas's intrinsic 300px */
+  min-width: 0;
+  /* critical: prevents flex from sizing to canvas's intrinsic 300px */
   min-height: 0;
   width: 100%;
   overflow-y: auto;
