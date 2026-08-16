@@ -620,7 +620,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -630,7 +630,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -640,7 +640,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -651,7 +651,7 @@ useKeyboardShortcuts([
     alt: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -661,7 +661,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       setLink();
     },
   },

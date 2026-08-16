@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
 import TodoListView from "@/views/todos/TodoListView.vue";
 import { createPinia, setActivePinia } from "pinia";
 import db from "../../db";
@@ -10,7 +10,7 @@ import { useTodosStore } from "../../stores/todos";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock("vue-router", () => ({
+vi.mock(import('vue-router'), () => ({
   useRouter: () => ({
     push: pushMock,
     replace: replaceMock,
@@ -23,12 +23,12 @@ vi.mock("vue-router", () => ({
 
 // Mock toast & confirm
 const showToastMock = vi.fn();
-vi.mock("../../composables/useToast", () => ({
+vi.mock(import('../../composables/useToast'), () => ({
   useToast: () => ({ showToast: showToastMock }),
 } as any));
 
 const confirmMock = vi.fn().mockResolvedValue(true);
-vi.mock("../../composables/useConfirm", () => ({
+vi.mock(import('../../composables/useConfirm'), () => ({
   useConfirm: () => ({ confirm: confirmMock }),
 } as any));
 
@@ -136,7 +136,7 @@ describe("TodoListView.vue", () => {
       
       await new Promise((resolve) => setTimeout(resolve, 50));
       const store = useTodosStore();
-      expect(store.todos.some(t => t.title === "Buy Milk")).toBe(true);
+      expect(store.todos.some(t => t.title === "Buy Milk")).toBeTruthy();
     });
 
     it("toggles a todo checkbox", async () => {
@@ -165,7 +165,7 @@ describe("TodoListView.vue", () => {
       
       await new Promise((resolve) => setTimeout(resolve, 50));
       const updatedTodo = await db.todos.get("todo-2");
-      expect(updatedTodo?.done).toBe(true);
+      expect(updatedTodo?.done).toBeTruthy();
     });
 
     it("deletes a todo", async () => {

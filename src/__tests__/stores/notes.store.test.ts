@@ -6,7 +6,7 @@ import db from "../../db";
 import { useNotesStore } from "../../stores/notes";
 
 // Mock the activity store so note creation/update doesn't fail
-vi.mock("../../stores/activity", () => ({
+vi.mock(import('../../stores/activity'), () => ({
   useActivityStore: () => ({
     record: vi.fn(),
   }),
@@ -152,7 +152,7 @@ describe("notesStore", () => {
       expect.hasAssertions();
       const store = useNotesStore();
       const id = await store.createNote("ID Check", null);
-      expect(typeof id).toBe("string");
+      expect(id).toBeTypeOf("string");
       expect(id.length).toBeGreaterThan(0);
     });
   });
@@ -212,7 +212,7 @@ describe("notesStore", () => {
       const canvas = { version: "6.0", objects: [] };
       await store.updateNote(id, { canvasJSON: canvas });
       const row = await db.notes.get(id);
-      expect(row?.canvasJSON).toEqual(canvas);
+      expect(row?.canvasJSON).toStrictEqual(canvas);
     });
 
     it("deep-clones canvasJSON (does not store a live reference)", async () => {

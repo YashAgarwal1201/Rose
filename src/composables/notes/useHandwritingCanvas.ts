@@ -1,6 +1,6 @@
 // src/composables/useHandwritingCanvas.ts
 import { ref, type Ref, shallowRef, watch } from "vue";
-import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Polygon, Rect, Textbox, Triangle } from "fabric";
+import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Pattern, Polygon, Rect, Textbox, Triangle } from "fabric";
 import getStroke from "perfect-freehand";
 
 export type PenTool = "pencil" | "pen" | "marker";
@@ -58,7 +58,7 @@ const CANVAS_GROW_THRESHOLD = 200; // grow when content comes within this many p
 
 type HistoryEntry =
   | { type: "add" | "remove"; object: FabricObject }
-  | { type: "bg-color"; old: string; new: string };
+  | { type: "bg-color"; old: string; new: string; oldPattern: "solid" | "dots" | "grid" | "ruled"; newPattern: "solid" | "dots" | "grid" | "ruled" };
 
 export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const fabricCanvas = shallowRef<Canvas | null>(null);
@@ -67,7 +67,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const penTool = ref<PenTool>("pen");
   const shapeTool = ref<ShapeTool>("rectangle");
   const penColor = ref("#1a1a1a");
-  const backgroundColor = ref("#ffffff");
+  const backgroundColor = ref("#fdf6e3");
+  const backgroundPattern = ref<"solid" | "dots" | "grid" | "ruled">("solid");
   const canUndo = ref(false);
   const canRedo = ref(false);
 
@@ -121,7 +122,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       canvas.add(entry.object);
     } else if (entry.type === "bg-color") {
       backgroundColor.value = entry.old;
-      canvas.backgroundColor = entry.old;
+      backgroundPattern.value = entry.oldPattern;
+      applyBackground();
     }
     canvas.requestRenderAll();
     suppressHistory = false;
@@ -142,7 +144,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       canvas.remove(entry.object);
     } else if (entry.type === "bg-color") {
       backgroundColor.value = entry.new;
-      canvas.backgroundColor = entry.new;
+      backgroundPattern.value = entry.newPattern;
+      applyBackground();
     }
     canvas.requestRenderAll();
     suppressHistory = false;
@@ -150,16 +153,50 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     refreshHistoryFlags();
   }
 
-  function setBackgroundColor(newColor: string) {
-    const oldColor = backgroundColor.value;
-    if (oldColor !== newColor) {
-      pushHistory({ type: "bg-color", old: oldColor, new: newColor });
-      backgroundColor.value = newColor;
-      const canvas = fabricCanvas.value;
-      if (canvas) {
-        canvas.backgroundColor = newColor;
-        canvas.requestRenderAll();
+  function applyBackground() {
+    const canvas = fabricCanvas.value;
+    if (!canvas) {return;}
+
+    if (backgroundPattern.value === "solid") {
+      canvas.backgroundColor = backgroundColor.value;
+    } else {
+      const pCanvas = document.createElement("canvas");
+      const size = backgroundPattern.value === "ruled" ? 30 : 20;
+      pCanvas.width = backgroundPattern.value === "ruled" ? 10 : size;
+      pCanvas.height = size;
+      const ctx = pCanvas.getContext("2d");
+      
+      if (ctx) {
+        ctx.fillStyle = backgroundColor.value;
+        ctx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+
+        ctx.fillStyle = "rgba(156, 163, 175, 0.4)";
+        if (backgroundPattern.value === "dots") {
+          ctx.beginPath(); 
+          ctx.arc(size/2, size/2, 1.5, 0, Math.PI*2); 
+          ctx.fill();
+        } else if (backgroundPattern.value === "grid") {
+          ctx.fillRect(0, 0, size, 1);
+          ctx.fillRect(0, 0, 1, size);
+        } else if (backgroundPattern.value === "ruled") {
+          ctx.fillRect(0, size - 1, pCanvas.width, 1);
+        }
+
+        const pattern = new Pattern({ source: pCanvas, repeat: "repeat" });
+        canvas.backgroundColor = pattern as unknown as string;
       }
+    }
+    canvas.requestRenderAll();
+  }
+
+  function setBackgroundColor(newColor: string, newPattern: "solid" | "dots" | "grid" | "ruled" = backgroundPattern.value) {
+    const oldColor = backgroundColor.value;
+    const oldPattern = backgroundPattern.value;
+    if (oldColor !== newColor || oldPattern !== newPattern) {
+      pushHistory({ type: "bg-color", old: oldColor, new: newColor, oldPattern, newPattern });
+      backgroundColor.value = newColor;
+      backgroundPattern.value = newPattern;
+      applyBackground();
     }
   }
 
@@ -469,20 +506,6 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.requestRenderAll();
   }
 
-  // function handleEraserPointer(event: PointerEvent) {
-  //   if (tool.value !== "eraser") {
-  //     return;
-  //   }
-  //   if (isPalmRejected(event)) {
-  //     return;
-  //   }
-  //   lastEraserEvent = event;
-  //   if (!eraserRafPending) {
-  //     eraserRafPending = true;
-  //     requestAnimationFrame(flushErase);
-  //   }
-  // }
-
   // ---------------------------------------------------------------------------
   // Centralised object flag applicator — called on tool change and object:added
   // so selectable/evented are always consistent regardless of which path added
@@ -728,11 +751,11 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     const canvas = new Canvas(el, {
       height: initialHeight,
       width: initialWidth,
-      backgroundColor: backgroundColor.value,
       selection: false,
       enableRetinaScaling: true,
     });
     fabricCanvas.value = canvas;
+    applyBackground();
 
     overlayCtx = canvas.contextTop; // use Fabric's own reference, not a fresh getContext() call
 
@@ -846,14 +869,15 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     }
   }
 
-  function loadFromJSON(json: Record<string, unknown> | null, bgColor: string): Promise<void> {
+  function loadFromJSON(json: Record<string, unknown> | null, bgColor: string, bgPattern: "solid" | "dots" | "grid" | "ruled" = "solid"): Promise<void> {
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return Promise.resolve();
     }
 
     backgroundColor.value = bgColor;
-    canvas.backgroundColor = bgColor;
+    backgroundPattern.value = bgPattern;
+    applyBackground();
 
     if (!json) {
       canvas.requestRenderAll();
@@ -904,6 +928,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     addShape,
     addText,
     backgroundColor,
+    backgroundPattern,
     canRedo,
     canUndo,
 

@@ -125,19 +125,19 @@ describe("DocsView", () => {
     it("renders the FolderTree stub", async () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='folder-tree']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='folder-tree']").exists()).toBe(true);
     });
 
     it("renders the ExplorerActions stub", async () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='explorer-actions']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='explorer-actions']").exists()).toBe(true);
     });
 
     it("renders the Breadcrumbs stub", async () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='breadcrumbs']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='breadcrumbs']").exists()).toBe(true);
     });
   });
 
@@ -146,13 +146,13 @@ describe("DocsView", () => {
     it("loads folders on mount", async () => {
       expect.hasAssertions();
       await mountDocsView();
-      expect(Array.isArray(useFoldersStore().folders)).toBeTruthy();
+      expect(Array.isArray(useFoldersStore().folders)).toBe(true);
     });
 
     it("loads docs on mount", async () => {
       expect.hasAssertions();
       await mountDocsView();
-      expect(Array.isArray(useDocsStore().docs)).toBeTruthy();
+      expect(Array.isArray(useDocsStore().docs)).toBe(true);
     });
   });
 
@@ -220,7 +220,7 @@ describe("DocsView", () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView([]);
       await emitFromGrid(wrapper, "createFolder", "New Folder");
-      expect((await db.folders.toArray()).some((f) => f.name === "New Folder")).toBeTruthy();
+      expect((await db.folders.toArray()).some((f) => f.name === "New Folder")).toBe(true);
     });
   });
 
@@ -230,7 +230,7 @@ describe("DocsView", () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView([]);
       await emitFromGrid(wrapper, "createFile", "My New Doc");
-      expect((await db.docs.toArray()).some((d) => d.title === "My New Doc")).toBeTruthy();
+      expect((await db.docs.toArray()).some((d) => d.title === "My New Doc")).toBe(true);
     });
 
     it("navigates to the doc route after creating a doc", async () => {
@@ -340,7 +340,7 @@ describe("DocsView", () => {
       expect.hasAssertions();
       const { wrapper } = await mountDocsView([]);
       await wrapper.find(String.raw`button.md\:hidden`).trigger("click");
-      expect(wrapper.find("[data-testid='folder-tree-drawer']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='folder-tree-drawer']").exists()).toBe(true);
     });
   });
 });

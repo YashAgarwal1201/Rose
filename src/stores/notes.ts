@@ -25,6 +25,7 @@ export const useNotesStore = defineStore("notes", () => {
     const now = Date.now();
     const note: Note = {
       backgroundColor: DEFAULT_BACKGROUND,
+      backgroundPattern: "solid",
       canvasJSON: null,
       createdAt: now,
       folderId,
@@ -51,7 +52,7 @@ export const useNotesStore = defineStore("notes", () => {
 
   async function updateNote(
     id: string,
-    changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "thumbnail">>,
+    changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "backgroundPattern" | "thumbnail">>,
   ) {
     const sanitized = { ...changes };
     if ("canvasJSON" in changes) {

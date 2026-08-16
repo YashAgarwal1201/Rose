@@ -9,6 +9,7 @@ import type { ToolbarPosition } from "@/composables/ui/useToolbarPosition";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { TOAST_AUTO_DISMISS_MS } from "@/utils/constants";
+import type { BackgroundPattern } from "@/db/types";
 
 // const props = withDefaults(
 //   defineProps<{
@@ -24,17 +25,19 @@ import { TOAST_AUTO_DISMISS_MS } from "@/utils/constants";
 const {
   initialCanvasJson,
   initialBackgroundColor,
+  initialBackgroundPattern,
   toolbarPosition,
   noteTitle,
 } = defineProps<{
   initialCanvasJson: Record<string, unknown> | null;
   initialBackgroundColor: string;
+  initialBackgroundPattern: BackgroundPattern;
   toolbarPosition: ToolbarPosition;
   noteTitle?: string;
 }>();
 
 const emit = defineEmits<{
-  change: [canvasJSON: Record<string, unknown>, backgroundColor: string, thumbnail: string];
+  change: [canvasJSON: Record<string, unknown>, backgroundColor: string, backgroundPattern: BackgroundPattern, thumbnail: string];
 }>();
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
@@ -50,6 +53,7 @@ const {
   shapeTool,
   penColor,
   backgroundColor,
+  backgroundPattern,
   canUndo,
   canRedo,
   undo,
@@ -137,7 +141,7 @@ function saveNow() {
   const json = toJSON();
   const thumbnail = generateThumbnail();
   if (json && thumbnail) {
-    emit("change", json, backgroundColor.value, thumbnail);
+    emit("change", json, backgroundColor.value, backgroundPattern.value, thumbnail);
   }
 }
 
@@ -158,7 +162,7 @@ onMounted(async () => {
     return;
   }
   init(canvasEl.value);
-  await loadFromJSON(initialCanvasJson, initialBackgroundColor);
+  await loadFromJSON(initialCanvasJson, initialBackgroundColor, initialBackgroundPattern);
 
   // await loadFromJSON(initialCanvasJson, initialBackgroundColor);
   // console.log("objects after load:", fabricCanvas.value?.getObjects().length);
@@ -187,11 +191,11 @@ watch(
       return;
     }
 
-    await loadFromJSON(canvasJSON, initialBackgroundColor);
+    await loadFromJSON(canvasJSON, initialBackgroundColor, initialBackgroundPattern);
   },
 );
 
-watch(backgroundColor, () => {
+watch([backgroundColor, backgroundPattern], () => {
   scheduleSave();
 });
 
@@ -227,19 +231,25 @@ async function handleImageSelected(event: Event) {
       <!-- Toolbar: left or top -->
       <NoteToolbar v-if="toolbarPosition === 'top' || toolbarPosition === 'left'" ref="toolbarRef" v-model:tool="tool"
         v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
-        :background-color="backgroundColor" @update:background-color="setBackgroundColor" :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition"
-        @undo="undo" @redo="redo" @trigger-image-pick="triggerImagePick" @export-as-png="exportAsPng"
+        :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
+        :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
+        :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition"
+        @undo="undo" @redo="redo" @add-text="addText" @add-image="addImage" @export-as-png="exportAsPng"
         @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg" @add-shape="(shape) => addShape(shape, penColor)" />
-      <div class="note-canvas__scroll">
+      
+      <div class="note-canvas__scroll flex-1 relative min-h-0 min-w-0" style="overflow: auto;">
         <canvas ref="canvasEl" />
       </div>
+
       <!-- Toolbar: right or bottom -->
       <NoteToolbar v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'" ref="toolbarRef"
         v-model:tool="tool" v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
-        :background-color="backgroundColor" @update:background-color="setBackgroundColor" :can-undo="canUndo"
-        :can-redo="canRedo" :position="toolbarPosition" @undo="undo" @redo="redo" @trigger-image-pick="triggerImagePick"
-        @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
+        :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
+        :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
+        :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition" @undo="undo" @redo="redo" @add-text="addText"
+        @add-image="addImage" @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
         @add-shape="(shape) => addShape(shape, penColor)" />
+      
       <input ref="imageInputRef" type="file" accept="image/*" class="sr-only" @change="handleImageSelected" />
     </div>
   </div>

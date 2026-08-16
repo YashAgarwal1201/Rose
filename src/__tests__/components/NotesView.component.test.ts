@@ -125,6 +125,7 @@ describe("NotesView.component.test.ts", () => {
         title: "Root Note",
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: null,
         lastOpenedAt: null,
         createdAt: Date.now(),
@@ -165,6 +166,7 @@ describe("NotesView.component.test.ts", () => {
         title: "Old Title",
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: null,
         lastOpenedAt: null,
         createdAt: Date.now(),
@@ -182,6 +184,7 @@ describe("NotesView.component.test.ts", () => {
         title: "Untouched Title",
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: null,
         lastOpenedAt: null,
         createdAt: Date.now(),
@@ -189,7 +192,7 @@ describe("NotesView.component.test.ts", () => {
       });
       const { wrapper } = await mountNotesView();
       await emitFromGrid(wrapper, "delete-file", "note-8");
-      expect(await db.notes.get("note-8")).toBeUndefined();
+      await expect(db.notes.get("note-8")).resolves.toBeUndefined();
     });
   });
 
@@ -230,7 +233,7 @@ describe("NotesView.component.test.ts", () => {
       });
       const { wrapper } = await mountNotesView();
       await emitFromGrid(wrapper, "delete-folder", "folder-5");
-      expect(await db.folders.get("folder-5")).toBeUndefined();
+      await expect(db.folders.get("folder-5")).resolves.toBeUndefined();
     });
   });
 });

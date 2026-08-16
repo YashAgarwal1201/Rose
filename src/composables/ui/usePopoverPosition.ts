@@ -76,7 +76,7 @@ export function usePopoverPosition(
   }
 
   function reposition() {
-    if (!rootRef.value || !triggerRef.value || !popoverRef.value) return;
+    if (!rootRef.value || !triggerRef.value || !popoverRef.value) {return;}
     const next = computeStyle(
       rootRef.value,
       triggerRef.value,

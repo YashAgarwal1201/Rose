@@ -38,7 +38,7 @@ describe("activityStore", () => {
       const before = Date.now();
       await store.record("doc_created", "entity-2");
       const entries = await db.activity.toArray();
-      expect(entries[0]?.id).toBeTruthy();
+      expect(entries[0]?.id).toBe(true);
       expect(entries[0]?.timestamp).toBeGreaterThanOrEqual(before);
     });
 
@@ -117,7 +117,7 @@ describe("activityStore", () => {
       await store.record("note_created", "new-entity");
       const result = await store.getEntriesSince(cutoff);
       expect(result.length).toBeGreaterThanOrEqual(1);
-      expect(result.some((e) => e.entityId === "new-entity")).toBe(true);
+      expect(result.some((e) => e.entityId === "new-entity")).toBeTruthy();
     });
 
     it("returns empty array when no entries exist after timestamp", async () => {

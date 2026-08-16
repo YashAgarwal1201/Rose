@@ -249,7 +249,7 @@ function isRenaming(item: DisplayItem) {
 const contextMenu = useContextMenu<DisplayItem>();
 
 function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent | HTMLElement) {
-  if (item.isNew || isRenaming(item)) return;
+  if (item.isNew || isRenaming(item)) {return;}
   contextMenu.open(item, event);
 }
 
@@ -257,14 +257,14 @@ const mockEvent = { stopPropagation: () => {} } as Event;
 
 function handleMenuRename() {
   const item = contextMenu.activeItem.value;
-  if (!item) return;
+  if (!item) {return;}
   contextMenu.close();
   startRename({ currentName: item.name, event: mockEvent, id: item.id, kind: item.kind });
 }
 
 function handleMenuDelete() {
   const item = contextMenu.activeItem.value;
-  if (!item) return;
+  if (!item) {return;}
   contextMenu.close();
   handleDelete(item, mockEvent);
 }

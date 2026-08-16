@@ -2,14 +2,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import { createRouter, createMemoryHistory } from "vue-router";
+import { createMemoryHistory, createRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 
 // Mock the settings store to control enabled features
 const mockEnabledFeatures = vi.fn<() => string[]>().mockReturnValue(["todo", "note", "doc"]);
 const mockIsFeatureEnabled = vi.fn((feature: string) => mockEnabledFeatures().includes(feature));
 
-vi.mock("../../stores/settings", () => ({
+vi.mock(import('../../stores/settings'), () => ({
   useSettingsStore: () => ({
     enabledFeatures: mockEnabledFeatures(),
     isFeatureEnabled: mockIsFeatureEnabled,
@@ -93,7 +93,7 @@ describe("Navbar", () => {
       const wrapper = await mountNavbar();
       const menuBtn = wrapper.find('button[aria-label="Menu"]');
       await menuBtn.trigger("click");
-      expect(wrapper.emitted("toggleMenu")).toBeTruthy();
+      expect(wrapper.emitted("toggleMenu")).toBe(true);
     });
   });
 

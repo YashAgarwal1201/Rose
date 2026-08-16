@@ -320,7 +320,7 @@ async function setDueDate(id: string, value: string) {
 
 function handleMenuEdit() {
   const todo = contextMenu.activeItem.value;
-  if (!todo) return;
+  if (!todo) {return;}
   contextMenu.close();
   openDetail(todo);
   startDetailEdit();
@@ -328,7 +328,7 @@ function handleMenuEdit() {
 
 async function handleMenuDelete() {
   const todo = contextMenu.activeItem.value;
-  if (!todo) return;
+  if (!todo) {return;}
   contextMenu.close();
   await handleDeleteTodo(todo.id, todo.title);
 }

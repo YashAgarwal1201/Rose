@@ -2,6 +2,8 @@
 
 export type FeatureType = "todo" | "note" | "doc";
 
+export type BackgroundPattern = "solid" | "dots" | "grid" | "ruled";
+
 export type PenTool = "pencil" | "pen" | "marker";
 export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
@@ -78,7 +80,8 @@ export interface Note {
   title: string;
   canvasJSON: Record<string, unknown> | null; // fabric.Canvas.toJSON() output
   backgroundColor: string; // page background, independent of pen color
-  thumbnail: string | null; // low-res dataURL for the grid card
+  backgroundPattern: BackgroundPattern;
+  thumbnail: string | null; // Data URL for the grid previewcard
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;

@@ -181,12 +181,13 @@ function cancelRenameTitle() {
 async function handleCanvasChange(
   canvasJSON: Record<string, unknown>,
   backgroundColor: string,
+  backgroundPattern: import('@/db/types').BackgroundPattern,
   thumbnail: string,
 ) {
   if (!currentNote.value) {
     return;
   }
-  await notesStore.updateNote(currentNote.value.id, { canvasJSON, backgroundColor, thumbnail });
+  await notesStore.updateNote(currentNote.value.id, { canvasJSON, backgroundColor, backgroundPattern, thumbnail });
 }
 
 onMounted(loadNote);
@@ -284,8 +285,12 @@ watch(() => pathMatch, loadNote);
       </div>
     </div>
 
-    <NoteCanvas v-if="currentNote" :key="currentNote.id" :initial-canvas-json="currentNote.canvasJSON"
-      :initial-background-color="currentNote.backgroundColor" :toolbar-position="effectivePosition"
-      :note-title="currentNote.title" @change="handleCanvasChange" />
+    <div class="flex-1 min-h-0 bg-rose-surface m-2 md:m-4 md:mt-2 lg:m-6 lg:mt-2 rounded-2xl shadow-xl border border-rose-border overflow-hidden relative">
+      <NoteCanvas v-if="currentNote" :key="currentNote.id" :initial-canvas-json="currentNote.canvasJSON"
+        :initial-background-color="currentNote.backgroundColor"
+        :initial-background-pattern="currentNote.backgroundPattern"
+        :toolbar-position="effectivePosition"
+        :note-title="currentNote.title" @change="handleCanvasChange" />
+    </div>
   </div>
 </template>

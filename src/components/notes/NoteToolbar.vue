@@ -44,6 +44,7 @@ const {
   shapeTool: ShapeTool;
   penColor: string;
   backgroundColor: string;
+  backgroundPattern: import('@/db/types').BackgroundPattern;
   canUndo: boolean;
   canRedo: boolean;
   position: ToolbarPosition;
@@ -55,6 +56,7 @@ const emit = defineEmits<{
   "update:shapeTool": [ShapeTool];
   "update:penColor": [string];
   "update:backgroundColor": [string];
+  "update:backgroundPattern": [import('@/db/types').BackgroundPattern];
   addShape: [ShapeTool];
   undo: [];
   redo: [];
@@ -404,10 +406,28 @@ defineExpose({ toggleExportMenu });
     </div>
 
     <!-- Background Popover -->
-    <div v-if="isBackgroundPopoverOpen" ref="backgroundPopoverRef" class="absolute z-20"
+    <div v-if="isBackgroundPopoverOpen" ref="backgroundPopoverRef" class="absolute z-20 flex flex-col gap-3 p-3 bg-rose-surface rounded-lg border border-rose-border shadow-lg"
       :style="backgroundAnchor.style">
-      <ColorPickerGrid :model-value="backgroundColor" default-color="#ffffff"
-        @update:model-value="emit('update:backgroundColor', $event)" @close="closeAllPopovers" />
+      
+      <div>
+        <div class="text-xs font-semibold text-rose-text-muted mb-2 px-1">Pattern</div>
+        <div class="flex items-center gap-1">
+          <button v-for="pat in ['solid', 'dots', 'grid', 'ruled'] as const" :key="pat" type="button"
+            class="px-3 py-1.5 rounded-md text-sm capitalize transition-colors"
+            :class="backgroundPattern === pat ? 'bg-rose-surface-alt text-rose-text font-medium' : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'"
+            @click="emit('update:backgroundPattern', pat)">
+            {{ pat }}
+          </button>
+        </div>
+      </div>
+
+      <div class="h-px bg-rose-border w-full"></div>
+
+      <div>
+        <div class="text-xs font-semibold text-rose-text-muted mb-2 px-1">Color</div>
+        <ColorPickerGrid :model-value="backgroundColor" default-color="#ffffff"
+          @update:model-value="emit('update:backgroundColor', $event)" @close="closeAllPopovers" />
+      </div>
     </div>
 
     <!-- Export Popover -->
