@@ -175,7 +175,7 @@ describe("TodosView.component.test.ts", () => {
       const { wrapper } = await mountTodosView();
       await emitFromGrid(wrapper, "delete-file", "list-8");
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(await db.todoLists.get("list-8")).toBeUndefined();
+      await expect(db.todoLists.get("list-8")).resolves.toBeUndefined();
     });
   });
 
@@ -220,7 +220,7 @@ describe("TodosView.component.test.ts", () => {
       const { wrapper } = await mountTodosView();
       await emitFromGrid(wrapper, "delete-folder", "folder-5");
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(await db.folders.get("folder-5")).toBeUndefined();
+      await expect(db.folders.get("folder-5")).resolves.toBeUndefined();
     });
   });
 });

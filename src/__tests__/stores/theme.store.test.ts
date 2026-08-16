@@ -5,7 +5,7 @@ import { useThemeStore } from "../../stores/theme";
 
 // Stub matchMedia so jsdom doesn't choke
 function stubMatchMedia(prefersDark = false) {
-  const listeners: Array<(e: { matches: boolean }) => void> = [];
+  const listeners: ((e: { matches: boolean }) => void)[] = [];
   const mql = {
     matches: prefersDark,
     addEventListener: (_event: string, cb: (e: { matches: boolean }) => void) => {
@@ -71,7 +71,7 @@ describe("themeStore", () => {
       expect.hasAssertions();
       const store = useThemeStore();
       store.setMode("dark");
-      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(document.documentElement.classList.contains("dark")).toBeTruthy();
     });
 
     it("removes 'dark' class from <html> when set to 'light'", () => {
@@ -79,7 +79,7 @@ describe("themeStore", () => {
       document.documentElement.classList.add("dark");
       const store = useThemeStore();
       store.setMode("light");
-      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      expect(document.documentElement.classList.contains("dark")).toBeFalsy();
     });
 
     it("applies system preference when set to 'system' (prefers dark)", () => {
@@ -88,7 +88,7 @@ describe("themeStore", () => {
       setActivePinia(createPinia());
       const store = useThemeStore();
       store.setMode("system");
-      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(document.documentElement.classList.contains("dark")).toBeTruthy();
     });
 
     it("applies system preference when set to 'system' (prefers light)", () => {
@@ -97,7 +97,7 @@ describe("themeStore", () => {
       setActivePinia(createPinia());
       const store = useThemeStore();
       store.setMode("system");
-      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      expect(document.documentElement.classList.contains("dark")).toBeFalsy();
     });
   });
 
@@ -111,7 +111,7 @@ describe("themeStore", () => {
       setActivePinia(createPinia());
       const store = useThemeStore();
       store.init();
-      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(document.documentElement.classList.contains("dark")).toBeTruthy();
     });
 
     it("registers a matchMedia listener for system preference changes", () => {
@@ -134,7 +134,7 @@ describe("themeStore", () => {
       // Simulate OS switching to dark mode
       mql.matches = true;
       listeners[0]?.({ matches: true });
-      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(document.documentElement.classList.contains("dark")).toBeTruthy();
     });
   });
 });

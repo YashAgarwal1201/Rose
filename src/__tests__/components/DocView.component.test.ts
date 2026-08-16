@@ -278,7 +278,7 @@ describe("DocView", () => {
         updatedAt: 1,
       });
       const { wrapper } = await mountDocView(["Editor Doc"]);
-      expect(wrapper.find("[data-testid='editor-content']").exists()).toBe(true);
+      expect(wrapper.find("[data-testid='editor-content']").exists()).toBeTruthy();
     });
   });
 
@@ -328,7 +328,7 @@ describe("DocView", () => {
       const pencilBtn = wrapper.findAll("button")[1];
       await pencilBtn!.trigger("click");
       const input = wrapper.find("input[type='text']");
-      expect(input.exists()).toBe(true);
+      expect(input.exists()).toBeTruthy();
       expect((input.element as HTMLInputElement).value).toBe("Rename Me");
     });
 
@@ -350,7 +350,7 @@ describe("DocView", () => {
       await input.setValue("New Title");
       await input.trigger("keyup.enter");
       await vi.waitFor(() => {
-        expect(wrapper.find("input[type='text']").exists()).toBeFalsy();
+        expect(wrapper.find("input[type='text']").exists()).toBe(false);
       });
       expect((await db.docs.get("doc-7"))?.title).toBe("New Title");
     });
@@ -374,7 +374,7 @@ describe("DocView", () => {
       await input.trigger("keyup.escape");
       await flushPromises();
       expect((await db.docs.get("doc-8"))?.title).toBe("Untouched Title");
-      expect(wrapper.find("input[type='text']").exists()).toBe(false);
+      expect(wrapper.find("input[type='text']").exists()).toBeFalsy();
     });
   });
 
@@ -407,7 +407,7 @@ describe("DocView", () => {
         updatedAt: 1,
       });
       const { wrapper } = await mountDocView(["Toolbar Doc"]);
-      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBeTruthy();
     });
   });
 

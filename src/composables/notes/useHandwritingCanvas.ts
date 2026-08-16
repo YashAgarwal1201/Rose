@@ -1,10 +1,10 @@
 // src/composables/useHandwritingCanvas.ts
 import { ref, type Ref, shallowRef, watch } from "vue";
-import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Rect, Textbox } from "fabric";
+import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Pattern, Polygon, Rect, Textbox, Triangle } from "fabric";
 import getStroke from "perfect-freehand";
 
 export type PenTool = "pencil" | "pen" | "marker";
-export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow";
+export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
 
 // Stored as tuples directly — avoids a .map() allocation on every hot pointer event.
@@ -56,10 +56,9 @@ const CANVAS_MIN_HEIGHT = 900;
 const CANVAS_GROW_STEP = 600;
 const CANVAS_GROW_THRESHOLD = 200; // grow when content comes within this many px of the bottom
 
-interface HistoryEntry {
-  type: "add" | "remove";
-  object: FabricObject;
-}
+type HistoryEntry =
+  | { type: "add" | "remove"; object: FabricObject }
+  | { type: "bg-color"; old: string; new: string; oldPattern: "solid" | "dots" | "grid" | "ruled"; newPattern: "solid" | "dots" | "grid" | "ruled" };
 
 export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const fabricCanvas = shallowRef<Canvas | null>(null);
@@ -68,7 +67,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const penTool = ref<PenTool>("pen");
   const shapeTool = ref<ShapeTool>("rectangle");
   const penColor = ref("#1a1a1a");
-  const backgroundColor = ref("#ffffff");
+  const backgroundColor = ref("#fdf6e3");
+  const backgroundPattern = ref<"solid" | "dots" | "grid" | "ruled">("solid");
   const canUndo = ref(false);
   const canRedo = ref(false);
 
@@ -78,8 +78,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   let redoStack: HistoryEntry[] = [];
   let suppressHistory = false;
 
-  let activePenPointerId: number | null = null;
-  let lastPenActivityAt = 0;
+  let activePointerId: number | null = null;
+  let lastPenDeviceActivityAt = 0;
   let strokePoints: StrokePoint[] = [];
   let drawing = false;
   let erasing = false;
@@ -118,8 +118,12 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     suppressHistory = true;
     if (entry.type === "add") {
       canvas.remove(entry.object);
-    } else {
+    } else if (entry.type === "remove") {
       canvas.add(entry.object);
+    } else if (entry.type === "bg-color") {
+      backgroundColor.value = entry.old;
+      backgroundPattern.value = entry.oldPattern;
+      applyBackground();
     }
     canvas.requestRenderAll();
     suppressHistory = false;
@@ -136,13 +140,64 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     suppressHistory = true;
     if (entry.type === "add") {
       canvas.add(entry.object);
-    } else {
+    } else if (entry.type === "remove") {
       canvas.remove(entry.object);
+    } else if (entry.type === "bg-color") {
+      backgroundColor.value = entry.new;
+      backgroundPattern.value = entry.newPattern;
+      applyBackground();
     }
     canvas.requestRenderAll();
     suppressHistory = false;
     undoStack.push(entry);
     refreshHistoryFlags();
+  }
+
+  function applyBackground() {
+    const canvas = fabricCanvas.value;
+    if (!canvas) {return;}
+
+    if (backgroundPattern.value === "solid") {
+      canvas.backgroundColor = backgroundColor.value;
+    } else {
+      const pCanvas = document.createElement("canvas");
+      const size = backgroundPattern.value === "ruled" ? 30 : 20;
+      pCanvas.width = backgroundPattern.value === "ruled" ? 10 : size;
+      pCanvas.height = size;
+      const ctx = pCanvas.getContext("2d");
+      
+      if (ctx) {
+        ctx.fillStyle = backgroundColor.value;
+        ctx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+
+        ctx.fillStyle = "rgba(156, 163, 175, 0.4)";
+        if (backgroundPattern.value === "dots") {
+          ctx.beginPath(); 
+          ctx.arc(size/2, size/2, 1.5, 0, Math.PI*2); 
+          ctx.fill();
+        } else if (backgroundPattern.value === "grid") {
+          ctx.fillRect(0, 0, size, 1);
+          ctx.fillRect(0, 0, 1, size);
+        } else if (backgroundPattern.value === "ruled") {
+          ctx.fillRect(0, size - 1, pCanvas.width, 1);
+        }
+
+        const pattern = new Pattern({ source: pCanvas, repeat: "repeat" });
+        canvas.backgroundColor = pattern as unknown as string;
+      }
+    }
+    canvas.requestRenderAll();
+  }
+
+  function setBackgroundColor(newColor: string, newPattern: "solid" | "dots" | "grid" | "ruled" = backgroundPattern.value) {
+    const oldColor = backgroundColor.value;
+    const oldPattern = backgroundPattern.value;
+    if (oldColor !== newColor || oldPattern !== newPattern) {
+      pushHistory({ type: "bg-color", old: oldColor, new: newColor, oldPattern, newPattern });
+      backgroundColor.value = newColor;
+      backgroundPattern.value = newPattern;
+      applyBackground();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -157,7 +212,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       thinning: preset.thinning,
       smoothing: preset.smoothing,
       streamline: preset.streamline,
-      simulatePressure: points.every((p) => p[2] === 0.5),
+      simulatePressure: points.every((point) => point[2] === 0.5),
     });
     if (outline.length === 0) {
       return "";
@@ -168,8 +223,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       return "";
     } // narrows `first` from `number[] | undefined` to `number[]`
 
-    const d = rest.reduce((acc, [x, y]) => `${acc} L ${x} ${y}`, `M ${first[0]} ${first[1]}`);
-    return `${d} Z`;
+    const pathData = rest.reduce((acc, [xCoord, yCoord]) => `${acc} L ${xCoord} ${yCoord}`, `M ${first[0]} ${first[1]}`);
+    return `${pathData} Z`;
   }
 
   // ---------------------------------------------------------------------------
@@ -195,7 +250,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       thinning: preset.thinning,
       smoothing: preset.smoothing,
       streamline: preset.streamline,
-      simulatePressure: strokePoints.every((p) => p[2] === 0.5),
+      simulatePressure: strokePoints.every((point) => point[2] === 0.5),
     });
 
     // Fabric's own helper correctly accounts for retina scaling when clearing —
@@ -316,8 +371,8 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
 
   function isPalmRejected(event: PointerEvent): boolean {
     if (event.pointerType === "touch") {
-      const withinGrace = Date.now() - lastPenActivityAt < PALM_REJECTION_GRACE_MS;
-      return activePenPointerId !== null || withinGrace;
+      const withinGrace = Date.now() - lastPenDeviceActivityAt < PALM_REJECTION_GRACE_MS;
+      return withinGrace;
     }
     return false;
   }
@@ -326,13 +381,18 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (tool.value !== "pen") {
       return;
     }
+    if (activePointerId !== null) {
+      return;
+    }
     if (isPalmRejected(event)) {
       return;
     }
+
+    activePointerId = event.pointerId;
     if (event.pointerType === "pen" || event.pointerType === "mouse") {
-      activePenPointerId = event.pointerId;
-      lastPenActivityAt = Date.now();
+      lastPenDeviceActivityAt = Date.now();
     }
+
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return;
@@ -348,7 +408,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (!drawing || tool.value !== "pen") {
       return;
     }
-    if (activePenPointerId !== null && event.pointerId !== activePenPointerId) {
+    if (activePointerId !== null && event.pointerId !== activePointerId) {
       return;
     }
     const canvas = fabricCanvas.value;
@@ -357,7 +417,10 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     }
     const point = canvas.getScenePoint(event);
     strokePoints.push([point.x, point.y, event.pressure || 0.5]);
-    lastPenActivityAt = Date.now();
+
+    if (event.pointerType === "pen" || event.pointerType === "mouse") {
+      lastPenDeviceActivityAt = Date.now();
+    }
     strokeDirty = true;
   }
 
@@ -365,12 +428,14 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     if (!drawing) {
       return;
     }
-    if (activePenPointerId !== null && event.pointerId !== activePenPointerId) {
+    if (activePointerId !== null && event.pointerId !== activePointerId) {
       return;
     }
+    if (event.pointerType === "pen" || event.pointerType === "mouse") {
+      lastPenDeviceActivityAt = Date.now();
+    }
     drawing = false;
-    activePenPointerId = null;
-    lastPenActivityAt = Date.now();
+    activePointerId = null;
     stopPreviewLoop();
     commitStroke();
   }
@@ -441,20 +506,6 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.requestRenderAll();
   }
 
-  // function handleEraserPointer(event: PointerEvent) {
-  //   if (tool.value !== "eraser") {
-  //     return;
-  //   }
-  //   if (isPalmRejected(event)) {
-  //     return;
-  //   }
-  //   lastEraserEvent = event;
-  //   if (!eraserRafPending) {
-  //     eraserRafPending = true;
-  //     requestAnimationFrame(flushErase);
-  //   }
-  // }
-
   // ---------------------------------------------------------------------------
   // Centralised object flag applicator — called on tool change and object:added
   // so selectable/evented are always consistent regardless of which path added
@@ -510,12 +561,87 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
         case "ellipse": {
           return new Ellipse({ ...common, rx: 60, ry: 40 });
         }
-        case "line":
-        case "arrow": {
-          return new Line([center.x - 60, center.y, center.x + 60, center.y], {
+        case "line": {
+          return new Line([center.x - 60, center.y - 60, center.x + 60, center.y + 60], {
             stroke: color,
             strokeWidth: 2,
+            padding: 10,
           });
+        }
+        case "arrow": {
+          const arrowPath = "M 0 20 L 80 20 L 70 10 M 80 20 L 70 30";
+          return new Path(arrowPath, {
+            ...common,
+            strokeWidth: 2,
+            fill: "",
+            padding: 10,
+          });
+        }
+        case "triangle": {
+          return new Triangle({ ...common, width: 100, height: 100 });
+        }
+        case "diamond": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 100, y: 50 },
+            { x: 50, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "star": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 61, y: 35 },
+            { x: 98, y: 35 },
+            { x: 68, y: 57 },
+            { x: 79, y: 91 },
+            { x: 50, y: 70 },
+            { x: 21, y: 91 },
+            { x: 32, y: 57 },
+            { x: 2, y: 35 },
+            { x: 39, y: 35 }
+          ], { ...common });
+        }
+        case "hexagon": {
+          return new Polygon([
+            { x: 25, y: 0 },
+            { x: 75, y: 0 },
+            { x: 100, y: 50 },
+            { x: 75, y: 100 },
+            { x: 25, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "cloud": {
+          const cloudPath = "M 30 40 C 20 40 20 60 40 60 C 40 70 60 70 70 60 C 80 60 80 40 70 40 C 70 20 40 20 30 40 Z";
+          return new Path(cloudPath, { ...common, strokeWidth: 2, fill: "" });
+        }
+        case "cylinder": {
+          const cylPath = "M 20 20 C 20 5 80 5 80 20 C 80 35 20 35 20 20 L 20 80 C 20 95 80 95 80 80 L 80 20";
+          return new Path(cylPath, { ...common, strokeWidth: 2, fill: "" });
+        }
+        case "parallelogram": {
+          return new Polygon([
+            { x: 20, y: 0 },
+            { x: 100, y: 0 },
+            { x: 80, y: 60 },
+            { x: 0, y: 60 }
+          ], { ...common });
+        }
+        case "rhombus": {
+          return new Polygon([
+            { x: 50, y: 0 },
+            { x: 100, y: 50 },
+            { x: 50, y: 100 },
+            { x: 0, y: 50 }
+          ], { ...common });
+        }
+        case "square": {
+          return new Rect({ ...common, width: 80, height: 80 });
+        }
+        case "double-arrow": {
+          const doubleArrowPath = "M 10 20 L 90 20 M 20 10 L 10 20 L 20 30 M 80 10 L 90 20 L 80 30";
+          return new Path(doubleArrowPath, { ...common, strokeWidth: 2, fill: "", padding: 10 });
         }
       }
     })();
@@ -555,30 +681,38 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.requestRenderAll();
   }
 
+  function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(reader.result as string));
+      reader.addEventListener("error", () => reject(new Error("Failed to read file")));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function addImage(file: File): Promise<void> {
+    if (file.size > 1024 * 1024) {
+      throw new Error("Image must be smaller than 1MB to keep notes fast.");
+    }
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return;
     }
 
-    // URL.createObjectURL avoids base64-encoding the entire file in memory
-    // (the old FileReader approach doubled peak memory usage for large images).
-    const objectUrl = URL.createObjectURL(file);
-    try {
-      const img = await FabricImage.fromURL(objectUrl);
-      img.scaleToWidth(Math.min(img.width ?? 300, 400));
-      canvas.add(img);
-      canvas.setActiveObject(img);
-      pushHistory({ type: "add", object: img });
+    const base64 = await fileToBase64(file);
+    const img = await FabricImage.fromURL(base64);
+    img.scaleToWidth(Math.min(img.width ?? 300, 400));
+    canvas.add(img);
+    canvas.setActiveObject(img);
+    pushHistory({ type: "add", object: img });
 
-      const bounds = img.getBoundingRect();
-      maxContentBottom = Math.max(maxContentBottom, bounds.top + bounds.height);
-      growCanvasIfNeeded();
-      canvas.requestRenderAll();
-    } finally {
-      // Always revoke — even if fromURL throws — to avoid memory leaks.
-      URL.revokeObjectURL(objectUrl);
-    }
+    const bounds = img.getBoundingRect();
+    maxContentBottom = Math.max(maxContentBottom, bounds.top + bounds.height);
+    growCanvasIfNeeded();
+
+    tool.value = "select";
+
+    canvas.requestRenderAll();
   }
 
   // ---------------------------------------------------------------------------
@@ -612,37 +746,97 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     // the flex parent.
     const wrapper = el.parentElement;
     const initialWidth = wrapper?.clientWidth || el.clientWidth || 300;
+    const initialHeight = Math.max(CANVAS_MIN_HEIGHT, wrapper?.clientHeight || 0);
 
     const canvas = new Canvas(el, {
-      height: CANVAS_MIN_HEIGHT,
+      height: initialHeight,
       width: initialWidth,
-      backgroundColor: backgroundColor.value,
       selection: false,
       enableRetinaScaling: true,
     });
     fabricCanvas.value = canvas;
+    applyBackground();
 
     overlayCtx = canvas.contextTop; // use Fabric's own reference, not a fresh getContext() call
 
     const interactiveEl = canvas.upperCanvasEl;
+    // Keep touch-action: none so FabricJS never fights the browser for scroll control.
+    // We implement 2-finger scrolling entirely ourselves below.
     interactiveEl.style.touchAction = "none";
 
-    interactiveEl.addEventListener("pointerdown", (e) => {
-      handlePointerDown(e);
-      // handleEraserPointer(e);
+    // ---------------------------------------------------------------------------
+    // Manual 2-finger scroll — the reliable cross-device approach.
+    // FabricJS's internal event handling overrides CSS touch-action and
+    // allowTouchScrolling in many browsers/PWA contexts, so we take full control:
+    //   • 1 finger  → preventDefault, allow drawing as normal
+    //   • 2+ fingers → cancel any active stroke, scroll the parent div manually
+    // ---------------------------------------------------------------------------
+    let twoFingerScrolling = false;
+    let lastScrollMidY = 0;
+
+    function cancelActiveStroke() {
+      if (drawing) {
+        drawing = false;
+        activePointerId = null;
+        strokePoints = [];
+        stopPreviewLoop();
+      }
+      if (erasing) {
+        erasing = false;
+        lastEraserEvent = null;
+      }
+    }
+
+    interactiveEl.addEventListener("touchstart", (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        // Cancel any in-progress stroke and start 2-finger scroll mode
+        cancelActiveStroke();
+        twoFingerScrolling = true;
+        const t1 = e.touches[0]!;
+        const t2 = e.touches[1]!;
+        lastScrollMidY = (t1.clientY + t2.clientY) / 2;
+      } else {
+        twoFingerScrolling = false;
+      }
+      // Always prevent default — we manage everything ourselves
+      e.preventDefault();
+    }, { passive: false });
+
+    interactiveEl.addEventListener("touchmove", (e: TouchEvent) => {
+      e.preventDefault(); // Always block browser scroll (we handle it)
+      if (e.touches.length >= 2 && twoFingerScrolling) {
+        const t1 = e.touches[0]!;
+        const t2 = e.touches[1]!;
+        const midY = (t1.clientY + t2.clientY) / 2;
+        const delta = lastScrollMidY - midY;
+        lastScrollMidY = midY;
+
+        // Scroll the canvas's scrollable parent container directly
+        const scrollEl = canvas.wrapperEl?.parentElement;
+        if (scrollEl) {
+          scrollEl.scrollTop += delta;
+        }
+      }
+    }, { passive: false });
+
+    interactiveEl.addEventListener("touchend", (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        twoFingerScrolling = false;
+      }
     });
-    interactiveEl.addEventListener("pointermove", (e) => {
-      handlePointerMove(e);
-      // handleEraserPointer(e);
+
+    interactiveEl.addEventListener("touchcancel", () => {
+      twoFingerScrolling = false;
     });
-    interactiveEl.addEventListener("pointerup", handlePointerUp);
-    interactiveEl.addEventListener("pointercancel", handlePointerUp);
 
     interactiveEl.addEventListener("pointerdown", (e) => {
+      // Ignore pointer events while in 2-finger scroll mode
+      if (twoFingerScrolling){ return;}
       handlePointerDown(e);
       handleEraserPointerDown(e);
     });
     interactiveEl.addEventListener("pointermove", (e) => {
+      if (twoFingerScrolling) {return;}
       handlePointerMove(e);
       handleEraserPointerMove(e);
     });
@@ -661,7 +855,7 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     // this is what was missing and caused the squished-left layout.
     if (wrapper) {
       resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
+        const [entry] = entries;
         if (!entry) {
           return;
         }
@@ -675,16 +869,18 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     }
   }
 
-  function loadFromJSON(json: Record<string, unknown> | null, bgColor: string): Promise<void> {
+  function loadFromJSON(json: Record<string, unknown> | null, bgColor: string, bgPattern: "solid" | "dots" | "grid" | "ruled" = "solid"): Promise<void> {
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return Promise.resolve();
     }
 
     backgroundColor.value = bgColor;
-    canvas.backgroundColor = bgColor;
+    backgroundPattern.value = bgPattern;
+    applyBackground();
 
     if (!json) {
+      canvas.requestRenderAll();
       return Promise.resolve();
     }
 
@@ -732,8 +928,11 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     addShape,
     addText,
     backgroundColor,
+    backgroundPattern,
     canRedo,
     canUndo,
+
+    setBackgroundColor,
     fabricCanvas,
     generateThumbnail,
     init,

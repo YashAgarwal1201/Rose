@@ -54,7 +54,7 @@ describe("formatBytes", () => {
 
     it("formats 10 KB with 0 decimals", () => {
       expect.hasAssertions();
-      expect(formatBytes(10240)).toBe("10 KB");
+      expect(formatBytes(10_240)).toBe("10 KB");
     });
   });
 

@@ -20,7 +20,7 @@ const mockToggleViewMode = vi.fn(() => {
   mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
 });
 
-vi.mock("../../composables/useExplorerViewMode", () => ({
+vi.mock(import('../../composables/useExplorerViewMode'), () => ({
   useExplorerViewMode: () => ({
     setSortKey: mockSetSortKey,
     sortDir: mockSortDir,
@@ -32,11 +32,11 @@ vi.mock("../../composables/useExplorerViewMode", () => ({
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
-vi.mock("../../composables/useConfirm", () => ({
+vi.mock(import('../../composables/useConfirm'), () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
 }));
 
-vi.mock("../../composables/useToast", () => ({
+vi.mock(import('../../composables/useToast'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 
@@ -164,7 +164,7 @@ describe("ExplorerGrid", () => {
     it("calls toggleViewMode when the list view button is clicked", async () => {
       const wrapper = mountGrid();
       await wrapper.find("button[title='List view']").trigger("click");
-      expect(mockToggleViewMode).toHaveBeenCalled();
+      expect(mockToggleViewMode).toHaveBeenCalledWith();
     });
 
     it("calls no toggleViewMode when grid view button is already active and clicked", async () => {
@@ -180,7 +180,7 @@ describe("ExplorerGrid", () => {
       // Action buttons are inside .absolute div: first = pencil, second = trash
       await wrapper.find('button[aria-label="Rename"]').trigger("click");
       const input = wrapper.find("input[type='text']:not([placeholder])");
-      expect(input.exists()).toBe(true);
+      expect(input.exists()).toBeTruthy();
     });
 
     it("emits renameFolder with the new name on Enter", async () => {
@@ -205,14 +205,14 @@ describe("ExplorerGrid", () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="Delete"]').trigger("click");
       await wrapper.vm.$nextTick();
-      expect(wrapper.emitted("deleteFolder")).toBeTruthy();
+      expect(wrapper.emitted("deleteFolder")).toBe(true);
     });
 
     it("does not emit deleteFolder when confirm returns false", async () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="Delete"]').trigger("click");
       await wrapper.vm.$nextTick();
-      expect(wrapper.emitted("deleteFolder")).toBeFalsy();
+      expect(wrapper.emitted("deleteFolder")).toBe(false);
     });
   });
 
@@ -221,7 +221,7 @@ describe("ExplorerGrid", () => {
       const wrapper = mountGrid();
       await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
       await wrapper.vm.$nextTick();
-      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBeTruthy();
     });
 
     it("emits createFolder with the typed name on Enter", async () => {

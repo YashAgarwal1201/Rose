@@ -29,13 +29,13 @@ describe("Breadcrumbs", () => {
       expect.hasAssertions();
       const wrapper = mountBreadcrumbs();
       const homeBtn = wrapper.find("button");
-      expect(homeBtn.exists()).toBe(true);
+      expect(homeBtn.exists()).toBeTruthy();
     });
 
     it("renders the nav element", () => {
       expect.hasAssertions();
       const wrapper = mountBreadcrumbs();
-      expect(wrapper.find("nav").exists()).toBe(true);
+      expect(wrapper.find("nav").exists()).toBeTruthy();
     });
 
     it("renders crumb names in the desktop trail", () => {
@@ -48,8 +48,8 @@ describe("Breadcrumbs", () => {
       // The full trail is rendered in sm:flex containers
       const buttons = wrapper.findAll("button");
       const buttonTexts = buttons.map((b) => b.text());
-      expect(buttonTexts.some((t) => t.includes("Projects"))).toBe(true);
-      expect(buttonTexts.some((t) => t.includes("Work"))).toBe(true);
+      expect(buttonTexts.some((t) => t.includes("Projects"))).toBeTruthy();
+      expect(buttonTexts.some((t) => t.includes("Work"))).toBeTruthy();
     });
 
     it("shows last crumb name for single-crumb path", () => {
@@ -77,8 +77,8 @@ describe("Breadcrumbs", () => {
       const wrapper = mountBreadcrumbs([{ id: "f1", name: "Folder" }]);
       const homeBtn = wrapper.findAll("button").find((b) => !b.text().includes("Folder"))!;
       await homeBtn.trigger("click");
-      expect(wrapper.emitted("navigate")).toBeTruthy();
-      expect(wrapper.emitted("navigate")![0]).toEqual([null]);
+      expect(wrapper.emitted("navigate")).toBe(true);
+      expect(wrapper.emitted("navigate")![0]).toStrictEqual([null]);
     });
 
     it("emits navigate(crumbId) when a desktop crumb button is clicked", async () => {
@@ -92,8 +92,8 @@ describe("Breadcrumbs", () => {
       const crumbButtons = wrapper.findAll("button").filter((b) => b.text().includes("Alpha"));
       if (crumbButtons.length > 0) {
         await crumbButtons[0]!.trigger("click");
-        expect(wrapper.emitted("navigate")).toBeTruthy();
-        expect(wrapper.emitted("navigate")![0]).toEqual(["f1"]);
+        expect(wrapper.emitted("navigate")).toBe(true);
+        expect(wrapper.emitted("navigate")![0]).toStrictEqual(["f1"]);
       }
     });
   });

@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import { ref } from "vue";
 
 // Mock the debounce utility to run immediately or expose flush
-vi.mock("../../utils/debounce", () => ({
+vi.mock(import('../../utils/debounce'), () => ({
   debounce: (fn: (...args: unknown[]) => unknown) => {
     const debounced = (...args: unknown[]) => fn(...args);
     debounced.flush = vi.fn(() => fn());
@@ -13,7 +13,7 @@ vi.mock("../../utils/debounce", () => ({
 }));
 
 // Mock the toolbar
-vi.mock("../../components/NoteToolbar.vue", () => ({
+vi.mock(import('../../components/NoteToolbar.vue'), () => ({
   default: { template: "<div data-testid='note-toolbar'></div>" },
 } as any));
 
@@ -35,9 +35,9 @@ const mockFabricCanvas = {
   off: vi.fn(),
 };
 
-vi.mock("../../composables/useHandwritingCanvas", () => ({
-  useHandwritingCanvas: () => {
-    return {
+vi.mock(import('../../composables/useHandwritingCanvas'), () => ({
+  useHandwritingCanvas: () => (
+    {
       init: mockInit,
       loadFromJSON: mockLoadFromJSON,
       toJSON: mockToJSON,
@@ -56,15 +56,16 @@ vi.mock("../../composables/useHandwritingCanvas", () => ({
       addImage: mockAddImage,
       fabricCanvas: ref(mockFabricCanvas),
       destroy: mockDestroy,
-    };
-  },
+    }
+  ),
 } as any));
 
 describe("NoteCanvas.vue", () => {
   const defaultProps = {
     initialCanvasJson: null,
     initialBackgroundColor: "#ffffff",
-    toolbarPosition: "top" as any,
+    initialBackgroundPattern: "solid" as const,
+    toolbarPosition: "top" as const,
   };
 
   beforeEach(() => {
@@ -79,7 +80,7 @@ describe("NoteCanvas.vue", () => {
 
   it("initializes handwriting canvas on mount", async () => {
     mountCanvas();
-    expect(mockInit).toHaveBeenCalled();
+    expect(mockInit).toHaveBeenCalledWith();
     expect(mockLoadFromJSON).toHaveBeenCalledWith(null, "#ffffff");
   });
 
@@ -101,7 +102,7 @@ describe("NoteCanvas.vue", () => {
     const wrapper = mountCanvas();
     wrapper.unmount();
     // In our mock, flush() calls the function which triggers emit
-    expect(mockDestroy).toHaveBeenCalled();
+    expect(mockDestroy).toHaveBeenCalledWith();
     // Since flush is called, we can't easily assert emit on an unmounted wrapper,
     // but we know destroy is called
   });

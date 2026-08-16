@@ -29,7 +29,7 @@ describe("debounce", () => {
       const debounced = debounce(fn, 100);
       debounced();
       vi.advanceTimersByTime(100);
-      expect(fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledTimes(1);
     });
 
     it("passes all arguments through to fn", () => {
@@ -51,7 +51,7 @@ describe("debounce", () => {
       vi.advanceTimersByTime(80);
       expect(fn).not.toHaveBeenCalled();
       vi.advanceTimersByTime(20);
-      expect(fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveBeenCalledWith("second");
     });
 
@@ -61,7 +61,7 @@ describe("debounce", () => {
       const debounced = debounce(fn, 100);
       debounced();
       vi.advanceTimersByTime(200);
-      expect(fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -98,7 +98,7 @@ describe("debounce", () => {
       const debounced = debounce(fn, 100);
       debounced("flushed");
       debounced.flush();
-      expect(fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveBeenCalledWith("flushed");
     });
 
@@ -109,7 +109,7 @@ describe("debounce", () => {
       debounced();
       debounced.flush();
       vi.advanceTimersByTime(200);
-      expect(fn).toHaveBeenCalledOnce();
+      expect(fn).toHaveBeenCalledTimes(1);
     });
 
     it("is a no-op when nothing is pending", () => {

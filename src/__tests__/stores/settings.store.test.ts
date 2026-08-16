@@ -26,11 +26,11 @@ describe("settingsStore", () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      expect(store.isLoaded).toBe(true);
+      expect(store.isLoaded).toBeTruthy();
       expect(store.username).toBeNull();
-      expect(store.onboardingCompleted).toBe(false);
+      expect(store.onboardingCompleted).toBeFalsy();
       expect(store.onboardingStep).toBe(0);
-      expect(store.enabledFeatures).toEqual(["todo", "note", "doc"]);
+      expect(store.enabledFeatures).toStrictEqual(["todo", "note", "doc"]);
     });
 
     it("persists default settings to DB on first run", async () => {
@@ -39,7 +39,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       const row = await db.settings.get(1);
       expect(row).toBeDefined();
-      expect(row?.onboardingCompleted).toBe(false);
+      expect(row?.onboardingCompleted).toBeFalsy();
     });
 
     it("loads existing settings on subsequent runs", async () => {
@@ -118,9 +118,9 @@ describe("settingsStore", () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      expect(store.isFeatureEnabled("todo")).toBe(true);
-      expect(store.isFeatureEnabled("note")).toBe(true);
-      expect(store.isFeatureEnabled("doc")).toBe(true);
+      expect(store.isFeatureEnabled("todo")).toBeTruthy();
+      expect(store.isFeatureEnabled("note")).toBeTruthy();
+      expect(store.isFeatureEnabled("doc")).toBeTruthy();
     });
 
     it("returns false for disabled features", async () => {
@@ -128,8 +128,8 @@ describe("settingsStore", () => {
       const store = useSettingsStore();
       await store.loadSettings();
       await store.setEnabledFeatures(["todo"]);
-      expect(store.isFeatureEnabled("note")).toBe(false);
-      expect(store.isFeatureEnabled("doc")).toBe(false);
+      expect(store.isFeatureEnabled("note")).toBeFalsy();
+      expect(store.isFeatureEnabled("doc")).toBeFalsy();
     });
   });
 
@@ -174,7 +174,7 @@ describe("settingsStore", () => {
       const store = useSettingsStore();
       await store.loadSettings();
       await store.setEnabledFeatures(["note", "doc"]);
-      expect(store.enabledFeatures).toEqual(["note", "doc"]);
+      expect(store.enabledFeatures).toStrictEqual(["note", "doc"]);
     });
 
     it("falls back to defaults on empty array", async () => {
@@ -182,7 +182,7 @@ describe("settingsStore", () => {
       const store = useSettingsStore();
       await store.loadSettings();
       await store.setEnabledFeatures([]);
-      expect(store.enabledFeatures).toEqual(["todo", "note", "doc"]);
+      expect(store.enabledFeatures).toStrictEqual(["todo", "note", "doc"]);
     });
   });
 
@@ -196,7 +196,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.setOnboardingStep(3);
       await store.completeOnboarding();
-      expect(store.onboardingCompleted).toBe(true);
+      expect(store.onboardingCompleted).toBeTruthy();
       expect(store.onboardingStep).toBe(0);
     });
   });
@@ -208,7 +208,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.completeOnboarding();
       await store.resetOnboarding();
-      expect(store.onboardingCompleted).toBe(false);
+      expect(store.onboardingCompleted).toBeFalsy();
       expect(store.onboardingStep).toBe(0);
     });
 
@@ -219,7 +219,7 @@ describe("settingsStore", () => {
       await store.completeOnboarding();
       await store.resetOnboarding();
       const row = await db.settings.get(1);
-      expect(row?.onboardingCompleted).toBe(false);
+      expect(row?.onboardingCompleted).toBeFalsy();
     });
   });
 });

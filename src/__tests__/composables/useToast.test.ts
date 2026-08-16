@@ -51,7 +51,7 @@ describe("useToast", () => {
       showToast("Error", "error");
       showToast("Warning", "warning");
       showToast("Info", "info");
-      expect(toasts.value.map((t) => t.type)).toEqual(["success", "error", "warning", "info"]);
+      expect(toasts.value.map((t) => t.type)).toStrictEqual(["success", "error", "warning", "info"]);
     });
   });
 
@@ -97,7 +97,7 @@ describe("useToast", () => {
       expect.hasAssertions();
       const { showToast, dismissToast, toasts } = useToast();
       showToast("To dismiss", "info");
-      const id = toasts.value[0]!.id;
+      const {id} = toasts.value[0]!;
       dismissToast(id);
       expect(toasts.value).toHaveLength(0);
     });
@@ -106,7 +106,7 @@ describe("useToast", () => {
       expect.hasAssertions();
       const { showToast, dismissToast, toasts } = useToast();
       showToast("Dismissed early", "info", 3000);
-      const id = toasts.value[0]!.id;
+      const {id} = toasts.value[0]!;
       dismissToast(id);
       // Advancing past the original duration should be a no-op
       vi.advanceTimersByTime(3000);
@@ -116,7 +116,7 @@ describe("useToast", () => {
     it("is safe to call with a non-existent id", () => {
       expect.hasAssertions();
       const { dismissToast, toasts } = useToast();
-      dismissToast(99999);
+      dismissToast(99_999);
       expect(toasts.value).toHaveLength(0);
     });
   });
@@ -143,7 +143,7 @@ describe("useToast", () => {
       const removeId = toasts.value[1]!.id;
       dismissToast(removeId);
       expect(toasts.value).toHaveLength(2);
-      expect(toasts.value.map((t) => t.message)).toEqual(["Keep 1", "Keep 2"]);
+      expect(toasts.value.map((t) => t.message)).toStrictEqual(["Keep 1", "Keep 2"]);
     });
   });
 });

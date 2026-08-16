@@ -27,6 +27,6 @@ describe("app mount", () => {
     const wrapper = mount(App, {
       global: { plugins: [router, pinia] },
     });
-    expect(wrapper.find("aside").exists()).toBe(true);
+    expect(wrapper.find("aside").exists()).toBeTruthy();
   });
 });

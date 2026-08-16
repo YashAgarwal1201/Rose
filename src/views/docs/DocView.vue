@@ -620,7 +620,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -630,7 +630,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -640,7 +640,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -651,7 +651,7 @@ useKeyboardShortcuts([
     alt: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -661,7 +661,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       setLink();
     },
   },
@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
           v-if="isRenaming"
           v-model="renameValue"
           type="text"
-          autofocus
+          v-focus
           class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
           @keyup.enter="confirmRenameTitle"
           @keyup.escape="cancelRenameTitle"
