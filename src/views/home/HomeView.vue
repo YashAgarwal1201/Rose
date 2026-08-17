@@ -150,13 +150,14 @@ const quickJumpTiles = computed(() =>
   quickJumpConfig.filter((tile) => settingsStore.isFeatureEnabled(tile.feature)),
 );
 
-const folderRouteNames: Record<FeatureType, string> = {
+const folderRouteNames: Record<FeatureType | "mixed", string> = {
   doc: "docs-folder",
   note: "notes-folder",
   todo: "todos-folder",
+  mixed: "files-folder",
 };
 
-function folderRouteName(type: FeatureType): string {
+function folderRouteName(type: FeatureType | "mixed"): string {
   return folderRouteNames[type];
 }
 

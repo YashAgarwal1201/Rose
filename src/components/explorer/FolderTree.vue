@@ -8,7 +8,7 @@ import { useToast } from "@/composables/ui/useToast.ts";
 import type { FeatureType } from "@/db/types";
 
 const { type, activeFolderId } = defineProps<{
-  type: FeatureType;
+  type?: FeatureType;
   activeFolderId: string | null;
 }>();
 
@@ -43,14 +43,14 @@ function toggleExpand(id: string, event?: Event) {
 }
 
 function hasChildren(id: string): boolean {
-  return foldersStore.folders.some((folder) => folder.parentId === id && folder.type === type);
+  return foldersStore.folders.some((folder) => folder.parentId === id && (!type || folder.type === type));
 }
 
 const visibleNodes = computed<TreeNode[]>(() => {
   const nodes: TreeNode[] = [];
   function walk(parentId: string | null, depth: number) {
     const children = foldersStore.folders
-      .filter((folder) => folder.parentId === parentId && folder.type === type)
+      .filter((folder) => folder.parentId === parentId && (!type || folder.type === type))
       .toSorted((folderA, folderB) => folderA.name.localeCompare(folderB.name));
     for (const folder of children) {
       nodes.push({ depth, id: folder.id, name: folder.name });
@@ -79,7 +79,7 @@ function focusNode(id: string) {
 }
 
 function handleTreeKeydown(event: KeyboardEvent, nodeId: string) {
-  const index = visibleNodes.value.findIndex((n) => n.id === nodeId);
+  const index = visibleNodes.value.findIndex((node) => node.id === nodeId);
   if (index === -1) {return;}
 
   switch (event.key) {
@@ -127,7 +127,7 @@ function handleTreeKeydown(event: KeyboardEvent, nodeId: string) {
         next.delete(nodeId);
         expanded.value = next;
       } else {
-        const parentId = foldersStore.folders.find((f) => f.id === nodeId)?.parentId;
+        const parentId = foldersStore.folders.find((folder) => folder.id === nodeId)?.parentId;
         if (parentId) {
           focusedNodeId.value = parentId;
           focusNode(parentId);
@@ -153,7 +153,7 @@ async function confirmCreate() {
   const name = newFolderName.value.trim();
   if (name && creatingParentId.value !== undefined) {
     try {
-      await foldersStore.createFolder(name, creatingParentId.value, type);
+      await foldersStore.createFolder(name, creatingParentId.value, type || "mixed");
       if (creatingParentId.value) {
         expanded.value = new Set(expanded.value).add(creatingParentId.value);
       }

@@ -12,7 +12,7 @@ export interface Folder {
   id: string;
   name: string;
   parentId: string | null;
-  type: FeatureType;
+  type: FeatureType | "mixed";
   createdAt: number;
   updatedAt: number;
 }

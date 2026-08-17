@@ -12,7 +12,6 @@ import {
   TrashIcon,
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
-import { useToast } from "@/composables/ui/useToast.ts";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
@@ -70,7 +69,6 @@ const emit = defineEmits<{
 }>();
 
 const { confirm } = useConfirm();
-const { showToast } = useToast();
 const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
 
 const creatingType = ref<"folder" | "file" | null>(null);
@@ -230,9 +228,6 @@ function handleOpen(item: DisplayItem) {
   }
 }
 
-function handleStartRename(item: DisplayItem, event: Event) {
-  startRename({ currentName: item.name, event, id: item.id, kind: item.kind });
-}
 
 function handleDelete(item: DisplayItem, event: Event) {
   if (item.kind === "folder") {
@@ -415,10 +410,10 @@ defineExpose({ startCreate });
         class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border"
       >
         <span class="flex-1">Name</span>
-        <span class="w-16 text-right shrink-0">Type</span>
-        <span class="w-20 text-right shrink-0">Items</span>
-        <span class="w-28 text-right shrink-0">Created</span>
-        <span class="w-32 text-right shrink-0">Modified</span>
+        <span class="w-16 text-right shrink-0 hidden sm:block">Type</span>
+        <span class="w-20 text-right shrink-0 hidden md:block">Items</span>
+        <span class="w-28 text-right shrink-0 hidden lg:block">Created</span>
+        <span class="w-32 text-right shrink-0 hidden sm:block">Modified</span>
         <span class="w-14 shrink-0"></span>
       </div>
 
@@ -477,19 +472,26 @@ defineExpose({ startCreate });
           @keyup.escape="cancelRename"
           @blur="confirmRename"
         />
-        <span v-else class="flex-1 text-sm text-rose-text truncate relative z-10 pointer-events-none">{{ item.name }}</span>
+        <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
+          <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
+          <span class="text-xs text-rose-text-muted truncate sm:hidden mt-0.5 capitalize">
+            {{ item.kind === "folder" ? "Folder" : fileLabel }}
+            <template v-if="item.itemCount !== undefined"> &bull; {{ item.itemCount }} item{{ item.itemCount === 1 ? '' : 's' }}</template>
+            <template v-if="item.updatedAt"> &bull; {{ formatRelativeTime(item.updatedAt) }}</template>
+          </span>
+        </div>
 
         <template v-if="!item.isNew">
-          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate">
-            {{ typeLabel(item.kind) }}
+          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
+            {{ item.kind === "folder" ? "Folder" : fileLabel }}
           </span>
-          <span class="w-20 text-right text-sm text-rose-text-muted shrink-0">
+          <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden md:block">
             {{ item.itemCount ?? "—" }}
           </span>
-          <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate">
+          <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
             {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
           </span>
-          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate">
+          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
             {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
           </span>
           <div
@@ -506,11 +508,11 @@ defineExpose({ startCreate });
           </div>
         </template>
         <template v-else>
-          <span class="w-16 shrink-0"></span>
-          <span class="w-20 shrink-0"></span>
-          <span class="w-28 shrink-0"></span>
-          <span class="w-32 shrink-0"></span>
-          <span class="w-14 shrink-0"></span>
+          <span class="w-16 shrink-0 hidden sm:block"></span>
+          <span class="w-20 shrink-0 hidden md:block"></span>
+          <span class="w-28 shrink-0 hidden lg:block"></span>
+          <span class="w-32 shrink-0 hidden sm:block"></span>
+          <div class="w-14 shrink-0"></div>
         </template>
       </div>
       </div>

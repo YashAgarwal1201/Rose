@@ -24,6 +24,14 @@ const router = createRouter({
     { component: SettingsView, name: "settings", meta: { title: "Settings" }, path: "/settings" },
 
     {
+      component: () => import("@/views/files/FilesView.vue"),
+      name: "files-folder",
+      meta: { title: "Files" },
+      path: "/files/folder/:pathMatch(.*)*",
+      props: true,
+    },
+
+    {
       component: TodosView,
       name: "todos-folder",
       meta: { title: "Todos" },
