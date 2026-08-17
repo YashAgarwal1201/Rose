@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import { ref } from "vue";
 
 // Mock the debounce utility to run immediately or expose flush
-vi.mock(import('../../utils/debounce'), () => ({
+vi.mock('../../utils/debounce', () => ({
   debounce: (fn: (...args: unknown[]) => unknown) => {
     const debounced = (...args: unknown[]) => fn(...args);
     debounced.flush = vi.fn(() => fn());
@@ -13,7 +13,7 @@ vi.mock(import('../../utils/debounce'), () => ({
 }));
 
 // Mock the toolbar
-vi.mock(import('../../components/NoteToolbar.vue'), () => ({
+vi.mock('../../components/NoteToolbar.vue', () => ({
   default: { template: "<div data-testid='note-toolbar'></div>" },
 } as any));
 
@@ -35,7 +35,7 @@ const mockFabricCanvas = {
   off: vi.fn(),
 };
 
-vi.mock(import('../../composables/useHandwritingCanvas'), () => ({
+vi.mock('@/composables/notes/useHandwritingCanvas.ts', () => ({
   useHandwritingCanvas: () => (
     {
       init: mockInit,
@@ -47,6 +47,7 @@ vi.mock(import('../../composables/useHandwritingCanvas'), () => ({
       shapeTool: ref("rectangle"),
       penColor: ref("#000000"),
       backgroundColor: ref("#ffffff"),
+      backgroundPattern: ref("solid"),
       canUndo: ref(false),
       canRedo: ref(false),
       undo: mockUndo,
@@ -80,26 +81,29 @@ describe("NoteCanvas.vue", () => {
 
   it("initializes handwriting canvas on mount", async () => {
     mountCanvas();
-    expect(mockInit).toHaveBeenCalledWith();
-    expect(mockLoadFromJSON).toHaveBeenCalledWith(null, "#ffffff");
+    await flushPromises();
+    expect(mockInit).toHaveBeenCalledWith(expect.any(HTMLCanvasElement));
+    expect(mockLoadFromJSON).toHaveBeenCalledWith(null, "#ffffff", "solid");
   });
 
   it("loads initial JSON data when provided", async () => {
     const initialJson = { version: 1, objects: [] };
     mountCanvas({ initialCanvasJson: initialJson, initialBackgroundColor: "#000" });
-    expect(mockLoadFromJSON).toHaveBeenCalledWith(initialJson, "#000");
+    await flushPromises();
+    expect(mockLoadFromJSON).toHaveBeenCalledWith(initialJson, "#000", "solid");
   });
 
   it("sets up event listeners on the fabric canvas", async () => {
     mountCanvas();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await flushPromises();
     expect(mockFabricCanvas.on).toHaveBeenCalledWith("object:added", expect.any(Function));
     expect(mockFabricCanvas.on).toHaveBeenCalledWith("object:removed", expect.any(Function));
     expect(mockFabricCanvas.on).toHaveBeenCalledWith("object:modified", expect.any(Function));
   });
 
   it("flushes debounced save and destroys canvas on unmount", async () => {
-    const wrapper = mountCanvas();
+    const wrapper = mountCanvas({ backgroundColor: "#fff", backgroundPattern: "solid" });
+    await flushPromises();
     wrapper.unmount();
     // In our mock, flush() calls the function which triggers emit
     expect(mockDestroy).toHaveBeenCalledWith();

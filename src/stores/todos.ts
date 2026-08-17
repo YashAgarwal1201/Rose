@@ -4,6 +4,7 @@ import { ref } from "vue";
 import db from "@/db";
 import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
+import { useFoldersStore } from "./folders";
 
 export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
@@ -15,7 +16,7 @@ export const useTodosStore = defineStore("todos", () => {
   }
 
   async function createTodoList(name: string, folderId: string | null) {
-    const trimmed = name.trim();
+    const trimmed = name.trim() || "Untitled list";
     const duplicate = todoLists.value.find(
       (list) => list.folderId === folderId && list.name.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -32,6 +33,10 @@ export const useTodosStore = defineStore("todos", () => {
       updatedAt: now,
     };
     await db.todoLists.add(list);
+    await useActivityStore().record("todo_list_created", list.id);
+    if (folderId) {
+      await useFoldersStore().ensureFolderSupports(folderId, "todo");
+    }
     await loadTodoLists();
     return list.id;
   }

@@ -4,13 +4,13 @@ import { nextTick, ref, watch } from "vue";
 import { FolderPlusIcon, PlusIcon, XIcon } from "@lucide/vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
-defineProps<{ fileLabel: string }>();
+defineProps<{ fileLabel: string; hideFolders?: boolean }>();
 const emit = defineEmits<{ createFolder: []; createFile: [] }>();
 
 const fabOpen = ref(false);
 const fabContainerRef = ref<HTMLElement | null>(null);
 
-const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false });
+const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false, fallbackFocus: () => fabContainerRef.value ?? undefined });
 watch(fabOpen, (isOpen) => {
   if (isOpen) {
     nextTick().then(() => activate());
@@ -33,6 +33,7 @@ function handleFileClick() {
   <!-- Desktop: inline pill buttons -->
   <div class="hidden md:flex items-center gap-2">
     <button
+      v-if="!hideFolders"
       class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-surface-alt text-rose-text hover:bg-rose-border transition-colors text-sm"
       @click="handleFolderClick"
     >
@@ -47,7 +48,8 @@ function handleFileClick() {
   </div>
 
   <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
-  <div ref="fabContainerRef" class="md:hidden fixed right-4 bottom-23 z-30 flex flex-col items-end gap-3" @keydown.escape="fabOpen = false">
+  <div ref="fabContainerRef" class="mr-1 md:hidden absolute right-4 bottom-4 z-30 flex flex-col items-end gap-3"
+    @keydown.escape="fabOpen = false">
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 translate-y-2 scale-95"
@@ -88,14 +90,14 @@ function handleFileClick() {
 
     <button
       type="button"
-      class="w-14 h-14 rounded-full bg-rose-primary text-white shadow-xl flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-primary-hover"
+      class="w-10 h-10 rounded-full bg-rose-primary text-white shadow-xl flex items-center justify-center transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-rose-primary-hover"
       :class="fabOpen ? 'rotate-45' : ''"
       :aria-label="fabOpen ? 'Close action menu' : 'Open action menu'"
       :aria-expanded="fabOpen"
       @click="fabOpen = !fabOpen"
     >
-      <XIcon v-if="fabOpen" class="w-6 h-6 text-rose-cream" />
-      <PlusIcon v-else class="w-6 h-6 text-rose-cream" />
+      <XIcon v-if="fabOpen" class="w-5 h-5 text-rose-cream" />
+      <PlusIcon v-else class="w-5 h-5 text-rose-cream" />
     </button>
   </div>
 

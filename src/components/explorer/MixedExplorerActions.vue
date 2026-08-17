@@ -93,7 +93,7 @@ function handleTodoClick() {
   </div>
 
   <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
-  <div ref="fabContainerRef" class="mr-1 md:hidden fixed right-4 bottom-20 z-30 flex flex-col items-end gap-3"
+  <div ref="fabContainerRef" class="mr-1 md:hidden absolute right-4 bottom-4 z-30 flex flex-col items-end gap-3"
     @keydown.escape="fabOpen = false">
     <Transition enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 translate-y-2 scale-95" enter-to-class="opacity-100 translate-y-0 scale-100"

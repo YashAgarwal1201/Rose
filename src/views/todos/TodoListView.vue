@@ -91,7 +91,7 @@ function resolveFolderId(segs: string[]): string | null | undefined {
     const match = foldersStore.folders.find(
       (folder) =>
         folder.parentId === cursor &&
-        folder.type === "todo" &&
+        (folder.type === "todo" || folder.type === "mixed") &&
         folder.name.toLowerCase() === segment.toLowerCase(),
     );
     if (!match) {
@@ -137,7 +137,7 @@ async function loadList() {
   const segs = segments.value;
   if (segs.length === 0) {
     showToast("List not found.", "error");
-    router.replace("/todos/folder");
+    router.replace("/todos");
     return;
   }
   const folderSegments = segs.slice(0, -1);
@@ -146,7 +146,7 @@ async function loadList() {
 
   if (folderId === undefined) {
     showToast("That list no longer exists.", "error");
-    router.replace("/todos/folder");
+    router.replace("/todos");
     return;
   }
 
@@ -169,7 +169,7 @@ async function loadList() {
 
   if (!match) {
     showToast("That list no longer exists.", "error");
-    router.replace({ name: "todos-folder", params: { pathMatch: buildFolderPath(folderId) } });
+    router.replace({ name: "files-folder", params: { pathMatch: buildFolderPath(folderId) } });
     return;
   }
 
@@ -185,12 +185,16 @@ async function loadList() {
 }
 
 function goBack() {
+  if (window.history.state && window.history.state.back) {
+    router.back();
+    return;
+  }
   if (!currentList.value) {
-    router.push("/todos/folder");
+    router.push("/files/folder");
     return;
   }
   router.push({
-    name: "todos-folder",
+    name: "files-folder",
     params: { pathMatch: buildFolderPath(currentList.value.folderId) },
   });
 }

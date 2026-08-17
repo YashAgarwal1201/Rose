@@ -12,10 +12,13 @@ import {
   TrashIcon,
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
+import { useToast } from "@/composables/ui/useToast.ts";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
+
+const { showToast } = useToast();
 
 interface GridFolder {
   id: string;
@@ -410,10 +413,10 @@ defineExpose({ startCreate });
         class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border"
       >
         <span class="flex-1">Name</span>
-        <span class="w-16 text-right shrink-0 hidden sm:block">Type</span>
+        <span class="w-16 text-right shrink-0 hidden lg:block">Type</span>
         <span class="w-20 text-right shrink-0 hidden md:block">Items</span>
         <span class="w-28 text-right shrink-0 hidden lg:block">Created</span>
-        <span class="w-32 text-right shrink-0 hidden sm:block">Modified</span>
+        <span class="w-32 text-right shrink-0 hidden lg:block">Modified</span>
         <span class="w-14 shrink-0"></span>
       </div>
 
@@ -474,7 +477,7 @@ defineExpose({ startCreate });
         />
         <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
           <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
-          <span class="text-xs text-rose-text-muted truncate sm:hidden mt-0.5 capitalize">
+          <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 capitalize">
             {{ item.kind === "folder" ? "Folder" : fileLabel }}
             <template v-if="item.itemCount !== undefined"> &bull; {{ item.itemCount }} item{{ item.itemCount === 1 ? '' : 's' }}</template>
             <template v-if="item.updatedAt"> &bull; {{ formatRelativeTime(item.updatedAt) }}</template>
@@ -482,7 +485,7 @@ defineExpose({ startCreate });
         </div>
 
         <template v-if="!item.isNew">
-          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
+          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
             {{ item.kind === "folder" ? "Folder" : fileLabel }}
           </span>
           <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden md:block">
@@ -491,7 +494,7 @@ defineExpose({ startCreate });
           <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
             {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
           </span>
-          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
+          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
             {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
           </span>
           <div
@@ -508,10 +511,10 @@ defineExpose({ startCreate });
           </div>
         </template>
         <template v-else>
-          <span class="w-16 shrink-0 hidden sm:block"></span>
+          <span class="w-16 shrink-0 hidden lg:block"></span>
           <span class="w-20 shrink-0 hidden md:block"></span>
           <span class="w-28 shrink-0 hidden lg:block"></span>
-          <span class="w-32 shrink-0 hidden sm:block"></span>
+          <span class="w-32 shrink-0 hidden lg:block"></span>
           <div class="w-14 shrink-0"></div>
         </template>
       </div>

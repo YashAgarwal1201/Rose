@@ -52,7 +52,7 @@ describe("ExplorerActions", () => {
       const buttons = wrapper.findAll("button");
       const folderBtn = buttons.find((b) => b.text().includes("New folder"))!;
       await folderBtn.trigger("click");
-      expect(wrapper.emitted("createFolder")).toBe(true);
+      expect(wrapper.emitted("createFolder")).toBeTruthy();
     });
 
     it("emits createFile when the desktop New {fileLabel} button is clicked", async () => {
@@ -61,7 +61,7 @@ describe("ExplorerActions", () => {
       const buttons = wrapper.findAll("button");
       const fileBtn = buttons.find((b) => b.text().includes("New note"))!;
       await fileBtn.trigger("click");
-      expect(wrapper.emitted("createFile")).toBe(true);
+      expect(wrapper.emitted("createFile")).toBeTruthy();
     });
   });
 
@@ -108,7 +108,7 @@ describe("ExplorerActions", () => {
       // Find the mobile file button (aria-label="New list")
       const mobileFileBtn = wrapper.find('button[aria-label="New list"]');
       await mobileFileBtn.trigger("click");
-      expect(wrapper.emitted("createFile")).toBe(true);
+      expect(wrapper.emitted("createFile")).toBeTruthy();
     });
 
     it("emits createFolder from the mobile speed-dial button", async () => {
@@ -120,7 +120,7 @@ describe("ExplorerActions", () => {
       // Find the mobile folder button
       const mobileFolderBtn = wrapper.find('button[aria-label="New folder"]');
       await mobileFolderBtn.trigger("click");
-      expect(wrapper.emitted("createFolder")).toBe(true);
+      expect(wrapper.emitted("createFolder")).toBeTruthy();
     });
 
     it("closes FAB after emitting createFile", async () => {

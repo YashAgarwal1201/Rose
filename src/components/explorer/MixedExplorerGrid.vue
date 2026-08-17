@@ -345,10 +345,10 @@ defineExpose({ startCreate });
       <div
         class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border">
         <span class="flex-1">Name</span>
-        <span class="w-16 text-right shrink-0 hidden sm:block">Type</span>
-        <span class="w-20 text-right shrink-0 hidden md:block">Items</span>
+        <span class="w-16 text-right shrink-0 hidden lg:block">Type</span>
+        <span class="w-20 text-right shrink-0 hidden lg:block">Items</span>
         <span class="w-28 text-right shrink-0 hidden lg:block">Created</span>
-        <span class="w-32 text-right shrink-0 hidden sm:block">Modified</span>
+        <span class="w-32 text-right shrink-0 hidden lg:block">Modified</span>
         <span class="w-14 shrink-0"></span>
       </div>
 
@@ -374,25 +374,24 @@ defineExpose({ startCreate });
             @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
           <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
             <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
-            <span class="text-xs text-rose-text-muted truncate sm:hidden mt-0.5">
-              {{ typeLabel(item.kind) }}
-              <template v-if="item.itemCount !== undefined"> &bull; {{ item.itemCount }} item{{ item.itemCount === 1 ?
-                '' : 's' }}</template>
-              <template v-if="item.updatedAt"> &bull; {{ formatRelativeTime(item.updatedAt) }}</template>
+            <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 flex items-center gap-1">
+              <span>{{ typeLabel(item.kind) }}</span>
+              <template v-if="item.itemCount !== undefined"> &bull; <span>{{ item.itemCount }} item{{ item.itemCount === 1 ? '' : 's' }}</span></template>
+              <template v-if="item.createdAt"> &bull; <span>{{ formatRelativeTime(item.createdAt) }}</span></template>
             </span>
           </div>
 
           <template v-if="!item.isNew">
-            <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
+            <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
               {{ typeLabel(item.kind) }}
             </span>
-            <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden md:block">
+            <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden lg:block">
               {{ item.itemCount ?? "—" }}
             </span>
             <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
               {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
             </span>
-            <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden sm:block">
+            <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
               {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
             </span>
             <div class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10">
@@ -404,10 +403,10 @@ defineExpose({ startCreate });
             </div>
           </template>
           <template v-else>
-            <span class="w-16 shrink-0 hidden sm:block"></span>
-            <span class="w-20 shrink-0 hidden md:block"></span>
+            <span class="w-16 shrink-0 hidden lg:block"></span>
+            <span class="w-20 shrink-0 hidden lg:block"></span>
             <span class="w-28 shrink-0 hidden lg:block"></span>
-            <span class="w-32 shrink-0 hidden sm:block"></span>
+            <span class="w-32 shrink-0 hidden lg:block"></span>
             <div class="w-14 shrink-0"></div>
           </template>
         </div>

@@ -2,21 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
-import { IDBFactory } from "fake-indexeddb";
 import db from "../../db";
-import { useTodosStore } from "../../stores/todos";
-import { useFoldersStore } from "../../stores/folders";
 import TodosView from "@/views/todos/TodosView.vue";
 import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 
 // ─── Composable mocks ─────────────────────────────────────────────────────────
-vi.mock(import("@/composables/ui/useToast.ts"), () => ({
+vi.mock("@/composables/ui/useToast.ts", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock(import("@/composables/ui/useConfirm.ts"), () => ({
+vi.mock("@/composables/ui/useConfirm.ts", () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),
 } as any));
-vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
+vi.mock("@/composables/explorer/useExplorerViewMode.ts", () => {
   const { ref } = require("vue");
   return {
     useExplorerViewMode: () => ({
@@ -30,22 +27,12 @@ vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
 });
 
 // ─── Child component stubs ────────────────────────────────────────────────────
-vi.mock(import("@/components/explorer/FolderTree.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree' />" },
-} as any));
-vi.mock(import("@/components/explorer/FolderTreeDrawer.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree-drawer' />" },
-} as any));
-vi.mock(import("@/components/ui/Breadcrumbs.vue"), () => ({
-  default: { template: "<div data-testid='breadcrumbs' />" },
-} as any));
-vi.mock(import("@/components/explorer/ExplorerActions.vue"), () => ({
+vi.mock("@/components/explorer/ExplorerActions.vue", () => ({
   default: {
     template: `<div data-testid='explorer-actions'>
-      <button data-testid='create-folder-btn' @click="$emit('create-folder')">New Folder</button>
       <button data-testid='create-file-btn' @click="$emit('create-file')">New List</button>
     </div>`,
-    emits: ["create-folder", "create-file"],
+    emits: ["create-file"],
   } as any,
 }));
 
@@ -55,17 +42,16 @@ function makeRouter() {
   return createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: "/", redirect: "/todos/folder" },
+      { path: "/", redirect: "/todos" },
       {
-        path: "/todos/folder/:pathMatch(.*)*",
+        path: "/todos",
         component: routerStub,
-        name: "todos-folder",
-        props: true,
+        name: "todos-all",
       },
       {
-        path: "/todos/list/:pathMatch(.*)*",
+        path: "/files/list/:pathMatch(.*)*",
         component: routerStub,
-        name: "todos-list",
+        name: "files-list",
         props: true,
       },
     ],
@@ -82,14 +68,13 @@ async function freshDb() {
 }
 
 // ─── Mount helper ─────────────────────────────────────────────────────────────
-async function mountTodosView(pathMatch: string[] = []) {
+async function mountTodosView() {
   const router = makeRouter();
-  await router.push("/todos/folder");
+  await router.push("/todos");
   await router.isReady();
   const pinia = createPinia();
   setActivePinia(pinia);
   const wrapper = mount(TodosView, {
-    props: { pathMatch },
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
@@ -109,16 +94,7 @@ describe("TodosView.component.test.ts", () => {
   });
 
   describe("Mounting and Initial Data Load", () => {
-    it("loads current folder contents correctly at root", async () => {
-      // Create a root folder and a root list.
-      await db.folders.add({
-        id: "folder-1",
-        parentId: null,
-        name: "Root Folder",
-        type: "todo",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
+    it("loads all lists correctly", async () => {
       await db.todoLists.add({
         id: "list-1",
         folderId: null,
@@ -129,9 +105,8 @@ describe("TodosView.component.test.ts", () => {
       });
       const { wrapper } = await mountTodosView();
       const grid = wrapper.findComponent(ExplorerGrid);
-      expect(grid.props("folders")).toHaveLength(1);
+      expect(grid.props("folders")).toHaveLength(0);
       expect(grid.props("files")).toHaveLength(1);
-      expect((grid.props("folders") as any[])[0].name).toBe("Root Folder");
       expect((grid.props("files") as any[])[0].name).toBe("Root List");
     });
   });
@@ -146,6 +121,30 @@ describe("TodosView.component.test.ts", () => {
       const allLists = await db.todoLists.toArray();
       expect(allLists).toHaveLength(1);
       expect(allLists[0]?.name).toBe("My New List");
+
+      // Expect routing to the new list
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "files-list",
+        params: { pathMatch: ["My New List"] },
+      });
+    });
+
+    it("opens an existing list via open-file event", async () => {
+      await db.todoLists.add({
+        id: "list-6",
+        folderId: null,
+        name: "Target List",
+        lastOpenedAt: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      const { wrapper, router } = await mountTodosView();
+      const pushSpy = vi.spyOn(router, "push");
+      await emitFromGrid(wrapper, "open-file", "list-6");
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "files-list",
+        params: { pathMatch: ["Target List"] },
+      });
     });
 
     it("renames a list successfully", async () => {
@@ -176,51 +175,6 @@ describe("TodosView.component.test.ts", () => {
       await emitFromGrid(wrapper, "delete-file", "list-8");
       await new Promise((resolve) => setTimeout(resolve, 50));
       await expect(db.todoLists.get("list-8")).resolves.toBeUndefined();
-    });
-  });
-
-  describe("Folder Operations (ExplorerGrid emits)", () => {
-    it("creates a new folder", async () => {
-      const { wrapper } = await mountTodosView();
-      await emitFromGrid(wrapper, "create-folder", "New Subfolder");
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      const allFolders = await db.folders.toArray();
-      expect(allFolders).toHaveLength(1);
-      expect(allFolders[0]?.name).toBe("New Subfolder");
-      expect(allFolders[0]?.type).toBe("todo");
-    });
-
-    it("renames a folder and remains in current view if renaming a child", async () => {
-      await db.folders.add({
-        id: "folder-4",
-        parentId: null,
-        name: "Child Folder",
-        type: "todo",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-      const { wrapper, router } = await mountTodosView();
-      const pushSpy = vi.spyOn(router, "push");
-      await emitFromGrid(wrapper, "rename-folder", "folder-4", "Renamed Folder");
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      expect((await db.folders.get("folder-4"))?.name).toBe("Renamed Folder");
-      // Since "folder-4" is a child of the current root, we shouldn't navigate.
-      expect(pushSpy).not.toHaveBeenCalled();
-    });
-
-    it("deletes a folder", async () => {
-      await db.folders.add({
-        id: "folder-5",
-        parentId: null,
-        name: "To Delete",
-        type: "todo",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-      const { wrapper } = await mountTodosView();
-      await emitFromGrid(wrapper, "delete-folder", "folder-5");
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      await expect(db.folders.get("folder-5")).resolves.toBeUndefined();
     });
   });
 });

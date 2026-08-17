@@ -58,7 +58,7 @@ function resolveFolderId(segs: string[]): string | null | undefined {
     const match = foldersStore.folders.find(
       (folder) =>
         folder.parentId === cursor &&
-        folder.type === "note" &&
+        (folder.type === "note" || folder.type === "mixed") &&
         folder.name.toLowerCase() === segment.toLowerCase(),
     );
     if (!match) {
@@ -97,7 +97,7 @@ async function loadNote() {
   const segs = segments.value;
   if (segs.length === 0) {
     showToast("Note not found.", "error");
-    router.replace("/notes/folder");
+    router.replace("/notes");
     return;
   }
 
@@ -107,7 +107,7 @@ async function loadNote() {
 
   if (folderId === undefined) {
     showToast("That note no longer exists.", "error");
-    router.replace("/notes/folder");
+    router.replace("/notes");
     return;
   }
 
@@ -129,7 +129,7 @@ async function loadNote() {
 
   if (!match) {
     showToast("That note no longer exists.", "error");
-    router.replace({ name: "notes-folder", params: { pathMatch: buildFolderPath(folderId) } });
+    router.replace({ name: "files-folder", params: { pathMatch: buildFolderPath(folderId) } });
     return;
   }
 
@@ -139,12 +139,16 @@ async function loadNote() {
 }
 
 function goBack() {
+  if (window.history.state && window.history.state.back) {
+    router.back();
+    return;
+  }
   if (!currentNote.value) {
-    router.push("/notes/folder");
+    router.push("/files/folder");
     return;
   }
   router.push({
-    name: "notes-folder",
+    name: "files-folder",
     params: { pathMatch: buildFolderPath(currentNote.value.folderId) },
   });
 }

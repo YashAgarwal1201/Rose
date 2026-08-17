@@ -9,12 +9,25 @@ import { useActivityStore } from "./activity";
 
 export const useFoldersStore = defineStore("folders", () => {
   const folders = ref<Folder[]>([]);
-  // We keep track of the last loaded type to know what to reload when a folder is created/deleted/renamed
   const lastLoadedType = ref<FeatureType | "mixed" | null>(null);
+  let migrated = false;
 
   async function loadFolders(type?: FeatureType | "mixed") {
+    if (!migrated) {
+      const all = await db.folders.toArray();
+      const updates = all
+        .filter(f => f.type !== "mixed")
+        .map(f => db.folders.update(f.id, { type: "mixed" }));
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        console.log(`Migrated ${updates.length} existing folders to 'mixed' type`);
+      }
+      migrated = true;
+    }
+
     if (type) {
-      folders.value = await db.folders.where("type").equals(type).toArray();
+      const allFolders = await db.folders.toArray();
+      folders.value = allFolders.filter(f => f.type === type || f.type === "mixed");
       lastLoadedType.value = type;
     } else {
       folders.value = await db.folders.toArray();
@@ -22,12 +35,33 @@ export const useFoldersStore = defineStore("folders", () => {
     }
   }
 
-  async function createFolder(name: string, parentId: string | null, type: FeatureType | "mixed") {
-    const trimmed = name.trim();
+  async function ensureFolderSupports(folderId: string | null, requiredType: FeatureType | "mixed") {
+    let cursor = folderId;
+    let changed = false;
+    
+    // We need to fetch from DB directly in case folders.value is currently filtered
+    // and doesn't contain the folder we are trying to upgrade.
+    while (cursor) {
+      const folder = await db.folders.get(cursor);
+      if (!folder) break;
+      
+      if (folder.type !== requiredType && folder.type !== "mixed") {
+        await db.folders.update(cursor, { type: "mixed", updatedAt: Date.now() });
+        changed = true;
+      }
+      cursor = folder.parentId;
+    }
+    
+    if (changed) {
+      await reloadCurrent();
+    }
+  }
+
+  async function createFolder(name: string, parentId: string | null, _type: FeatureType | "mixed" = "mixed") {
+    const trimmed = name.trim() || "Untitled folder";
     const duplicate = folders.value.find(
       (folder) =>
         folder.parentId === parentId &&
-        folder.type === type &&
         folder.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
@@ -39,12 +73,12 @@ export const useFoldersStore = defineStore("folders", () => {
       id: crypto.randomUUID(),
       name: trimmed,
       parentId,
-      type,
+      type: "mixed", // All folders are mixed by default now
       updatedAt: now,
     };
-
     await db.folders.add(folder);
     await useActivityStore().record("folder_created", folder.id);
+    await ensureFolderSupports(parentId, "mixed");
     await reloadCurrent();
     return folder.id;
   }
@@ -140,5 +174,5 @@ export const useFoldersStore = defineStore("folders", () => {
     await reloadCurrent();
   }
 
-  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder };
+  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder, ensureFolderSupports };
 });

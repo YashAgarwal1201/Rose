@@ -163,20 +163,15 @@ function navigateToFolder(id: string | null) {
 
 function openItem(kind: ItemKind, id: string) {
   if (kind === "folder") {
-    navigateToFolder(id);
-  } else if (kind === "todo") {
-    const list = todosStore.todoLists.find((candidate) => candidate.id === id);
-    if (list) {
-      router.push({
-        name: "todos-list",
-        params: { pathMatch: [...buildFolderPath(list.folderId), list.name] },
-      });
+    const folder = foldersStore.folders.find((candidate) => candidate.id === id);
+    if (folder) {
+      router.push({ name: "files-folder", params: { pathMatch: buildFolderPath(id) } });
     }
   } else if (kind === "doc") {
     const doc = docsStore.docs.find((candidate) => candidate.id === id);
     if (doc) {
       router.push({
-        name: "docs-editor",
+        name: "files-doc",
         params: { pathMatch: [...buildFolderPath(doc.folderId), doc.title] },
       });
     }
@@ -184,8 +179,16 @@ function openItem(kind: ItemKind, id: string) {
     const note = notesStore.notes.find((candidate) => candidate.id === id);
     if (note) {
       router.push({
-        name: "notes-note",
+        name: "files-note",
         params: { pathMatch: [...buildFolderPath(note.folderId), note.title] },
+      });
+    }
+  } else if (kind === "todo") {
+    const list = todosStore.todoLists.find((candidate) => candidate.id === id);
+    if (list) {
+      router.push({
+        name: "files-list",
+        params: { pathMatch: [...buildFolderPath(list.folderId), list.name] },
       });
     }
   }

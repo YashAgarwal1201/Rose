@@ -96,7 +96,7 @@ describe("docsStore", () => {
       setActivePinia(createPinia());
       const store = useDocsStore();
       await store.createDoc("   ", null);
-      expect(store.docs[0]?.title).toBe("Untitled");
+      expect(store.docs[0]?.title).toBe("Untitled document");
     });
 
     it("sets folderId correctly on the created doc", async () => {

@@ -43,14 +43,14 @@ function toggleExpand(id: string, event?: Event) {
 }
 
 function hasChildren(id: string): boolean {
-  return foldersStore.folders.some((folder) => folder.parentId === id && (!type || folder.type === type));
+  return foldersStore.folders.some((folder) => folder.parentId === id && (!type || folder.type === type || folder.type === "mixed"));
 }
 
 const visibleNodes = computed<TreeNode[]>(() => {
   const nodes: TreeNode[] = [];
   function walk(parentId: string | null, depth: number) {
     const children = foldersStore.folders
-      .filter((folder) => folder.parentId === parentId && (!type || folder.type === type))
+      .filter((folder) => folder.parentId === parentId && (!type || folder.type === type || folder.type === "mixed"))
       .toSorted((folderA, folderB) => folderA.name.localeCompare(folderB.name));
     for (const folder of children) {
       nodes.push({ depth, id: folder.id, name: folder.name });
@@ -209,7 +209,7 @@ async function handleDelete(id: string, name: string, event: Event) {
             type="button"
             tabindex="-1"
             class="text-rose-text-muted hover:text-rose-text shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
-            aria-hidden="true"
+            aria-label="Toggle folder expansion"
             @click.stop="toggleExpand(node.id)"
           >
             <ChevronDownIcon v-if="expanded.has(node.id)" class="w-4 h-4" />
@@ -223,7 +223,8 @@ async function handleDelete(id: string, name: string, event: Event) {
           <button
             type="button"
             tabindex="-1"
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
+            class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"
+            :class="node.id === activeFolderId ? '!opacity-100' : '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100'"
             title="New subfolder"
             aria-label="New subfolder"
             @click.stop="startCreating(node.id)"
@@ -233,7 +234,8 @@ async function handleDelete(id: string, name: string, event: Event) {
           <button
             type="button"
             tabindex="-1"
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
+            class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"
+            :class="node.id === activeFolderId ? '!opacity-100' : '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100'"
             title="Delete folder"
             aria-label="Delete folder"
             @click.stop="handleDelete(node.id, node.name, $event)"

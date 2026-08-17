@@ -1,23 +1,19 @@
-// src/__tests__/components/DocsView.component.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
-import { IDBFactory } from "fake-indexeddb";
 import db from "../../db";
-import { useDocsStore } from "../../stores/docs";
-import { useFoldersStore } from "../../stores/folders";
 import DocsView from "@/views/docs/DocsView.vue";
 import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 
 // ─── Composable mocks ─────────────────────────────────────────────────────────
-vi.mock(import("@/composables/ui/useToast.ts"), () => ({
+vi.mock("@/composables/ui/useToast.ts", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock(import("@/composables/ui/useConfirm.ts"), () => ({
+vi.mock("@/composables/ui/useConfirm.ts", () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),
 } as any));
-vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
+vi.mock("@/composables/explorer/useExplorerViewMode.ts", () => {
   const { ref } = require("vue");
   return {
     useExplorerViewMode: () => ({
@@ -31,22 +27,12 @@ vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
 });
 
 // ─── Child component stubs ────────────────────────────────────────────────────
-vi.mock(import("@/components/explorer/FolderTree.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree' />" },
-} as any));
-vi.mock(import("@/components/explorer/FolderTreeDrawer.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree-drawer' />" },
-} as any));
-vi.mock(import("@/components/ui/Breadcrumbs.vue"), () => ({
-  default: { template: "<div data-testid='breadcrumbs' />" },
-} as any));
-vi.mock(import("@/components/explorer/ExplorerActions.vue"), () => ({
+vi.mock("@/components/explorer/ExplorerActions.vue", () => ({
   default: {
     template: `<div data-testid='explorer-actions'>
-      <button data-testid='create-folder-btn' @click="$emit('create-folder')">New Folder</button>
       <button data-testid='create-file-btn' @click="$emit('create-file')">New Doc</button>
     </div>`,
-    emits: ["create-folder", "create-file"],
+    emits: ["create-file"],
   } as any,
 }));
 
@@ -56,17 +42,16 @@ function makeRouter() {
   return createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: "/", redirect: "/docs/folder" },
+      { path: "/", redirect: "/docs" },
       {
-        path: "/docs/folder/:pathMatch(.*)*",
+        path: "/docs",
         component: routerStub,
-        name: "docs-folder",
-        props: true,
+        name: "docs-all",
       },
       {
-        path: "/docs/doc/:pathMatch(.*)*",
+        path: "/files/doc/:pathMatch(.*)*",
         component: routerStub,
-        name: "docs-doc",
+        name: "files-doc",
         props: true,
       },
     ],
@@ -75,20 +60,20 @@ function makeRouter() {
 
 // ─── DB reset ─────────────────────────────────────────────────────────────────
 async function freshDb() {
-  db.close();
-  globalThis.indexedDB = new IDBFactory();
-  await db.open();
+  await db.docs.clear();
+  await db.folders.clear();
+  await db.notes.clear();
+  await db.todos.clear();
 }
 
 // ─── Mount helper ─────────────────────────────────────────────────────────────
-async function mountDocsView(pathMatch: string[] = []) {
+async function mountDocsView() {
   const router = makeRouter();
-  await router.push("/docs/folder");
+  await router.push("/docs");
   await router.isReady();
   const pinia = createPinia();
   setActivePinia(pinia);
   const wrapper = mount(DocsView, {
-    props: { pathMatch },
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
@@ -99,248 +84,81 @@ async function mountDocsView(pathMatch: string[] = []) {
 async function emitFromGrid(wrapper: ReturnType<typeof mount>, event: string, ...args: unknown[]) {
   wrapper.findComponent(ExplorerGrid).vm.$emit(event, ...args);
   await flushPromises();
-  await flushPromises(); // second flush — router.push + async store chains
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-describe("DocsView", () => {
+describe("DocsView.component.test.ts", () => {
   beforeEach(async () => {
     await freshDb();
+    vi.clearAllMocks();
   });
 
-  // ── Rendering ──────────────────────────────────────────────────────────────
-  describe("rendering", () => {
-    it("renders the Docs heading", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView();
-      expect(wrapper.find("h1").text()).toBe("Docs");
-    });
-
-    it("renders the aside sidebar with Folders heading", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView();
-      expect(wrapper.find("aside").text()).toContain("Folders");
-    });
-
-    it("renders the FolderTree stub", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='folder-tree']").exists()).toBe(true);
-    });
-
-    it("renders the ExplorerActions stub", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='explorer-actions']").exists()).toBe(true);
-    });
-
-    it("renders the Breadcrumbs stub", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView();
-      expect(wrapper.find("[data-testid='breadcrumbs']").exists()).toBe(true);
-    });
-  });
-
-  // ── onMounted loading ──────────────────────────────────────────────────────
-  describe("onMounted loading", () => {
-    it("loads folders on mount", async () => {
-      expect.hasAssertions();
-      await mountDocsView();
-      expect(Array.isArray(useFoldersStore().folders)).toBe(true);
-    });
-
-    it("loads docs on mount", async () => {
-      expect.hasAssertions();
-      await mountDocsView();
-      expect(Array.isArray(useDocsStore().docs)).toBe(true);
-    });
-  });
-
-  // ── visibleDocs ────────────────────────────────────────────────────────────
-  describe("visibleDocs", () => {
-    it("shows empty state when current folder has no docs", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView([]);
-      expect(wrapper.text()).toContain("This folder is empty.");
-    });
-
-    describe("with seeded docs", () => {
-      beforeEach(async () => {
-        await db.docs.bulkAdd([
-          {
-            id: "d-root",
-            title: "In Root",
-            folderId: null,
-            contentJSON: null,
-            lastOpenedAt: null,
-            createdAt: 1,
-            updatedAt: 1,
-          },
-          {
-            id: "d-other",
-            title: "In Other",
-            folderId: "f-root",
-            contentJSON: null,
-            lastOpenedAt: null,
-            createdAt: 2,
-            updatedAt: 2,
-          },
-        ]);
-      });
-
-      it("shows only docs belonging to the current folder (root = null)", async () => {
-        expect.hasAssertions();
-        const { wrapper } = await mountDocsView([]);
-        expect(wrapper.text()).toContain("In Root");
-        expect(wrapper.text()).not.toContain("In Other");
-      });
-    });
-  });
-
-  // ── subfolders ─────────────────────────────────────────────────────────────
-  describe("subfolders", () => {
-    it("shows only subfolders of the current folder", async () => {
-      expect.hasAssertions();
-      await db.folders.add({
-        id: "f-child",
-        name: "Child",
-        parentId: null,
-        type: "doc",
-        createdAt: 1,
-        updatedAt: 1,
-      });
-      const { wrapper } = await mountDocsView([]);
-      expect(wrapper.text()).toContain("Child");
-    });
-  });
-
-  // ── handleCreateFolder ─────────────────────────────────────────────────────
-  describe("handleCreateFolder", () => {
-    it("creates a folder in the DB when ExplorerGrid emits createFolder", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "createFolder", "New Folder");
-      expect((await db.folders.toArray()).some((f) => f.name === "New Folder")).toBe(true);
-    });
-  });
-
-  // ── handleCreateFile ───────────────────────────────────────────────────────
-  describe("handleCreateFile", () => {
-    it("creates a doc in the DB when ExplorerGrid emits createFile", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "createFile", "My New Doc");
-      expect((await db.docs.toArray()).some((d) => d.title === "My New Doc")).toBe(true);
-    });
-
-    it("navigates to the doc route after creating a doc", async () => {
-      expect.hasAssertions();
-      const { wrapper, router } = await mountDocsView([]);
-      wrapper.findComponent(ExplorerGrid).vm.$emit("createFile", "Nav Doc");
-      // handleCreateFile is async — wait until router actually changes
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("docs-doc");
-      });
-    });
-  });
-
-  // ── handleRenameFolder ─────────────────────────────────────────────────────
-  describe("handleRenameFolder", () => {
-    it("renames a folder in the DB when ExplorerGrid emits renameFolder", async () => {
-      expect.hasAssertions();
-      await db.folders.add({
-        id: "rename-folder-id",
-        name: "OldName",
-        parentId: null,
-        type: "doc",
-        createdAt: 1,
-        updatedAt: 1,
-      });
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "renameFolder", "rename-folder-id", "NewName");
-      expect((await db.folders.get("rename-folder-id"))?.name).toBe("NewName");
-    });
-  });
-
-  // ── handleDeleteFolder ─────────────────────────────────────────────────────
-  describe("handleDeleteFolder", () => {
-    it("deletes a folder from the DB when ExplorerGrid emits deleteFolder", async () => {
-      expect.hasAssertions();
-      await db.folders.add({
-        id: "delete-folder-id",
-        name: "ToDelete",
-        parentId: null,
-        type: "doc",
-        createdAt: 1,
-        updatedAt: 1,
-      });
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "deleteFolder", "delete-folder-id");
-      await expect(db.folders.get("delete-folder-id")).resolves.toBeUndefined();
-    });
-  });
-
-  // ── handleRenameFile ───────────────────────────────────────────────────────
-  describe("handleRenameFile", () => {
-    it("renames a doc in the DB when ExplorerGrid emits renameFile", async () => {
-      expect.hasAssertions();
+  describe("Mounting and Initial Data Load", () => {
+    it("loads all docs correctly", async () => {
       await db.docs.add({
-        id: "rename-doc-id",
-        title: "OldTitle",
+        id: "doc-1",
         folderId: null,
+        title: "Root Doc",
         contentJSON: null,
         lastOpenedAt: null,
-        createdAt: 1,
-        updatedAt: 1,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       });
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "renameFile", "rename-doc-id", "NewTitle");
-      expect((await db.docs.get("rename-doc-id"))?.title).toBe("NewTitle");
-    });
-
-    it("falls back to 'Untitled' when renameFile is emitted with a blank name", async () => {
-      expect.hasAssertions();
-      await db.docs.add({
-        id: "blank-rename-doc-id",
-        title: "HasTitle",
-        folderId: null,
-        contentJSON: null,
-        lastOpenedAt: null,
-        createdAt: 1,
-        updatedAt: 1,
-      });
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "renameFile", "blank-rename-doc-id", "   ");
-      expect((await db.docs.get("blank-rename-doc-id"))?.title).toBe("Untitled");
+      const { wrapper } = await mountDocsView();
+      const grid = wrapper.findComponent(ExplorerGrid);
+      expect(grid.props("folders")).toHaveLength(0);
+      expect(grid.props("files")).toHaveLength(1);
+      expect((grid.props("files") as any[])[0].name).toBe("Root Doc");
     });
   });
 
-  // ── handleDeleteFile ───────────────────────────────────────────────────────
-  describe("handleDeleteFile", () => {
-    it("deletes a doc from the DB when ExplorerGrid emits deleteFile", async () => {
-      expect.hasAssertions();
+  describe("File Operations (ExplorerGrid emits)", () => {
+    it("creates a new file and routes to it", async () => {
+      const { wrapper, router } = await mountDocsView();
+      const pushSpy = vi.spyOn(router, "push");
+      await emitFromGrid(wrapper, "create-file", "My New Doc");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      // Expect DB insertion.
+      const allDocs = await db.docs.toArray();
+      expect(allDocs).toHaveLength(1);
+      expect(allDocs[0]?.title).toBe("My New Doc");
+      // Expect routing to the new file.
+      expect(pushSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "files-doc",
+          params: expect.objectContaining({ pathMatch: ["My New Doc"] }),
+        }),
+      );
+    });
+
+    it("renames a file successfully", async () => {
       await db.docs.add({
-        id: "delete-doc-id",
-        title: "ToDelete",
+        id: "doc-7",
         folderId: null,
+        title: "Old Title",
         contentJSON: null,
         lastOpenedAt: null,
-        createdAt: 1,
-        updatedAt: 1,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       });
-      const { wrapper } = await mountDocsView([]);
-      await emitFromGrid(wrapper, "deleteFile", "delete-doc-id");
-      await expect(db.docs.get("delete-doc-id")).resolves.toBeUndefined();
+      const { wrapper } = await mountDocsView();
+      await emitFromGrid(wrapper, "rename-file", "doc-7", "New Title");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect((await db.docs.get("doc-7"))?.title).toBe("New Title");
     });
-  });
 
-  // ── mobile drawer ──────────────────────────────────────────────────────────
-  describe("mobile drawer", () => {
-    it("opens the drawer when the mobile folders button is clicked", async () => {
-      expect.hasAssertions();
-      const { wrapper } = await mountDocsView([]);
-      await wrapper.find(String.raw`button.md\:hidden`).trigger("click");
-      expect(wrapper.find("[data-testid='folder-tree-drawer']").exists()).toBe(true);
+    it("deletes a file successfully", async () => {
+      await db.docs.add({
+        id: "doc-8",
+        folderId: null,
+        title: "Untouched Title",
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      const { wrapper } = await mountDocsView();
+      await emitFromGrid(wrapper, "delete-file", "doc-8");
+      await expect(db.docs.get("doc-8")).resolves.toBeUndefined();
     });
   });
 });

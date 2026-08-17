@@ -141,9 +141,9 @@ const quickJumpConfig: {
   icon: unknown;
   routeName: string;
 }[] = [
-    { feature: "todo", icon: ListTodoIcon, label: "Todos", routeName: "todos-folder" },
-    { feature: "note", icon: PenLineIcon, label: "Notes", routeName: "notes-folder" },
-    { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-folder" },
+    { feature: "todo", icon: ListTodoIcon, label: "Todos", routeName: "todos-all" },
+    { feature: "note", icon: PenLineIcon, label: "Notes", routeName: "notes-all" },
+    { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-all" },
   ];
 
 const quickJumpTiles = computed(() =>
@@ -151,9 +151,9 @@ const quickJumpTiles = computed(() =>
 );
 
 const folderRouteNames: Record<FeatureType | "mixed", string> = {
-  doc: "docs-folder",
-  note: "notes-folder",
-  todo: "todos-folder",
+  doc: "docs-all",
+  note: "notes-all",
+  todo: "todos-all",
   mixed: "files-folder",
 };
 
@@ -164,11 +164,11 @@ function folderRouteName(type: FeatureType | "mixed"): string {
 function openItem(item: HomeItem) {
   query.value = "";
   if (item.type === "todo") {
-    router.push({ name: "todos-list", params: { pathMatch: item.path } });
+    router.push({ name: "files-list", params: { pathMatch: item.path } });
   } else if (item.type === "note") {
-    router.push({ name: "notes-note", params: { pathMatch: item.path } });
+    router.push({ name: "files-note", params: { pathMatch: item.path } });
   } else {
-    router.push({ name: "docs-doc", params: { pathMatch: item.path } });
+    router.push({ name: "files-doc", params: { pathMatch: item.path } });
   }
 }
 
