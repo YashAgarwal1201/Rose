@@ -1,6 +1,6 @@
 <!-- src/components/FolderTree.vue -->
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
 import { useFoldersStore } from "@/stores/folders";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
@@ -27,9 +27,10 @@ interface TreeNode {
 const expanded = ref<Set<string>>(new Set());
 const creatingParentId = ref<string | null | undefined>(undefined);
 const newFolderName = ref("");
+const focusedNodeId = ref<string | null>(null);
 
-function toggleExpand(id: string, event: Event) {
-  event.stopPropagation();
+function toggleExpand(id: string, event?: Event) {
+  if (event) {event.stopPropagation();}
 
   const next = new Set(expanded.value);
   if (next.has(id)) {
@@ -61,6 +62,87 @@ const visibleNodes = computed<TreeNode[]>(() => {
   walk(null, 0);
   return nodes;
 });
+
+watch(() => [visibleNodes.value, activeFolderId], () => {
+  if (!focusedNodeId.value && visibleNodes.value.length > 0) {
+    focusedNodeId.value = activeFolderId || visibleNodes.value[0]?.id || null;
+  }
+}, { immediate: true });
+
+function focusNode(id: string) {
+  import("vue").then(({ nextTick }) => {
+    nextTick(() => {
+      const el = document.getElementById(`tree-node-${id}`);
+      if (el) {el.focus();}
+    });
+  });
+}
+
+function handleTreeKeydown(event: KeyboardEvent, nodeId: string) {
+  const index = visibleNodes.value.findIndex((n) => n.id === nodeId);
+  if (index === -1) {return;}
+
+  switch (event.key) {
+    case "ArrowDown": {
+      event.preventDefault();
+      if (index < visibleNodes.value.length - 1) {
+        const nextNode = visibleNodes.value[index + 1];
+        if (nextNode) {
+          focusedNodeId.value = nextNode.id;
+          focusNode(focusedNodeId.value);
+        }
+      }
+      break;
+    }
+    case "ArrowUp": {
+      event.preventDefault();
+      if (index > 0) {
+        const prevNode = visibleNodes.value[index - 1];
+        if (prevNode) {
+          focusedNodeId.value = prevNode.id;
+          focusNode(focusedNodeId.value);
+        }
+      }
+      break;
+    }
+    case "ArrowRight": {
+      event.preventDefault();
+      if (hasChildren(nodeId)) {
+        if (!expanded.value.has(nodeId)) {
+          expanded.value = new Set(expanded.value).add(nodeId);
+        } else if (index < visibleNodes.value.length - 1) {
+          const nextNode = visibleNodes.value[index + 1];
+          if (nextNode) {
+            focusedNodeId.value = nextNode.id;
+            focusNode(focusedNodeId.value);
+          }
+        }
+      }
+      break;
+    }
+    case "ArrowLeft": {
+      event.preventDefault();
+      if (expanded.value.has(nodeId)) {
+        const next = new Set(expanded.value);
+        next.delete(nodeId);
+        expanded.value = next;
+      } else {
+        const parentId = foldersStore.folders.find((f) => f.id === nodeId)?.parentId;
+        if (parentId) {
+          focusedNodeId.value = parentId;
+          focusNode(parentId);
+        }
+      }
+      break;
+    }
+    case "Enter":
+    case " ": {
+      event.preventDefault();
+      emit("select", nodeId);
+      break;
+    }
+  }
+}
 
 function startCreating(parentId: string | null) {
   creatingParentId.value = parentId;
@@ -103,30 +185,32 @@ async function handleDelete(id: string, name: string, event: Event) {
 </script>
 <template>
   <div>
-    <ul class="space-y-0.5">
+    <ul class="space-y-0.5" role="tree" aria-label="Folders">
       <li
         v-for="node in visibleNodes"
         :key="node.id"
-        class="rounded relative"
+        :id="`tree-node-${node.id}`"
+        role="treeitem"
+        :aria-level="node.depth + 1"
+        :aria-selected="node.id === activeFolderId"
+        :aria-expanded="hasChildren(node.id) ? expanded.has(node.id) : undefined"
+        :tabindex="node.id === (focusedNodeId || visibleNodes[0]?.id) ? 0 : -1"
+        class="rounded relative outline-none focus-visible:ring-2 focus-visible:ring-rose-primary cursor-pointer select-none"
         :class="node.id === activeFolderId ? 'bg-rose-surface-alt' : ''"
+        @click="emit('select', node.id)"
+        @keydown="handleTreeKeydown($event, node.id)"
       >
         <div
           class="flex items-center gap-1 px-2 py-1.5 group"
           :style="{ paddingLeft: `${0.5 + node.depth * 1.25}rem` }"
         >
           <button
-            type="button"
-            class="absolute inset-0 w-full h-full rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
-            :aria-label="'Select folder ' + node.name"
-            @click="emit('select', node.id)"
-          ></button>
-          <button
             v-if="hasChildren(node.id)"
             type="button"
+            tabindex="-1"
             class="text-rose-text-muted hover:text-rose-text shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
-            :aria-expanded="expanded.has(node.id)"
-            aria-label="Toggle folder expansion"
-            @click.stop="toggleExpand(node.id, $event)"
+            aria-hidden="true"
+            @click.stop="toggleExpand(node.id)"
           >
             <ChevronDownIcon v-if="expanded.has(node.id)" class="w-4 h-4" />
             <ChevronRightIcon v-else class="w-4 h-4" />
@@ -138,6 +222,7 @@ async function handleDelete(id: string, name: string, event: Event) {
 
           <button
             type="button"
+            tabindex="-1"
             class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
             title="New subfolder"
             aria-label="New subfolder"
@@ -147,6 +232,7 @@ async function handleDelete(id: string, name: string, event: Event) {
           </button>
           <button
             type="button"
+            tabindex="-1"
             class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
             title="Delete folder"
             aria-label="Delete folder"

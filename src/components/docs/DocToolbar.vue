@@ -1,6 +1,7 @@
 <!-- src/components/DocToolbar.vue -->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { onKeyStroke } from "@vueuse/core";
 import type { Editor } from "@tiptap/core";
 import {
   AlignCenterIcon,
@@ -223,6 +224,13 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   scrollRef.value?.removeEventListener("scroll", handleScrollRefScroll);
+});
+
+onKeyStroke("Escape", (e) => {
+  if (isAnyPopoverOpen.value) {
+    e.preventDefault();
+    closeAllPopovers();
+  }
 });
 
 // Whether toolbar is vertical (left/right)

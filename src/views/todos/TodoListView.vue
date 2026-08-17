@@ -1,6 +1,6 @@
 <!-- src/views/TodoListView.vue -->
 <script setup lang="ts">
-import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { type Component, computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeftIcon,
@@ -28,8 +28,8 @@ import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 
-const MENU_WIDTH_PX = 288;
-const MENU_OFFSET_PX = 8;
+// const MENU_WIDTH_PX = 288;
+// const MENU_OFFSET_PX = 8;
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
@@ -320,7 +320,7 @@ async function setDueDate(id: string, value: string) {
 
 function handleMenuEdit() {
   const todo = contextMenu.activeItem.value;
-  if (!todo) {return;}
+  if (!todo) { return; }
   contextMenu.close();
   openDetail(todo);
   startDetailEdit();
@@ -328,7 +328,7 @@ function handleMenuEdit() {
 
 async function handleMenuDelete() {
   const todo = contextMenu.activeItem.value;
-  if (!todo) {return;}
+  if (!todo) { return; }
   contextMenu.close();
   await handleDeleteTodo(todo.id, todo.title);
 }
@@ -398,9 +398,10 @@ watch(() => pathMatch, loadList);
             </svg>
           </button>
 
-          <div class="flex-1 min-w-0 flex flex-col gap-1 cursor-pointer group/item" 
-            role="button" tabindex="0" aria-label="View todo details"
-            @click="openDetail(todo)" @keydown.enter.prevent="openDetail(todo)" @keydown.space.prevent="openDetail(todo)">
+          <div
+            class="flex-1 min-w-0 flex flex-col gap-1 cursor-pointer group/item outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
+            role="button" tabindex="0" aria-label="View todo details" @click="openDetail(todo)"
+            @keydown.enter.prevent="openDetail(todo)" @keydown.space.prevent="openDetail(todo)">
             <div v-if="todo.priority || todo.dueDate" class="flex items-center gap-2">
               <span v-if="todo.priority" class="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1"
                 :class="{
@@ -443,18 +444,14 @@ watch(() => pathMatch, loadList);
     </div>
 
     <!-- Per-todo action context menu -->
-    <ContextMenu
-      :is-open="contextMenu.isOpen.value"
-      :x="contextMenu.x.value"
-      :y="contextMenu.y.value"
-      @close="contextMenu.close()"
-    >
+    <ContextMenu :is-open="contextMenu.isOpen.value" :x="contextMenu.x.value" :y="contextMenu.y.value"
+      @close="contextMenu.close()">
       <div v-if="contextMenu.activeItem.value" class="w-72 flex flex-col">
         <div class="px-4 py-3 mb-1 border-b border-rose-border">
           <p id="popover-priority-label" class="text-sm font-medium text-rose-text-muted mb-2">Priority</p>
           <div class="flex gap-1.5" role="radiogroup" aria-labelledby="popover-priority-label">
-            <button v-for="opt in priorityOptions" :key="opt.label"
-              role="radio" :aria-checked="contextMenu.activeItem.value.priority === opt.value"
+            <button v-for="opt in priorityOptions" :key="opt.label" role="radio"
+              :aria-checked="contextMenu.activeItem.value.priority === opt.value"
               class="flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
               :class="[
                 contextMenu.activeItem.value.priority === opt.value
@@ -478,7 +475,8 @@ watch(() => pathMatch, loadList);
           </label>
           <input type="date" id="popover-due-date"
             class="w-full text-base px-3 py-2.5 rounded-lg border border-rose-border bg-rose-bg text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary transition-shadow cursor-pointer"
-            :value="dateInputValue(contextMenu.activeItem.value.dueDate)" @change="setDueDate(contextMenu.activeItem.value.id, ($event.target as HTMLInputElement).value)" />
+            :value="dateInputValue(contextMenu.activeItem.value.dueDate)"
+            @change="setDueDate(contextMenu.activeItem.value.id, ($event.target as HTMLInputElement).value)" />
         </div>
 
         <button
@@ -623,13 +621,15 @@ watch(() => pathMatch, loadList);
               <template v-else>
                 <div class="flex flex-col h-full gap-4 pb-2">
                   <div class="flex-1 flex flex-col min-h-32">
-                    <label for="detail-edit-title" class="block text-sm font-medium text-rose-text-muted mb-1">Content</label>
+                    <label for="detail-edit-title"
+                      class="block text-sm font-medium text-rose-text-muted mb-1">Content</label>
                     <textarea v-model="detailEditTitle" id="detail-edit-title"
                       class="w-full flex-1 px-3 py-2 rounded-lg bg-rose-bg border border-rose-border text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary resize-none"></textarea>
                   </div>
 
                   <div>
-                    <label for="detail-edit-due-date" class="text-sm font-medium text-rose-text-muted mb-1 flex items-center gap-1.5">
+                    <label for="detail-edit-due-date"
+                      class="text-sm font-medium text-rose-text-muted mb-1 flex items-center gap-1.5">
                       <CalendarIcon class="w-4 h-4" /> Due date
                     </label>
                     <input type="date" id="detail-edit-due-date" v-model="detailEditDueDate"
@@ -637,10 +637,11 @@ watch(() => pathMatch, loadList);
                   </div>
 
                   <div>
-                    <p id="detail-edit-priority-label" class="block text-sm font-medium text-rose-text-muted mb-1">Priority</p>
+                    <p id="detail-edit-priority-label" class="block text-sm font-medium text-rose-text-muted mb-1">
+                      Priority</p>
                     <div class="flex gap-2" role="radiogroup" aria-labelledby="detail-edit-priority-label">
-                      <button v-for="opt in priorityOptions" :key="opt.label" type="button"
-                        role="radio" :aria-checked="detailEditPriority === opt.value"
+                      <button v-for="opt in priorityOptions" :key="opt.label" type="button" role="radio"
+                        :aria-checked="detailEditPriority === opt.value"
                         class="flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg transition-colors font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
                         :class="[
                           detailEditPriority === opt.value

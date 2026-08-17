@@ -1,12 +1,23 @@
 <!-- src/components/ExplorerActions.vue -->
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { FolderPlusIcon, PlusIcon, XIcon } from "@lucide/vue";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 
 defineProps<{ fileLabel: string }>();
 const emit = defineEmits<{ createFolder: []; createFile: [] }>();
 
 const fabOpen = ref(false);
+const fabContainerRef = ref<HTMLElement | null>(null);
+
+const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false });
+watch(fabOpen, (isOpen) => {
+  if (isOpen) {
+    nextTick().then(() => activate());
+  } else {
+    deactivate();
+  }
+});
 
 function handleFolderClick() {
   fabOpen.value = false;
@@ -36,7 +47,7 @@ function handleFileClick() {
   </div>
 
   <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
-  <div class="md:hidden fixed right-4 bottom-23 z-30 flex flex-col items-end gap-3">
+  <div ref="fabContainerRef" class="md:hidden fixed right-4 bottom-23 z-30 flex flex-col items-end gap-3" @keydown.escape="fabOpen = false">
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 translate-y-2 scale-95"
