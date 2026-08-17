@@ -29,7 +29,7 @@ import {
 import type { ToolbarPosition } from "@/composables/ui/useToolbarPosition";
 import { type PopoverPlacement, usePopoverPosition } from "@/composables/ui/usePopoverPosition.ts";
 import type { CanvasTool, PenTool, ShapeTool } from "@/composables/notes/useHandwritingCanvas";
-import ColorPickerGrid from "./ColorPickerGrid.vue";
+import ColorPickerGrid from "@/components/ui/ColorPickerGrid.vue";
 
 const {
   tool,

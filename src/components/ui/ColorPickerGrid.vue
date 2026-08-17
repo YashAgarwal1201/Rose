@@ -56,12 +56,12 @@ function handleCustomColorChange(e: Event) {
         type="button"
         class="relative w-7 h-7 rounded-full border shadow-sm transition-transform hover:scale-110 flex items-center justify-center"
         :class="[
-          modelValue.toLowerCase() === color.toLowerCase() ? 'border-rose-primary ring-2 ring-rose-primary/30' : 'border-rose-border',
+          (modelValue || '').toLowerCase() === color.toLowerCase() ? 'border-rose-primary ring-2 ring-rose-primary/30' : 'border-rose-border',
         ]"
         :style="{ backgroundColor: color }"
         @click="selectColor(color)"
       >
-        <CheckIcon v-if="modelValue.toLowerCase() === color.toLowerCase()" class="w-4 h-4 text-white drop-shadow-md" :class="color === '#ffffff' ? 'text-black' : ''" />
+        <CheckIcon v-if="(modelValue || '').toLowerCase() === color.toLowerCase()" class="w-4 h-4 text-white drop-shadow-md" :class="color === '#ffffff' ? 'text-black' : ''" />
       </button>
 
       <!-- Custom Color Picker -->
