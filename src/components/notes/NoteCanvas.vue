@@ -234,7 +234,7 @@ async function handleImageSelected(event: Event) {
         :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
         :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
         :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition"
-        @undo="undo" @redo="redo" @add-text="addText" @add-image="addImage" @export-as-png="exportAsPng"
+        @undo="undo" @redo="redo" @add-text="addText" @triggerImagePick="triggerImagePick" @export-as-png="exportAsPng"
         @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg" @add-shape="(shape) => addShape(shape, penColor)" />
       
       <div class="note-canvas__scroll flex-1 relative min-h-0 min-w-0" style="overflow: auto;">
@@ -247,7 +247,7 @@ async function handleImageSelected(event: Event) {
         :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
         :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
         :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition" @undo="undo" @redo="redo" @add-text="addText"
-        @add-image="addImage" @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
+        @triggerImagePick="triggerImagePick" @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
         @add-shape="(shape) => addShape(shape, penColor)" />
       
       <input ref="imageInputRef" type="file" accept="image/*" class="sr-only" @change="handleImageSelected" />

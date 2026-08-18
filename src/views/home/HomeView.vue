@@ -68,7 +68,7 @@
 
       <!-- Recent -->
       <div v-if="summary.recentItems.value.length > 0" class="mt-8">
-        <h2 class="text-xl font-semibold text-rose-text-muted uppercase tracking-wide">Recent</h2>
+        <h2 class="text-xl font-semibold text-rose-text-muted uppercase tracking-wide">Recently Opened</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 mt-3">
           <HomeFileCard v-for="item in summary.recentItems.value" :key="`${item.type}-${item.id}`" :item="item"
             @open="openItem(item)" />
