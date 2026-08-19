@@ -50,7 +50,7 @@ function buildFolderPath(folderId: string | null): string[] {
 
 function openList(id: string) {
   const list = todosStore.todoLists.find((candidate) => candidate.id === id);
-  if (!list) return;
+  if (!list) { return; }
   router.push({
     name: "files-list",
     params: { pathMatch: [...buildFolderPath(list.folderId), list.name] },
@@ -89,24 +89,15 @@ onMounted(async () => {
         <h1 class="text-2xl font-bold text-rose-text">Todos</h1>
       </div>
 
-      <ExplorerGrid
-        ref="explorerGridRef"
-        :folders="[]"
-        :files="
-          todosStore.todoLists.map((l) => ({
-            id: l.id,
-            name: l.name,
-            itemCount: listItemCounts[l.id] ?? 0,
-            updatedAt: l.updatedAt,
-            createdAt: l.createdAt,
-          }))
-        "
-        :file-icon="ListTodoIcon"
-        file-label="list"
-        @open-file="openList"
-        @rename-file="handleRenameFile"
-        @delete-file="handleDeleteFile"
-      />
+      <ExplorerGrid ref="explorerGridRef" :folders="[]" :files="todosStore.todoLists.map((l) => ({
+        id: l.id,
+        name: l.name,
+        itemCount: listItemCounts[l.id] ?? 0,
+        updatedAt: l.updatedAt,
+        createdAt: l.createdAt,
+      }))
+        " :file-icon="ListTodoIcon" file-label="list" @open-file="openList" @rename-file="handleRenameFile"
+        @delete-file="handleDeleteFile" />
     </main>
   </div>
 </template>

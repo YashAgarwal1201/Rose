@@ -39,7 +39,7 @@ function buildFolderPath(folderId: string | null): string[] {
 
 function openDoc(id: string) {
   const doc = docsStore.docs.find((candidate) => candidate.id === id);
-  if (!doc) return;
+  if (!doc) { return; }
   router.push({
     name: "files-doc",
     params: { pathMatch: [...buildFolderPath(doc.folderId), doc.title] },
@@ -78,23 +78,14 @@ onMounted(async () => {
         <h1 class="text-2xl font-bold text-rose-text">Docs</h1>
       </div>
 
-      <ExplorerGrid
-        ref="explorerGridRef"
-        :folders="[]"
-        :files="
-          docsStore.docs.map((d) => ({
-            id: d.id,
-            name: d.title,
-            updatedAt: d.updatedAt,
-            createdAt: d.createdAt,
-          }))
-        "
-        :file-icon="FileTextIcon"
-        file-label="doc"
-        @open-file="openDoc"
-        @rename-file="handleRenameFile"
-        @delete-file="handleDeleteFile"
-      />
+      <ExplorerGrid ref="explorerGridRef" :folders="[]" :files="docsStore.docs.map((d) => ({
+        id: d.id,
+        name: d.title,
+        updatedAt: d.updatedAt,
+        createdAt: d.createdAt,
+      }))
+        " :file-icon="FileTextIcon" file-label="doc" @open-file="openDoc" @rename-file="handleRenameFile"
+        @delete-file="handleDeleteFile" />
     </main>
   </div>
 </template>

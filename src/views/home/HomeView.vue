@@ -80,6 +80,11 @@
       <HomeRecentScroller title="Recent notes" :items="summary.recentNotes.value" @open="openItem" />
 
       <HomeActivityCard v-if="settingsStore.showActivityChart" />
+      <HomeStatsWidget
+        :list-count="summary.listCount.value"
+        :note-count="summary.noteCount.value"
+        :doc-count="summary.docCount.value"
+      />
     </template>
   </div>
 </template>
@@ -96,6 +101,7 @@ import HomeFileCard from "@/components/home/HomeFileCard.vue";
 import type { FeatureType } from "@/db/types";
 import HomeRecentScroller from "@/components/home/HomeRecentScroller.vue";
 import HomeActivityCard from "@/components/home/HomeActivityCard.vue";
+import HomeStatsWidget from "@/components/home/HomeStatsWidget.vue";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
