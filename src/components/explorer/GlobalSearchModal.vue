@@ -23,6 +23,18 @@
               <XIcon :size="20" />
             </button>
           </div>
+          
+          <div v-if="!query.trim()" class="border-t border-rose-border px-4 py-3 flex gap-2">
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('todos-all')">
+              <ListTodoIcon :size="16" class="text-rose-primary" /> Todos
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('notes-all')">
+              <PenLineIcon :size="16" class="text-rose-primary" /> Notes
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('docs-all')">
+              <FileTextIcon :size="16" class="text-rose-primary" /> Docs
+            </button>
+          </div>
 
           <div v-if="query.trim() && searchResults.length > 0"
             class="border-t border-rose-border max-h-[60vh] overflow-y-auto">
@@ -138,5 +150,12 @@ function selectResult(index: number) {
       }
     }, 100);
   }
+}
+
+function openView(routeName: string) {
+  uiStore.closeSearch();
+  setTimeout(() => {
+    router.push({ name: routeName });
+  }, 100);
 }
 </script>
