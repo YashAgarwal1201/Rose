@@ -108,4 +108,23 @@ db.version(7).stores({
   todos: "id, listId, done",
 });
 
+db.version(8)
+  .stores({
+    activity: "id, timestamp, entityId",
+    docs: "id, folderId",
+    folders: "id, parentId, type",
+    notes: "id, folderId",
+    settings: "id",
+    todoLists: "id, folderId",
+    todos: "id, listId, done",
+  })
+  .upgrade(async (tx) => {
+    await tx
+      .table("notes")
+      .toCollection()
+      .modify((note: Note) => {
+        note.backgroundPattern ??= "solid";
+      });
+  });
+
 export default db;

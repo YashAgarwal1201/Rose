@@ -134,6 +134,13 @@ export function useHomeSummary() {
     if (folder.type === "note") {
       return notes.value.filter((note) => note.folderId === folder.id).length;
     }
+    if (folder.type === "mixed") {
+      return (
+        todoLists.value.filter((list) => list.folderId === folder.id).length +
+        docs.value.filter((doc) => doc.folderId === folder.id).length +
+        notes.value.filter((note) => note.folderId === folder.id).length
+      );
+    }
     return 0;
   }
 

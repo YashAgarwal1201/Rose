@@ -8,6 +8,8 @@
         <div
           v-for="toast in toasts"
           :key="toast.id"
+          :role="toast.type === 'error' ? 'alert' : 'status'"
+          :aria-live="toast.type === 'error' ? 'assertive' : 'polite'"
           class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-rose-surface border border-rose-border pointer-events-auto"
         >
           <component

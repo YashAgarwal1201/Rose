@@ -179,9 +179,9 @@ describe("todosStore", () => {
       const todoId = await store.createTodo("Buy milk", listId);
       const created = store.todos.find((todo) => todo.id === todoId);
       expect(created?.title).toBe("Buy milk");
-      expect(created?.done).toBeFalsy();
+      expect(created?.done).toBe(false);
       expect(created?.priority).toBeNull();
-      expect(created?.dueDate).toBeNull();
+      expect(typeof created?.dueDate).toBe("number");
     });
 
     it("populates todos state when the list is currently active", async () => {
@@ -219,7 +219,7 @@ describe("todosStore", () => {
       const todoId = await store.createTodo("Flip me", listId);
       await store.toggleDone(todoId);
       const toggled = store.todos.find((todo) => todo.id === todoId);
-      expect(toggled?.done).toBeTruthy();
+      expect(toggled?.done).toBe(true);
     });
 
     it("flips done from true back to false", async () => {
@@ -233,7 +233,7 @@ describe("todosStore", () => {
       await store.toggleDone(todoId);
       await store.toggleDone(todoId);
       const toggled = store.todos.find((todo) => todo.id === todoId);
-      expect(toggled?.done).toBeFalsy();
+      expect(toggled?.done).toBe(false);
     });
 
     it("updates updatedAt when toggled", async () => {

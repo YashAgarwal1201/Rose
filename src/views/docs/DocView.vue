@@ -56,6 +56,10 @@ const { requestInput } = useInput();
 const segments = computed(() => pathMatch ?? []);
 
 const currentDoc = ref<Doc | undefined>(undefined);
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+};
+
 const isRenaming = ref(false);
 const renameValue = ref("");
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -309,7 +313,7 @@ function resolveFolderId(segs: string[]): string | null | undefined {
     const match = foldersStore.folders.find(
       (folder) =>
         folder.parentId === cursor &&
-        folder.type === "doc" &&
+        (folder.type === "doc" || folder.type === "mixed") &&
         folder.name.toLowerCase() === segment.toLowerCase(),
     );
     if (!match) {
@@ -348,7 +352,7 @@ async function loadDoc() {
   const segs = segments.value;
   if (segs.length === 0) {
     showToast("Doc not found.", "error");
-    router.replace("/docs/folder");
+    router.replace("/docs");
     return;
   }
 
@@ -358,7 +362,7 @@ async function loadDoc() {
 
   if (folderId === undefined) {
     showToast("That doc no longer exists.", "error");
-    router.replace("/docs/folder");
+    router.replace("/docs");
     return;
   }
 
@@ -381,7 +385,7 @@ async function loadDoc() {
 
   if (!match) {
     showToast("That doc no longer exists.", "error");
-    router.replace({ name: "docs-folder", params: { pathMatch: buildFolderPath(folderId) } });
+    router.replace({ name: "files-folder", params: { pathMatch: buildFolderPath(folderId) } });
     return;
   }
 
@@ -392,12 +396,16 @@ async function loadDoc() {
 }
 
 function goBack() {
+  if (window.history.state && window.history.state.back) {
+    router.back();
+    return;
+  }
   if (!currentDoc.value) {
-    router.push("/docs/folder");
+    router.push("/files/folder");
     return;
   }
   router.push({
-    name: "docs-folder",
+    name: "files-folder",
     params: { pathMatch: buildFolderPath(currentDoc.value.folderId) },
   });
 }
@@ -620,7 +628,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -630,7 +638,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -640,7 +648,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -651,7 +659,7 @@ useKeyboardShortcuts([
     alt: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -661,7 +669,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return false;
+      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
       setLink();
     },
   },
@@ -720,7 +728,7 @@ onBeforeUnmount(() => {
           v-if="isRenaming"
           v-model="renameValue"
           type="text"
-          autofocus
+          v-focus
           class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
           @keyup.enter="confirmRenameTitle"
           @keyup.escape="cancelRenameTitle"

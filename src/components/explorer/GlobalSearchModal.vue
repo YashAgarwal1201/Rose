@@ -6,12 +6,14 @@
       leave-to-class="opacity-0">
       <div v-if="uiStore.isSearchOpen" ref="dialogRef"
         class="fixed inset-0 z-120 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-[10vh] px-4"
+        role="dialog" aria-modal="true" aria-label="Global search"
         @click.self="uiStore.closeSearch()" @keydown.escape="handleEscape">
         <div
           class="w-full max-w-2xl bg-rose-surface border border-rose-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
           <div class="relative shrink-0">
             <SearchIcon :size="20" class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-text-muted" />
             <input ref="searchInputRef" v-model="query" type="text" placeholder="Search your todos, notes and docs..."
+              aria-label="Search"
               class="w-full pl-12 pr-12 py-4 bg-transparent text-rose-text placeholder:text-rose-text-muted focus:outline-none text-lg"
               @keydown.escape.prevent="handleEscape" @keydown.down.prevent="navigateResults(1)"
               @keydown.up.prevent="navigateResults(-1)" @keydown.enter.prevent="selectResult(selectedIndex)" />
@@ -19,6 +21,18 @@
               class="absolute right-4 top-1/2 -translate-y-1/2 text-rose-text-muted hover:text-rose-text transition-colors"
               @click="query = ''; searchInputRef?.focus()" aria-label="Clear search">
               <XIcon :size="20" />
+            </button>
+          </div>
+          
+          <div v-if="!query.trim()" class="border-t border-rose-border px-4 py-3 flex gap-2">
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('todos-all')">
+              <ListTodoIcon :size="16" class="text-rose-primary" /> Todos
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('notes-all')">
+              <PenLineIcon :size="16" class="text-rose-primary" /> Notes
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-rose-surface-alt hover:bg-rose-border/50 transition-colors text-sm font-medium text-rose-text" @click="openView('docs-all')">
+              <FileTextIcon :size="16" class="text-rose-primary" /> Docs
             </button>
           </div>
 
@@ -136,5 +150,12 @@ function selectResult(index: number) {
       }
     }, 100);
   }
+}
+
+function openView(routeName: string) {
+  uiStore.closeSearch();
+  setTimeout(() => {
+    router.push({ name: routeName });
+  }, 100);
 }
 </script>

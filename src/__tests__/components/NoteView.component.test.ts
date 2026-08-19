@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
 import NoteView from "@/views/notes/NoteView.vue";
 import { createPinia, setActivePinia } from "pinia";
 import db from "../../db";
@@ -11,7 +11,7 @@ import { nextTick, ref } from "vue";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock("vue-router", () => ({
+vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: pushMock,
     replace: replaceMock,
@@ -24,12 +24,12 @@ vi.mock("vue-router", () => ({
 
 // Mock toast
 const showToastMock = vi.fn();
-vi.mock("../../composables/useToast", () => ({
+vi.mock('@/composables/ui/useToast.ts', () => ({
   useToast: () => ({ showToast: showToastMock }),
 } as any));
 
 // Mock toolbar position
-vi.mock("../../composables/useToolbarPosition", () => ({
+vi.mock('../../composables/useToolbarPosition', () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -38,8 +38,8 @@ vi.mock("../../composables/useToolbarPosition", () => ({
   }),
 } as any));
 
-// Mock NoteCanvas to avoid rendering fabric
-vi.mock("../../components/NoteCanvas.vue", () => ({
+// Mock HandwritingCanvas to avoid rendering fabric
+vi.mock('../../components/notes/HandwritingCanvas.vue', () => ({
   default: {
     template: "<div data-testid='note-canvas'></div>",
     props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
@@ -70,13 +70,13 @@ describe("NoteView.vue", () => {
     it("redirects to /notes/folder when path is empty", async () => {
       await mountNoteView([]);
       expect(showToastMock).toHaveBeenCalledWith("Note not found.", "error");
-      expect(replaceMock).toHaveBeenCalledWith("/notes/folder");
+      expect(replaceMock).toHaveBeenCalledWith("/notes");
     });
 
     it("redirects to /notes/folder when folder doesn't resolve", async () => {
       await mountNoteView(["Missing Folder", "Some Note"]);
       expect(showToastMock).toHaveBeenCalledWith("That note no longer exists.", "error");
-      expect(replaceMock).toHaveBeenCalledWith("/notes/folder");
+      expect(replaceMock).toHaveBeenCalledWith("/notes");
     });
 
     it("redirects to folder path when note name doesn't match", async () => {
@@ -91,7 +91,7 @@ describe("NoteView.vue", () => {
       await mountNoteView(["My Folder", "Missing Note"]);
       expect(showToastMock).toHaveBeenCalledWith("That note no longer exists.", "error");
       expect(replaceMock).toHaveBeenCalledWith({
-        name: "notes-folder",
+        name: "files-folder",
         params: { pathMatch: ["My Folder"] },
       });
     });
@@ -103,6 +103,7 @@ describe("NoteView.vue", () => {
         folderId: null,
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: "",
         lastOpenedAt: null,
         createdAt: 1,
@@ -110,7 +111,7 @@ describe("NoteView.vue", () => {
       });
       const wrapper = await mountNoteView(["Test Note"]);
       expect(wrapper.find("h1").text()).toBe("Test Note");
-      expect(wrapper.findComponent({ name: "NoteCanvas" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "NoteCanvas" }).exists()).toBeTruthy();
     });
   });
 
@@ -122,6 +123,7 @@ describe("NoteView.vue", () => {
         folderId: null,
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: "",
         lastOpenedAt: null,
         createdAt: 1,
@@ -130,7 +132,7 @@ describe("NoteView.vue", () => {
       const wrapper = await mountNoteView(["Old Title"]);
       await wrapper.find("button .lucide-pencil").trigger("click");
       const input = wrapper.find("input[type='text']");
-      expect(input.exists()).toBe(true);
+      expect(input.exists()).toBeTruthy();
       expect((input.element as HTMLInputElement).value).toBe("Old Title");
     });
 
@@ -141,6 +143,7 @@ describe("NoteView.vue", () => {
         folderId: null,
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: "",
         lastOpenedAt: null,
         createdAt: 1,
@@ -170,6 +173,7 @@ describe("NoteView.vue", () => {
         folderId: null,
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: "",
         lastOpenedAt: null,
         createdAt: 1,
@@ -205,6 +209,7 @@ describe("NoteView.vue", () => {
         folderId: "folder-3",
         canvasJSON: null,
         backgroundColor: "#fff",
+        backgroundPattern: "solid",
         thumbnail: "",
         lastOpenedAt: null,
         createdAt: 1,
@@ -213,7 +218,7 @@ describe("NoteView.vue", () => {
       const wrapper = await mountNoteView(["Nested", "Inside"]);
       await wrapper.find("button .lucide-arrow-left").trigger("click");
       expect(pushMock).toHaveBeenCalledWith({
-        name: "notes-folder",
+        name: "files-folder",
         params: { pathMatch: ["Nested"] },
       });
     });

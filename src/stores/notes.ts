@@ -7,13 +7,14 @@ import { useActivityStore } from "./activity";
 
 const DEFAULT_BACKGROUND = "#ffffff";
 
+import { useFoldersStore } from "./folders";
+
 export const useNotesStore = defineStore("notes", () => {
   const notes = ref<Note[]>([]);
 
   async function loadNotes() {
     notes.value = await db.notes.toArray();
   }
-
   async function createNote(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled";
     const duplicate = notes.value.find(
@@ -25,6 +26,7 @@ export const useNotesStore = defineStore("notes", () => {
     const now = Date.now();
     const note: Note = {
       backgroundColor: DEFAULT_BACKGROUND,
+      backgroundPattern: "solid",
       canvasJSON: null,
       createdAt: now,
       folderId,
@@ -36,6 +38,9 @@ export const useNotesStore = defineStore("notes", () => {
     };
     await db.notes.add(note);
     await useActivityStore().record("note_created", note.id);
+    if (folderId) {
+      await useFoldersStore().ensureFolderSupports(folderId, "note");
+    }
     await loadNotes();
     return note.id;
   }
@@ -51,7 +56,7 @@ export const useNotesStore = defineStore("notes", () => {
 
   async function updateNote(
     id: string,
-    changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "thumbnail">>,
+    changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "backgroundPattern" | "thumbnail">>,
   ) {
     const sanitized = { ...changes };
     if ("canvasJSON" in changes) {

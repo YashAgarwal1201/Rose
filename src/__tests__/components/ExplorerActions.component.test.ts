@@ -23,7 +23,7 @@ describe("ExplorerActions", () => {
       const wrapper = mountActions();
       const buttons = wrapper.findAll("button");
       const folderBtn = buttons.find((b) => b.text().includes("New folder"));
-      expect(folderBtn?.exists()).toBe(true);
+      expect(folderBtn?.exists()).toBeTruthy();
     });
 
     it("renders the desktop 'New {fileLabel}' button with correct label", () => {
@@ -31,14 +31,14 @@ describe("ExplorerActions", () => {
       const wrapper = mountActions("document");
       const buttons = wrapper.findAll("button");
       const fileBtn = buttons.find((b) => b.text().includes("New document"));
-      expect(fileBtn?.exists()).toBe(true);
+      expect(fileBtn?.exists()).toBeTruthy();
     });
 
     it("renders the mobile FAB toggle button", () => {
       expect.hasAssertions();
       const wrapper = mountActions();
       const fabBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(fabBtn.exists()).toBe(true);
+      expect(fabBtn.exists()).toBeTruthy();
     });
   });
 
@@ -76,7 +76,7 @@ describe("ExplorerActions", () => {
       await fabBtn.trigger("click");
       // After opening, the button should show "Close action menu"
       const closeBtn = wrapper.find('button[aria-label="Close action menu"]');
-      expect(closeBtn.exists()).toBe(true);
+      expect(closeBtn.exists()).toBeTruthy();
     });
 
     it("closes the speed-dial on second FAB click", async () => {
@@ -87,7 +87,7 @@ describe("ExplorerActions", () => {
       const closeBtn = wrapper.find('button[aria-label="Close action menu"]');
       await closeBtn.trigger("click");
       const openBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(openBtn.exists()).toBe(true);
+      expect(openBtn.exists()).toBeTruthy();
     });
 
     it("shows a backdrop when FAB is open", async () => {
@@ -96,7 +96,7 @@ describe("ExplorerActions", () => {
       const fabBtn = wrapper.find('button[aria-label="Open action menu"]');
       await fabBtn.trigger("click");
       const backdrop = wrapper.find('div[aria-hidden="true"]');
-      expect(backdrop.exists()).toBe(true);
+      expect(backdrop.exists()).toBeTruthy();
     });
 
     it("emits createFile from the mobile speed-dial button", async () => {
@@ -134,7 +134,7 @@ describe("ExplorerActions", () => {
       await mobileFileBtn.trigger("click");
       // FAB should be closed now — should show "Open" again
       const openBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(openBtn.exists()).toBe(true);
+      expect(openBtn.exists()).toBeTruthy();
     });
   });
 });

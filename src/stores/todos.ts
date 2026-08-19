@@ -1,21 +1,43 @@
 // src/stores/todos.ts
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import db from "@/db";
 import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
+import { useFoldersStore } from "./folders";
 
 export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
   const todos = ref<Todo[]>([]);
   const currentListId = ref<string | null>(null);
 
+  const sortedTodos = computed(() => todos.value.toSorted((a, b) => {
+    // 1. Status (Incomplete first)
+    if (a.done !== b.done) {return a.done ? 1 : -1;}
+
+    // 2. Priority (High > Medium > Low > None)
+    const priorityWeight: Record<string, number> = { high: 3, medium: 2, low: 1, null: 0 };
+    const weightA = priorityWeight[a.priority ?? 'null'] ?? 0;
+    const weightB = priorityWeight[b.priority ?? 'null'] ?? 0;
+    if (weightA !== weightB) {return weightB - weightA;}
+
+    // 3. Due Date (Earliest first)
+    if (a.dueDate !== b.dueDate) {
+      if (!a.dueDate) {return 1;}
+      if (!b.dueDate) {return -1;}
+      return a.dueDate - b.dueDate;
+    }
+
+    // 4. Creation Date (Newest first)
+    return b.createdAt - a.createdAt;
+  }));
+
   async function loadTodoLists() {
     todoLists.value = await db.todoLists.toArray();
   }
 
   async function createTodoList(name: string, folderId: string | null) {
-    const trimmed = name.trim();
+    const trimmed = name.trim() || "Untitled list";
     const duplicate = todoLists.value.find(
       (list) => list.folderId === folderId && list.name.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -32,6 +54,10 @@ export const useTodosStore = defineStore("todos", () => {
       updatedAt: now,
     };
     await db.todoLists.add(list);
+    await useActivityStore().record("todo_list_created", list.id);
+    if (folderId) {
+      await useFoldersStore().ensureFolderSupports(folderId, "todo");
+    }
     await loadTodoLists();
     return list.id;
   }
@@ -163,6 +189,7 @@ export const useTodosStore = defineStore("todos", () => {
     renameTodoList,
     todoLists,
     todos,
+    sortedTodos,
     toggleDone,
     touchTodoList,
     updateTodo,

@@ -4,6 +4,7 @@ import { ref } from "vue";
 import db from "@/db";
 import type { Doc } from "@/db/types";
 import { useActivityStore } from "./activity";
+import { useFoldersStore } from "./folders";
 
 export const useDocsStore = defineStore("docs", () => {
   const docs = ref<Doc[]>([]);
@@ -13,12 +14,12 @@ export const useDocsStore = defineStore("docs", () => {
   }
 
   async function createDoc(title: string, folderId: string | null) {
-    const trimmed = title.trim() || "Untitled";
+    const trimmed = title.trim() || "Untitled document";
     const duplicate = docs.value.find(
       (doc) => doc.folderId === folderId && doc.title.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
-      throw new Error(`A doc named "${trimmed}" already exists here.`);
+      throw new Error(`A document named "${trimmed}" already exists here.`);
     }
     const now = Date.now();
     const doc: Doc = {
@@ -32,6 +33,9 @@ export const useDocsStore = defineStore("docs", () => {
     };
     await db.docs.add(doc);
     await useActivityStore().record("doc_created", doc.id);
+    if (folderId) {
+      await useFoldersStore().ensureFolderSupports(folderId, "doc");
+    }
     await loadDocs();
     return doc.id;
   }

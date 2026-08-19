@@ -26,11 +26,11 @@ describe("settingsStore", () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      expect(store.isLoaded).toBe(true);
+      expect(store.isLoaded).toBeTruthy();
       expect(store.username).toBeNull();
-      expect(store.onboardingCompleted).toBe(false);
+      expect(store.onboardingCompleted).toBeFalsy();
       expect(store.onboardingStep).toBe(0);
-      expect(store.enabledFeatures).toEqual(["todo", "note", "doc"]);
+      expect(store.showActivityChart).toBeTruthy();
     });
 
     it("persists default settings to DB on first run", async () => {
@@ -39,7 +39,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       const row = await db.settings.get(1);
       expect(row).toBeDefined();
-      expect(row?.onboardingCompleted).toBe(false);
+      expect(row?.onboardingCompleted).toBeFalsy();
     });
 
     it("loads existing settings on subsequent runs", async () => {
@@ -110,79 +110,31 @@ describe("settingsStore", () => {
     });
   });
 
-  // ─────────────────────────────────────────────
-  // isFeatureEnabled
-  // ─────────────────────────────────────────────
-  describe("isFeatureEnabled", () => {
-    it("returns true for enabled features", async () => {
-      expect.hasAssertions();
-      const store = useSettingsStore();
-      await store.loadSettings();
-      expect(store.isFeatureEnabled("todo")).toBe(true);
-      expect(store.isFeatureEnabled("note")).toBe(true);
-      expect(store.isFeatureEnabled("doc")).toBe(true);
-    });
-
-    it("returns false for disabled features", async () => {
-      expect.hasAssertions();
-      const store = useSettingsStore();
-      await store.loadSettings();
-      await store.setEnabledFeatures(["todo"]);
-      expect(store.isFeatureEnabled("note")).toBe(false);
-      expect(store.isFeatureEnabled("doc")).toBe(false);
-    });
-  });
 
   // ─────────────────────────────────────────────
-  // toggleFeature
+  // toggleActivityChart
   // ─────────────────────────────────────────────
-  describe("toggleFeature", () => {
-    it("disables an enabled feature", async () => {
+  describe("toggleActivityChart", () => {
+    it("toggles the showActivityChart flag", async () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      await store.toggleFeature("doc");
-      expect(store.enabledFeatures).not.toContain("doc");
+      expect(store.showActivityChart).toBeTruthy();
+      
+      await store.toggleActivityChart();
+      expect(store.showActivityChart).toBeFalsy();
+      
+      await store.toggleActivityChart();
+      expect(store.showActivityChart).toBeTruthy();
     });
 
-    it("enables a disabled feature", async () => {
+    it("persists to DB", async () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      await store.toggleFeature("doc"); // disable
-      await store.toggleFeature("doc"); // re-enable
-      expect(store.enabledFeatures).toContain("doc");
-    });
-
-    it("prevents disabling the last remaining feature", async () => {
-      expect.hasAssertions();
-      const store = useSettingsStore();
-      await store.loadSettings();
-      await store.setEnabledFeatures(["todo"]);
-      await store.toggleFeature("todo"); // should be prevented
-      expect(store.enabledFeatures).toContain("todo");
-      expect(store.enabledFeatures).toHaveLength(1);
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  // setEnabledFeatures
-  // ─────────────────────────────────────────────
-  describe("setEnabledFeatures", () => {
-    it("persists the given list", async () => {
-      expect.hasAssertions();
-      const store = useSettingsStore();
-      await store.loadSettings();
-      await store.setEnabledFeatures(["note", "doc"]);
-      expect(store.enabledFeatures).toEqual(["note", "doc"]);
-    });
-
-    it("falls back to defaults on empty array", async () => {
-      expect.hasAssertions();
-      const store = useSettingsStore();
-      await store.loadSettings();
-      await store.setEnabledFeatures([]);
-      expect(store.enabledFeatures).toEqual(["todo", "note", "doc"]);
+      await store.toggleActivityChart();
+      const row = await db.settings.get(1);
+      expect(row?.showActivityChart).toBeFalsy();
     });
   });
 
@@ -196,7 +148,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.setOnboardingStep(3);
       await store.completeOnboarding();
-      expect(store.onboardingCompleted).toBe(true);
+      expect(store.onboardingCompleted).toBeTruthy();
       expect(store.onboardingStep).toBe(0);
     });
   });
@@ -208,7 +160,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.completeOnboarding();
       await store.resetOnboarding();
-      expect(store.onboardingCompleted).toBe(false);
+      expect(store.onboardingCompleted).toBeFalsy();
       expect(store.onboardingStep).toBe(0);
     });
 
@@ -219,7 +171,7 @@ describe("settingsStore", () => {
       await store.completeOnboarding();
       await store.resetOnboarding();
       const row = await db.settings.get(1);
-      expect(row?.onboardingCompleted).toBe(false);
+      expect(row?.onboardingCompleted).toBeFalsy();
     });
   });
 });

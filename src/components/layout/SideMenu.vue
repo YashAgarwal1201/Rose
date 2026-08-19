@@ -9,7 +9,7 @@
   <Transition enter-active-class="transition-transform duration-300 ease-in-out" enter-from-class="translate-x-full"
     enter-to-class="translate-x-0" leave-active-class="transition-transform duration-300 ease-in-out"
     leave-from-class="translate-x-0" leave-to-class="translate-x-full">
-    <div v-if="isOpen"
+    <div v-if="isOpen" ref="menuRef" @keydown.escape="close"
       class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl rounded-none md:rounded-l-xl! bg-rose-bg shadow-2xl flex flex-col">
       <div class="flex items-center justify-between p-5 shrink-0">
         <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-rose-text">More Options</h3>
@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import {
   InfoIcon,
   KeyboardIcon,
@@ -132,6 +132,7 @@ import {
   SunIcon,
   XIcon,
 } from "@lucide/vue";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import { useThemeStore } from "@/stores/theme";
 import PanelSection from "@/components/ui/PanelSection.vue";
 import { useRouter } from "vue-router";
@@ -141,6 +142,10 @@ const emit = defineEmits<{ close: [] }>();
 
 const themeStore = useThemeStore();
 const router = useRouter();
+
+const menuRef = ref<HTMLElement | null>(null);
+const { activate, deactivate } = useFocusTrap(menuRef, { escapeDeactivates: false });
+watch(() => isOpen, (val) => val ? nextTick().then(() => activate()) : deactivate());
 
 const selectedMode = computed({
   get: () => themeStore.mode,

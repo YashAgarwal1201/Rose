@@ -15,13 +15,13 @@ describe("uiStore", () => {
     it("starts with menu closed", () => {
       expect.hasAssertions();
       const store = useUiStore();
-      expect(store.isMenuOpen).toBe(false);
+      expect(store.isMenuOpen).toBeFalsy();
     });
 
     it("starts with search closed", () => {
       expect.hasAssertions();
       const store = useUiStore();
-      expect(store.isSearchOpen).toBe(false);
+      expect(store.isSearchOpen).toBeFalsy();
     });
   });
 
@@ -33,7 +33,7 @@ describe("uiStore", () => {
       expect.hasAssertions();
       const store = useUiStore();
       store.openMenu();
-      expect(store.isMenuOpen).toBe(true);
+      expect(store.isMenuOpen).toBeTruthy();
     });
 
     it("closeMenu sets isMenuOpen to false", () => {
@@ -41,14 +41,14 @@ describe("uiStore", () => {
       const store = useUiStore();
       store.openMenu();
       store.closeMenu();
-      expect(store.isMenuOpen).toBe(false);
+      expect(store.isMenuOpen).toBeFalsy();
     });
 
     it("toggleMenu flips isMenuOpen from false to true", () => {
       expect.hasAssertions();
       const store = useUiStore();
       store.toggleMenu();
-      expect(store.isMenuOpen).toBe(true);
+      expect(store.isMenuOpen).toBeTruthy();
     });
 
     it("toggleMenu flips isMenuOpen from true to false", () => {
@@ -56,7 +56,7 @@ describe("uiStore", () => {
       const store = useUiStore();
       store.openMenu();
       store.toggleMenu();
-      expect(store.isMenuOpen).toBe(false);
+      expect(store.isMenuOpen).toBeFalsy();
     });
   });
 
@@ -68,7 +68,7 @@ describe("uiStore", () => {
       expect.hasAssertions();
       const store = useUiStore();
       store.openSearch();
-      expect(store.isSearchOpen).toBe(true);
+      expect(store.isSearchOpen).toBeTruthy();
     });
 
     it("closeSearch sets isSearchOpen to false", () => {
@@ -76,14 +76,14 @@ describe("uiStore", () => {
       const store = useUiStore();
       store.openSearch();
       store.closeSearch();
-      expect(store.isSearchOpen).toBe(false);
+      expect(store.isSearchOpen).toBeFalsy();
     });
 
     it("toggleSearch flips isSearchOpen from false to true", () => {
       expect.hasAssertions();
       const store = useUiStore();
       store.toggleSearch();
-      expect(store.isSearchOpen).toBe(true);
+      expect(store.isSearchOpen).toBeTruthy();
     });
 
     it("toggleSearch flips isSearchOpen from true to false", () => {
@@ -91,7 +91,7 @@ describe("uiStore", () => {
       const store = useUiStore();
       store.openSearch();
       store.toggleSearch();
-      expect(store.isSearchOpen).toBe(false);
+      expect(store.isSearchOpen).toBeFalsy();
     });
   });
 
@@ -104,11 +104,11 @@ describe("uiStore", () => {
       const store = useUiStore();
       store.openMenu();
       store.openSearch();
-      expect(store.isMenuOpen).toBe(true);
-      expect(store.isSearchOpen).toBe(true);
+      expect(store.isMenuOpen).toBeTruthy();
+      expect(store.isSearchOpen).toBeTruthy();
       store.closeMenu();
-      expect(store.isMenuOpen).toBe(false);
-      expect(store.isSearchOpen).toBe(true);
+      expect(store.isMenuOpen).toBeFalsy();
+      expect(store.isSearchOpen).toBeTruthy();
     });
   });
 });

@@ -74,7 +74,7 @@ describe("summarisePayload", () => {
           { id: "d2", folderId: null, title: "D2", contentJSON: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
         ],
         notes: [
-          { id: "n1", folderId: null, title: "N1", canvasJSON: null, backgroundColor: "#fff", thumbnail: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
+          { id: "n1", folderId: null, title: "N1", canvasJSON: null, backgroundColor: "#fff", backgroundPattern: "solid", thumbnail: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
         ],
         todos: [
           { id: "t1", listId: "l1", title: "Buy milk", done: false, priority: null, dueDate: null, createdAt: 1, updatedAt: 1 },

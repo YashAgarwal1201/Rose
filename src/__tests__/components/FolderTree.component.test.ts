@@ -4,7 +4,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import FolderTree from "@/components/explorer/FolderTree.vue";
 
-vi.mock("../../stores/folders", () => ({
+vi.mock('../../stores/folders', () => ({
   useFoldersStore: () => ({
     folders: [
       { id: "f1", name: "Alpha", parentId: null, type: "todo", createdAt: 1, updatedAt: 1 },
@@ -18,11 +18,11 @@ vi.mock("../../stores/folders", () => ({
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
-vi.mock("../../composables/useConfirm", () => ({
+vi.mock('@/composables/ui/useConfirm.ts', () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
 }));
 
-vi.mock("../../composables/useToast", () => ({
+vi.mock('@/composables/ui/useToast.ts', () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 
@@ -93,14 +93,14 @@ describe("FolderTree", () => {
     it("shows root-level name input after clicking New folder", async () => {
       const wrapper = mountTree();
       await wrapper.find("button.text-rose-primary").trigger("click");
-      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBeTruthy();
     });
 
     it("hides the input after pressing Escape", async () => {
       const wrapper = mountTree();
       await wrapper.find("button.text-rose-primary").trigger("click");
       await wrapper.find("input[placeholder='Folder name']").trigger("keyup.escape");
-      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(false);
+      expect(wrapper.find("input[placeholder='Folder name']").exists()).toBeFalsy();
     });
   });
 
@@ -124,7 +124,7 @@ describe("FolderTree", () => {
   describe("select emit", () => {
     it("emits select with the folder id when a folder row is clicked", async () => {
       const wrapper = mountTree();
-      await wrapper.find('button[aria-label^="Select folder "]').trigger("click");
+      await wrapper.find('#tree-node-f1').trigger("click");
       expect(wrapper.emitted("select")?.[0]).toStrictEqual(["f1"]);
     });
   });

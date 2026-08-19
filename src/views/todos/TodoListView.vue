@@ -1,6 +1,6 @@
 <!-- src/views/TodoListView.vue -->
 <script setup lang="ts">
-import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { type Component, computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeftIcon,
@@ -25,9 +25,11 @@ import { useToast } from "@/composables/ui/useToast.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import type { Todo, TodoList } from "@/db/types";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
+import ContextMenu from "@/components/ui/ContextMenu.vue";
+import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 
-const MENU_WIDTH_PX = 288;
-const MENU_OFFSET_PX = 8;
+// const MENU_WIDTH_PX = 288;
+// const MENU_OFFSET_PX = 8;
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
@@ -42,6 +44,11 @@ const segments = computed(() => pathMatch ?? []);
 const currentList = ref<TodoList | undefined>(undefined);
 const isRenaming = ref(false);
 const renameValue = ref("");
+
+const vFocus = {
+  mounted: (el: HTMLElement) => el.focus()
+};
+
 const newTodoTitle = ref("");
 const detailTodo = ref<Todo | null>(null);
 const isDetailEditMode = ref(false);
@@ -49,17 +56,17 @@ const detailEditTitle = ref("");
 const detailEditPriority = ref<Todo["priority"]>(null);
 const detailEditDueDate = ref<string>("");
 const isDetailMaximized = ref(false);
-const openMenuTodoId = ref<string | null>(null);
-const menuStyle = ref({ left: "0px", top: "0px" });
 const isInfoOpen = ref(false);
 let activeLoadToken = 0;
 
-const menuRef = ref<HTMLElement | null>(null);
 const infoRef = ref<HTMLElement | null>(null);
 const detailRef = ref<HTMLElement | null>(null);
 
-const { activate: activateMenu, deactivate: deactivateMenu } = useFocusTrap(menuRef, { escapeDeactivates: false });
-watch(menuRef, (el) => el ? nextTick().then(() => activateMenu()) : deactivateMenu());
+const contextMenu = useContextMenu<Todo>();
+
+function handleContextMenu(todo: Todo, event: MouseEvent | PointerEvent | HTMLElement) {
+  contextMenu.open(todo, event);
+}
 
 const { activate: activateInfo, deactivate: deactivateInfo } = useFocusTrap(infoRef, { escapeDeactivates: false });
 watch(infoRef, (el) => el ? nextTick().then(() => activateInfo()) : deactivateInfo());
@@ -84,7 +91,7 @@ function resolveFolderId(segs: string[]): string | null | undefined {
     const match = foldersStore.folders.find(
       (folder) =>
         folder.parentId === cursor &&
-        folder.type === "todo" &&
+        (folder.type === "todo" || folder.type === "mixed") &&
         folder.name.toLowerCase() === segment.toLowerCase(),
     );
     if (!match) {
@@ -130,7 +137,7 @@ async function loadList() {
   const segs = segments.value;
   if (segs.length === 0) {
     showToast("List not found.", "error");
-    router.replace("/todos/folder");
+    router.replace("/todos");
     return;
   }
   const folderSegments = segs.slice(0, -1);
@@ -139,7 +146,7 @@ async function loadList() {
 
   if (folderId === undefined) {
     showToast("That list no longer exists.", "error");
-    router.replace("/todos/folder");
+    router.replace("/todos");
     return;
   }
 
@@ -162,7 +169,7 @@ async function loadList() {
 
   if (!match) {
     showToast("That list no longer exists.", "error");
-    router.replace({ name: "todos-folder", params: { pathMatch: buildFolderPath(folderId) } });
+    router.replace({ name: "files-folder", params: { pathMatch: buildFolderPath(folderId) } });
     return;
   }
 
@@ -178,12 +185,16 @@ async function loadList() {
 }
 
 function goBack() {
+  if (window.history.state && window.history.state.back) {
+    router.back();
+    return;
+  }
   if (!currentList.value) {
-    router.push("/todos/folder");
+    router.push("/files/folder");
     return;
   }
   router.push({
-    name: "todos-folder",
+    name: "files-folder",
     params: { pathMatch: buildFolderPath(currentList.value.folderId) },
   });
 }
@@ -294,19 +305,6 @@ async function saveDetailEdit() {
   }
 }
 
-function openTodoMenu(id: string, event: MouseEvent) {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-  menuStyle.value = {
-    left: `${Math.min(rect.left, globalThis.innerWidth - MENU_WIDTH_PX - 16)}px`,
-    top: `${rect.bottom + MENU_OFFSET_PX}px`,
-  };
-  openMenuTodoId.value = openMenuTodoId.value === id ? null : id;
-}
-
-function closeTodoMenu() {
-  openMenuTodoId.value = null;
-}
-
 async function setPriority(id: string, priority: Todo["priority"]) {
   try {
     await todosStore.updateTodo(id, { priority });
@@ -324,31 +322,22 @@ async function setDueDate(id: string, value: string) {
   }
 }
 
-function handleMenuEdit(todo: Todo) {
-  closeTodoMenu();
+function handleMenuEdit() {
+  const todo = contextMenu.activeItem.value;
+  if (!todo) { return; }
+  contextMenu.close();
   openDetail(todo);
   startDetailEdit();
 }
 
-async function handleMenuDelete(todo: Todo) {
-  closeTodoMenu();
+async function handleMenuDelete() {
+  const todo = contextMenu.activeItem.value;
+  if (!todo) { return; }
+  contextMenu.close();
   await handleDeleteTodo(todo.id, todo.title);
 }
 
-function handleOutsideMenuClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-  if (!target.closest("[data-todo-menu]") && !target.closest("[data-todo-menu-trigger]")) {
-    closeTodoMenu();
-  }
-}
-
 onMounted(loadList);
-onMounted(() => {
-  document.addEventListener("click", handleOutsideMenuClick);
-});
-onUnmounted(() => {
-  document.removeEventListener("click", handleOutsideMenuClick);
-});
 watch(() => pathMatch, loadList);
 </script>
 
@@ -362,7 +351,7 @@ watch(() => pathMatch, loadList);
           <ArrowLeftIcon class="w-5 h-5" />
         </button>
 
-        <input v-if="isRenaming" v-model="renameValue" type="text" autofocus aria-label="Rename list"
+        <input v-if="isRenaming" v-model="renameValue" type="text" v-focus aria-label="Rename list"
           class="flex-1 min-w-0 text-2xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none"
           @keyup.enter="confirmRenameList" @keyup.escape="cancelRenameList" @blur="confirmRenameList" />
         <template v-else>
@@ -396,9 +385,10 @@ watch(() => pathMatch, loadList);
       </div>
 
       <div v-else class="flex flex-col gap-3">
-        <div v-for="todo in todosStore.todos" :key="todo.id"
+        <div v-for="todo in todosStore.sortedTodos" :key="todo.id"
           class="flex items-center gap-4 px-5 py-4 rounded-xl bg-rose-surface border border-rose-border shadow-sm hover:border-rose-primary/30 hover:shadow-md transition-all duration-200"
-          :class="todo.done ? 'opacity-75' : ''">
+          :class="todo.done ? 'opacity-75' : ''"
+          v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(todo, e)">
           <button type="button"
             class="w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             :class="todo.done
@@ -412,9 +402,10 @@ watch(() => pathMatch, loadList);
             </svg>
           </button>
 
-          <div class="flex-1 min-w-0 flex flex-col gap-1 cursor-pointer group/item" 
-            role="button" tabindex="0" aria-label="View todo details"
-            @click="openDetail(todo)" @keydown.enter.prevent="openDetail(todo)" @keydown.space.prevent="openDetail(todo)">
+          <div
+            class="flex-1 min-w-0 flex flex-col gap-1 cursor-pointer group/item outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded"
+            role="button" tabindex="0" aria-label="View todo details" @click="openDetail(todo)"
+            @keydown.enter.prevent="openDetail(todo)" @keydown.space.prevent="openDetail(todo)">
             <div v-if="todo.priority || todo.dueDate" class="flex items-center gap-2">
               <span v-if="todo.priority" class="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1"
                 :class="{
@@ -435,9 +426,9 @@ watch(() => pathMatch, loadList);
             </span>
           </div>
 
-          <button type="button" data-todo-menu-trigger
+          <button type="button"
             class="p-2 rounded text-rose-text-muted hover:text-rose-primary hover:bg-rose-surface-alt shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary transition-all duration-200"
-            aria-label="Todo options" @click.stop="openTodoMenu(todo.id, $event)">
+            aria-label="Todo options" @click.stop="handleContextMenu(todo, $event.currentTarget as HTMLElement)">
             <MoreVerticalIcon class="w-5 h-5" />
           </button>
         </div>
@@ -456,19 +447,18 @@ watch(() => pathMatch, loadList);
       </button>
     </div>
 
-    <!-- Per-todo action popover -->
-    <Teleport to="body">
-      <div v-if="openMenuTodoId" data-todo-menu ref="menuRef"
-        class="fixed w-72 bg-rose-surface border border-rose-border rounded-xl shadow-2xl z-200 py-3 flex flex-col"
-        :style="menuStyle" role="dialog" aria-label="Todo options" @keydown.escape="openMenuTodoId = null">
-        <div class="px-4 pb-3 mb-2 border-b border-rose-border">
+    <!-- Per-todo action context menu -->
+    <ContextMenu :is-open="contextMenu.isOpen.value" :x="contextMenu.x.value" :y="contextMenu.y.value"
+      @close="contextMenu.close()">
+      <div v-if="contextMenu.activeItem.value" class="w-72 flex flex-col">
+        <div class="px-4 py-3 mb-1 border-b border-rose-border">
           <p id="popover-priority-label" class="text-sm font-medium text-rose-text-muted mb-2">Priority</p>
           <div class="flex gap-1.5" role="radiogroup" aria-labelledby="popover-priority-label">
-            <button v-for="opt in priorityOptions" :key="opt.label"
-              role="radio" :aria-checked="todosStore.todos.find((t) => t.id === openMenuTodoId)?.priority === opt.value"
+            <button v-for="opt in priorityOptions" :key="opt.label" role="radio"
+              :aria-checked="contextMenu.activeItem.value.priority === opt.value"
               class="flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
               :class="[
-                todosStore.todos.find((t) => t.id === openMenuTodoId)?.priority === opt.value
+                contextMenu.activeItem.value.priority === opt.value
                   ? {
                     'bg-rose-text text-rose-bg shadow-sm': opt.value === null,
                     'bg-sky-500 text-white shadow-sm': opt.value === 'low',
@@ -476,35 +466,35 @@ watch(() => pathMatch, loadList);
                     'bg-red-500 text-white shadow-sm': opt.value === 'high'
                   }
                   : 'bg-rose-surface-alt text-rose-text-muted hover:text-rose-text hover:bg-rose-surface-alt/80'
-              ]" @click="setPriority(openMenuTodoId!, opt.value)">
+              ]" @click="setPriority(contextMenu.activeItem.value.id, opt.value)">
               <component :is="opt.icon" class="w-4 h-4" />
               {{ opt.label }}
             </button>
           </div>
         </div>
 
-        <div class="px-4 pb-3 mb-2 border-b border-rose-border">
+        <div class="px-4 py-3 mb-1 border-b border-rose-border">
           <label for="popover-due-date" class="text-sm font-medium text-rose-text-muted mb-2 flex items-center gap-1.5">
             <CalendarIcon class="w-4 h-4" /> Due date
           </label>
           <input type="date" id="popover-due-date"
             class="w-full text-base px-3 py-2.5 rounded-lg border border-rose-border bg-rose-bg text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary transition-shadow cursor-pointer"
-            :value="dateInputValue(todosStore.todos.find((t) => t.id === openMenuTodoId)?.dueDate ?? null)
-              " @change="setDueDate(openMenuTodoId!, ($event.target as HTMLInputElement).value)" />
+            :value="dateInputValue(contextMenu.activeItem.value.dueDate)"
+            @change="setDueDate(contextMenu.activeItem.value.id, ($event.target as HTMLInputElement).value)" />
         </div>
 
         <button
           class="flex items-center gap-3 w-full text-left px-4 py-3 text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
-          @click="handleMenuEdit(todosStore.todos.find((t) => t.id === openMenuTodoId)!)">
+          @click="handleMenuEdit()">
           <PencilIcon class="w-5 h-5" /> Edit
         </button>
         <button
           class="flex items-center gap-3 w-full text-left px-4 py-3 text-base text-red-400 hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400"
-          @click="handleMenuDelete(todosStore.todos.find((t) => t.id === openMenuTodoId)!)">
+          @click="handleMenuDelete()">
           <TrashIcon class="w-5 h-5" /> Delete
         </button>
       </div>
-    </Teleport>
+    </ContextMenu>
 
     <!-- List properties / info panel -->
     <Teleport to="body">
@@ -635,13 +625,15 @@ watch(() => pathMatch, loadList);
               <template v-else>
                 <div class="flex flex-col h-full gap-4 pb-2">
                   <div class="flex-1 flex flex-col min-h-32">
-                    <label for="detail-edit-title" class="block text-sm font-medium text-rose-text-muted mb-1">Content</label>
+                    <label for="detail-edit-title"
+                      class="block text-sm font-medium text-rose-text-muted mb-1">Content</label>
                     <textarea v-model="detailEditTitle" id="detail-edit-title"
                       class="w-full flex-1 px-3 py-2 rounded-lg bg-rose-bg border border-rose-border text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary resize-none"></textarea>
                   </div>
 
                   <div>
-                    <label for="detail-edit-due-date" class="text-sm font-medium text-rose-text-muted mb-1 flex items-center gap-1.5">
+                    <label for="detail-edit-due-date"
+                      class="text-sm font-medium text-rose-text-muted mb-1 flex items-center gap-1.5">
                       <CalendarIcon class="w-4 h-4" /> Due date
                     </label>
                     <input type="date" id="detail-edit-due-date" v-model="detailEditDueDate"
@@ -649,10 +641,11 @@ watch(() => pathMatch, loadList);
                   </div>
 
                   <div>
-                    <p id="detail-edit-priority-label" class="block text-sm font-medium text-rose-text-muted mb-1">Priority</p>
+                    <p id="detail-edit-priority-label" class="block text-sm font-medium text-rose-text-muted mb-1">
+                      Priority</p>
                     <div class="flex gap-2" role="radiogroup" aria-labelledby="detail-edit-priority-label">
-                      <button v-for="opt in priorityOptions" :key="opt.label" type="button"
-                        role="radio" :aria-checked="detailEditPriority === opt.value"
+                      <button v-for="opt in priorityOptions" :key="opt.label" type="button" role="radio"
+                        :aria-checked="detailEditPriority === opt.value"
                         class="flex-1 flex items-center justify-center gap-1.5 text-sm py-2 rounded-lg transition-colors font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
                         :class="[
                           detailEditPriority === opt.value

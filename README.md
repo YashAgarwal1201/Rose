@@ -32,10 +32,27 @@ Color palette and visual identity are inspired by the rose flower — deep reds/
 
 ## Getting Started
 
-```bash
-npm install
-npm run dev
-```
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Setup local HTTPS (Required for development)**
+   Rose uses HTTPS for local development. You'll need [mkcert](https://github.com/FiloSottile/mkcert) to generate valid local certificates.
+   
+   Install `mkcert` on your system (e.g., `brew install mkcert` on macOS, or see their [repo](https://github.com/FiloSottile/mkcert) for other OS instructions). Then, generate the certificates in a `certs/` directory:
+   ```bash
+   mkdir -p certs
+   cd certs
+   mkcert -install
+   mkcert localhost
+   cd ..
+   ```
+
+3. **Run the dev server**
+   ```bash
+   npm run dev
+   ```
 
 ## Testing
 
@@ -51,15 +68,18 @@ Test reports and coverage output are generated in `html/` and `coverage/` direct
 
 ```
 src/
-  db/            # Dexie schema + database instance
-  stores/        # Pinia stores
-  features/
-    todos/
-    notes/
-    docs/
   components/    # Shared UI (folder tree, theme toggle, layout shell)
-  router/
+  composables/   # Shared logic and integrations (notes, docs, explorer, etc.)
+  db/            # Dexie schema + database instance
+  router/        # Vue Router setup and route definitions
+  stores/        # Pinia stores for state management
   styles/        # Theme tokens, Tailwind config
+  types/         # TypeScript types/interfaces
+  utils/         # Helper functions
+  views/         # Feature/Page components
+    docs/
+    notes/
+    todos/
 ```
 
 ## Data Ownership & Backup

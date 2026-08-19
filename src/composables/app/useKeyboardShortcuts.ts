@@ -31,11 +31,11 @@ export interface ShortcutDefinition {
  */
 function isInputFocused(): boolean {
   const el = document.activeElement;
-  if (!el) return false;
+  if (!el) {return false;}
 
   const tag = el.tagName;
-  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-  if ((el as HTMLElement).isContentEditable) return true;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {return true;}
+  if ((el as HTMLElement).isContentEditable) {return true;}
 
   return false;
 }
@@ -92,20 +92,20 @@ export function useKeyboardShortcuts(shortcuts: ShortcutDefinition[]) {
         pressedKey === shortcutKey ||
         pressedCode === `digit${shortcutKey}` ||
         pressedCode === `key${shortcutKey}`;
-      if (!keyMatches) continue;
+      if (!keyMatches) {continue;}
 
       // Match modifiers — isMod checks both ctrlKey and metaKey for cross-platform
-      if (wantCtrl && !isMod(event)) continue;
-      if (!wantCtrl && isMod(event)) continue;
+      if (wantCtrl && !isMod(event)) {continue;}
+      if (!wantCtrl && isMod(event)) {continue;}
 
-      if (wantShift && !event.shiftKey) continue;
-      if (!wantShift && event.shiftKey) continue;
+      if (wantShift && !event.shiftKey) {continue;}
+      if (!wantShift && event.shiftKey) {continue;}
 
-      if (wantAlt && !event.altKey) continue;
-      if (!wantAlt && event.altKey) continue;
+      if (wantAlt && !event.altKey) {continue;}
+      if (!wantAlt && event.altKey) {continue;}
 
       // Skip if focused on input and the shortcut says to
-      if (shortcut.skipInInput && isInputFocused()) continue;
+      if (shortcut.skipInInput && isInputFocused()) {continue;}
 
       // Call the handler FIRST — let it decide whether it wants to act
       const result = shortcut.handler(event);

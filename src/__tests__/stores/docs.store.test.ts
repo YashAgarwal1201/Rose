@@ -96,7 +96,7 @@ describe("docsStore", () => {
       setActivePinia(createPinia());
       const store = useDocsStore();
       await store.createDoc("   ", null);
-      expect(store.docs[0]?.title).toBe("Untitled");
+      expect(store.docs[0]?.title).toBe("Untitled document");
     });
 
     it("sets folderId correctly on the created doc", async () => {
@@ -208,7 +208,7 @@ describe("docsStore", () => {
       const content = { type: "doc", content: [{ type: "paragraph" }] };
       await store.updateDoc(id, { contentJSON: content });
       const row = await db.docs.get(id);
-      expect(row?.contentJSON).toEqual(content);
+      expect(row?.contentJSON).toStrictEqual(content);
     });
 
     it("deep-clones contentJSON (does not store a live reference)", async () => {
@@ -261,7 +261,7 @@ describe("docsStore", () => {
       await store.updateDoc(id, { contentJSON: content });
       await store.updateDoc(id, { title: "New Title" });
       const row = await db.docs.get(id);
-      expect(row?.contentJSON).toEqual(content);
+      expect(row?.contentJSON).toStrictEqual(content);
       expect(row?.folderId).toBeNull();
     });
   });

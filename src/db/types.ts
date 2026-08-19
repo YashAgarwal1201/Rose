@@ -2,15 +2,17 @@
 
 export type FeatureType = "todo" | "note" | "doc";
 
+export type BackgroundPattern = "solid" | "dots" | "grid" | "ruled";
+
 export type PenTool = "pencil" | "pen" | "marker";
-export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow";
+export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
 
 export interface Folder {
   id: string;
   name: string;
   parentId: string | null;
-  type: FeatureType;
+  type: FeatureType | "mixed";
   createdAt: number;
   updatedAt: number;
 }
@@ -48,9 +50,9 @@ export interface Doc {
 export interface AppSettings {
   id: 1;
   username: string | null;
-  enabledFeatures: FeatureType[];
   onboardingCompleted: boolean;
   onboardingStep: number;
+  showActivityChart?: boolean;
   createdAt: number;
 }
 
@@ -78,7 +80,8 @@ export interface Note {
   title: string;
   canvasJSON: Record<string, unknown> | null; // fabric.Canvas.toJSON() output
   backgroundColor: string; // page background, independent of pen color
-  thumbnail: string | null; // low-res dataURL for the grid card
+  backgroundPattern: BackgroundPattern;
+  thumbnail: string | null; // Data URL for the grid previewcard
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
