@@ -4,13 +4,13 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { FileTextIcon } from "@lucide/vue";
 import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
-import ExplorerActions from "@/components/explorer/ExplorerActions.vue";
 import { useDocsStore } from "@/stores/docs";
+import { useFoldersStore } from "@/stores/folders";
 import { useToast } from "@/composables/ui/useToast.ts";
-import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 
 const router = useRouter();
 const docsStore = useDocsStore();
+const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
 const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
@@ -23,23 +23,30 @@ async function loadDocs() {
   }
 }
 
+function buildFolderPath(folderId: string | null): string[] {
+  const path: string[] = [];
+  let cursor = folderId;
+  while (cursor !== null) {
+    const folder = foldersStore.folders.find((candidate) => candidate.id === cursor);
+    if (!folder) {
+      break;
+    }
+    path.unshift(folder.name);
+    cursor = folder.parentId;
+  }
+  return path;
+}
+
 function openDoc(id: string) {
   const doc = docsStore.docs.find((candidate) => candidate.id === id);
   if (!doc) return;
   router.push({
     name: "files-doc",
-    params: { pathMatch: [doc.title] },
+    params: { pathMatch: [...buildFolderPath(doc.folderId), doc.title] },
   });
 }
 
-async function handleCreateFile(name: string) {
-  try {
-    const newId = await docsStore.createDoc(name, null);
-    openDoc(newId);
-  } catch (error) {
-    showToast((error as Error).message, "error");
-  }
-}
+
 
 async function handleRenameFile(id: string, name: string) {
   try {
@@ -58,32 +65,17 @@ async function handleDeleteFile(id: string) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await foldersStore.loadFolders();
   loadDocs();
 });
-
-useKeyboardShortcuts([
-  {
-    key: "e",
-    ctrl: true,
-    shift: true,
-    handler: () => {
-      explorerGridRef.value?.startCreate("file");
-    },
-  },
-]);
 </script>
 
 <template>
   <div class="flex h-full">
-    <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0 max-w-5xl mx-auto">
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
       <div class="flex items-center justify-between gap-2 mb-8">
         <h1 class="text-2xl font-bold text-rose-text">Docs</h1>
-        <ExplorerActions
-          file-label="doc"
-          :hide-folders="true"
-          @create-file="explorerGridRef?.startCreate('file')"
-        />
       </div>
 
       <ExplorerGrid
@@ -100,7 +92,6 @@ useKeyboardShortcuts([
         :file-icon="FileTextIcon"
         file-label="doc"
         @open-file="openDoc"
-        @create-file="handleCreateFile"
         @rename-file="handleRenameFile"
         @delete-file="handleDeleteFile"
       />
