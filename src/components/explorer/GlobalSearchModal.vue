@@ -6,12 +6,14 @@
       leave-to-class="opacity-0">
       <div v-if="uiStore.isSearchOpen" ref="dialogRef"
         class="fixed inset-0 z-120 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-[10vh] px-4"
+        role="dialog" aria-modal="true" aria-label="Global search"
         @click.self="uiStore.closeSearch()" @keydown.escape="handleEscape">
         <div
           class="w-full max-w-2xl bg-rose-surface border border-rose-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
           <div class="relative shrink-0">
             <SearchIcon :size="20" class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-text-muted" />
             <input ref="searchInputRef" v-model="query" type="text" placeholder="Search your todos, notes and docs..."
+              aria-label="Search"
               class="w-full pl-12 pr-12 py-4 bg-transparent text-rose-text placeholder:text-rose-text-muted focus:outline-none text-lg"
               @keydown.escape.prevent="handleEscape" @keydown.down.prevent="navigateResults(1)"
               @keydown.up.prevent="navigateResults(-1)" @keydown.enter.prevent="selectResult(selectedIndex)" />

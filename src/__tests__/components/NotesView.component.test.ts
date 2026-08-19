@@ -1,23 +1,19 @@
-// src/__tests__/components/NotesView.component.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
-import { IDBFactory } from "fake-indexeddb";
 import db from "../../db";
-import { useNotesStore } from "../../stores/notes";
-import { useFoldersStore } from "../../stores/folders";
 import NotesView from "@/views/notes/NotesView.vue";
 import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 
 // ─── Composable mocks ─────────────────────────────────────────────────────────
-vi.mock(import("@/composables/ui/useToast.ts"), () => ({
+vi.mock("@/composables/ui/useToast.ts", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock(import("@/composables/ui/useConfirm.ts"), () => ({
+vi.mock("@/composables/ui/useConfirm.ts", () => ({
   useConfirm: () => ({ confirm: vi.fn().mockResolvedValue(false) }),
 } as any));
-vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
+vi.mock("@/composables/explorer/useExplorerViewMode.ts", () => {
   const { ref } = require("vue");
   return {
     useExplorerViewMode: () => ({
@@ -31,22 +27,12 @@ vi.mock(import("@/composables/explorer/useExplorerViewMode.ts"), () => {
 });
 
 // ─── Child component stubs ────────────────────────────────────────────────────
-vi.mock(import("@/components/explorer/FolderTree.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree' />" },
-} as any));
-vi.mock(import("@/components/explorer/FolderTreeDrawer.vue"), () => ({
-  default: { template: "<div data-testid='folder-tree-drawer' />" },
-} as any));
-vi.mock(import("@/components/ui/Breadcrumbs.vue"), () => ({
-  default: { template: "<div data-testid='breadcrumbs' />" },
-} as any));
-vi.mock(import("@/components/explorer/ExplorerActions.vue"), () => ({
+vi.mock("@/components/explorer/ExplorerActions.vue", () => ({
   default: {
     template: `<div data-testid='explorer-actions'>
-      <button data-testid='create-folder-btn' @click="$emit('create-folder')">New Folder</button>
       <button data-testid='create-file-btn' @click="$emit('create-file')">New Note</button>
     </div>`,
-    emits: ["create-folder", "create-file"],
+    emits: ["create-file"],
   } as any,
 }));
 
@@ -56,17 +42,16 @@ function makeRouter() {
   return createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: "/", redirect: "/notes/folder" },
+      { path: "/", redirect: "/notes" },
       {
-        path: "/notes/folder/:pathMatch(.*)*",
+        path: "/notes",
         component: routerStub,
-        name: "notes-folder",
-        props: true,
+        name: "notes-all",
       },
       {
-        path: "/notes/note/:pathMatch(.*)*",
+        path: "/files/note/:pathMatch(.*)*",
         component: routerStub,
-        name: "notes-note",
+        name: "files-note",
         props: true,
       },
     ],
@@ -82,14 +67,13 @@ async function freshDb() {
 }
 
 // ─── Mount helper ─────────────────────────────────────────────────────────────
-async function mountNotesView(pathMatch: string[] = []) {
+async function mountNotesView() {
   const router = makeRouter();
-  await router.push("/notes/folder");
+  await router.push("/notes");
   await router.isReady();
   const pinia = createPinia();
   setActivePinia(pinia);
   const wrapper = mount(NotesView, {
-    props: { pathMatch },
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
@@ -109,16 +93,7 @@ describe("NotesView.component.test.ts", () => {
   });
 
   describe("Mounting and Initial Data Load", () => {
-    it("loads current folder contents correctly at root", async () => {
-      // Create a root folder and a root note.
-      await db.folders.add({
-        id: "folder-1",
-        parentId: null,
-        name: "Root Folder",
-        type: "note",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
+    it("loads all notes correctly", async () => {
       await db.notes.add({
         id: "note-1",
         folderId: null,
@@ -133,9 +108,8 @@ describe("NotesView.component.test.ts", () => {
       });
       const { wrapper } = await mountNotesView();
       const grid = wrapper.findComponent(ExplorerGrid);
-      expect(grid.props("folders")).toHaveLength(1);
+      expect(grid.props("folders")).toHaveLength(0);
       expect(grid.props("files")).toHaveLength(1);
-      expect((grid.props("folders") as any[])[0].name).toBe("Root Folder");
       expect((grid.props("files") as any[])[0].name).toBe("Root Note");
     });
   });
@@ -153,7 +127,7 @@ describe("NotesView.component.test.ts", () => {
       // Expect routing to the new file.
       expect(pushSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: "notes-note",
+          name: "files-note",
           params: expect.objectContaining({ pathMatch: ["My New Note"] }),
         }),
       );
@@ -174,6 +148,7 @@ describe("NotesView.component.test.ts", () => {
       });
       const { wrapper } = await mountNotesView();
       await emitFromGrid(wrapper, "rename-file", "note-7", "New Title");
+      await new Promise((resolve) => setTimeout(resolve, 50));
       expect((await db.notes.get("note-7"))?.title).toBe("New Title");
     });
 
@@ -193,47 +168,6 @@ describe("NotesView.component.test.ts", () => {
       const { wrapper } = await mountNotesView();
       await emitFromGrid(wrapper, "delete-file", "note-8");
       await expect(db.notes.get("note-8")).resolves.toBeUndefined();
-    });
-  });
-
-  describe("Folder Operations (ExplorerGrid emits)", () => {
-    it("creates a new folder", async () => {
-      const { wrapper } = await mountNotesView();
-      await emitFromGrid(wrapper, "create-folder", "New Subfolder");
-      const allFolders = await db.folders.toArray();
-      expect(allFolders).toHaveLength(1);
-      expect(allFolders[0]?.name).toBe("New Subfolder");
-    });
-
-    it("renames a folder and remains in current view if renaming a child", async () => {
-      await db.folders.add({
-        id: "folder-4",
-        parentId: null,
-        name: "Child Folder",
-        type: "note",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-      const { wrapper, router } = await mountNotesView();
-      const pushSpy = vi.spyOn(router, "push");
-      await emitFromGrid(wrapper, "rename-folder", "folder-4", "Renamed Folder");
-      expect((await db.folders.get("folder-4"))?.name).toBe("Renamed Folder");
-      // Since "folder-4" is a child of the current root, we shouldn't navigate.
-      expect(pushSpy).not.toHaveBeenCalled();
-    });
-
-    it("deletes a folder", async () => {
-      await db.folders.add({
-        id: "folder-5",
-        parentId: null,
-        name: "To Delete",
-        type: "note",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-      const { wrapper } = await mountNotesView();
-      await emitFromGrid(wrapper, "delete-folder", "folder-5");
-      await expect(db.folders.get("folder-5")).resolves.toBeUndefined();
     });
   });
 });

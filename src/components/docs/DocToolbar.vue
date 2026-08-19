@@ -1,6 +1,7 @@
 <!-- src/components/DocToolbar.vue -->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { onKeyStroke } from "@vueuse/core";
 import type { Editor } from "@tiptap/core";
 import {
   AlignCenterIcon,
@@ -32,6 +33,7 @@ import {
 } from "@lucide/vue";
 import type { ToolbarPosition } from "@/composables/ui/useToolbarPosition";
 import { type PopoverPlacement, usePopoverPosition } from "@/composables/ui/usePopoverPosition.ts";
+import ColorPickerGrid from "@/components/ui/ColorPickerGrid.vue";
 
 const { editor, maxTableRows, maxTableCols, position } = defineProps<{
   editor: Editor;
@@ -51,50 +53,14 @@ const emit = defineEmits<{
   exportAsPdf: [];
 }>();
 
-const TEXT_COLORS = [
-  { label: "Default", value: null },
-  { label: "Red", value: "#f87171" },
-  { label: "Rose", value: "#fb7185" },
-  { label: "Orange", value: "#fb923c" },
-  { label: "Amber", value: "#fbbf24" },
-  { label: "Yellow", value: "#facc15" },
-  { label: "Lime", value: "#a3e635" },
-  { label: "Green", value: "#4ade80" },
-  { label: "Emerald", value: "#34d399" },
-  { label: "Teal", value: "#2dd4bf" },
-  { label: "Cyan", value: "#22d3ee" },
-  { label: "Sky", value: "#38bdf8" },
-  { label: "Blue", value: "#60a5fa" },
-  { label: "Indigo", value: "#818cf8" },
-  { label: "Violet", value: "#a78bfa" },
-  { label: "Purple", value: "#c084fc" },
-  { label: "Fuchsia", value: "#e879f9" },
-  { label: "Pink", value: "#f472b6" },
-  { label: "Slate", value: "#94a3b8" },
-  { label: "Stone", value: "#a8a29e" },
-];
 
-const HIGHLIGHT_COLORS = [
-  { label: "None", value: null },
-  { label: "Yellow", value: "#fef08a" },
-  { label: "Amber", value: "#fde68a" },
-  { label: "Lime", value: "#d9f99d" },
-  { label: "Green", value: "#bbf7d0" },
-  { label: "Teal", value: "#99f6e4" },
-  { label: "Cyan", value: "#a5f3fc" },
-  { label: "Blue", value: "#bfdbfe" },
-  { label: "Indigo", value: "#c7d2fe" },
-  { label: "Purple", value: "#e9d5ff" },
-  { label: "Pink", value: "#fbcfe8" },
-  { label: "Rose", value: "#fecdd3" },
-  { label: "Orange", value: "#fed7aa" },
-  { label: "Gray", value: "#e2e8f0" },
-];
+
+
 
 const tableRowCount = ref(3);
 const tableColCount = ref(3);
-const customTextColor = ref("#ffffff");
-const customHighlightColor = ref("#fef08a");
+
+
 
 const isTableInsertOpen = ref(false);
 const isColorPickerOpen = ref(false);
@@ -223,6 +189,13 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   scrollRef.value?.removeEventListener("scroll", handleScrollRefScroll);
+});
+
+onKeyStroke("Escape", (e) => {
+  if (isAnyPopoverOpen.value) {
+    e.preventDefault();
+    closeAllPopovers();
+  }
 });
 
 // Whether toolbar is vertical (left/right)
@@ -597,63 +570,29 @@ defineExpose({ toggleExportMenu });
     <div
       v-if="isColorPickerOpen"
       ref="colorPopoverRef"
-      class="absolute z-40 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+      class="absolute z-40"
       :style="colorAnchor.style"
     >
-      <button
-        v-for="color in TEXT_COLORS"
-        :key="color.label"
-        class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
-        :style="color.value ? { backgroundColor: color.value } : {}"
-        :title="color.label"
-        :aria-label="color.label"
-        @click="applyTextColor(color.value)"
-      >
-        <span v-if="!color.value" class="text-rose-text-muted">×</span>
-      </button>
-      <label
-        class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
-        title="Custom color"
-        aria-label="Custom color"
-      >
-        <input
-          v-model="customTextColor"
-          type="color"
-          class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
-          @input="applyTextColor(customTextColor)"
-        />
-      </label>
+      <ColorPickerGrid
+        :model-value="editor.getAttributes('textStyle').color || ''"
+        default-color="#ffffff"
+        @update:model-value="applyTextColor($event)"
+        @close="closeAllPopovers"
+      />
     </div>
 
     <div
       v-if="isHighlightPickerOpen"
       ref="highlightPopoverRef"
-      class="absolute z-40 grid grid-cols-6 gap-1.5 p-2 w-52 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
+      class="absolute z-40"
       :style="highlightAnchor.style"
     >
-      <button
-        v-for="color in HIGHLIGHT_COLORS"
-        :key="color.label"
-        class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs shrink-0"
-        :style="color.value ? { backgroundColor: color.value } : {}"
-        :title="color.label"
-        :aria-label="color.label"
-        @click="applyHighlight(color.value)"
-      >
-        <span v-if="!color.value" class="text-rose-text-muted">×</span>
-      </button>
-      <label
-        class="w-6 h-6 rounded-full border border-rose-border overflow-hidden relative cursor-pointer shrink-0"
-        title="Custom color"
-        aria-label="Custom color"
-      >
-        <input
-          v-model="customHighlightColor"
-          type="color"
-          class="absolute inset-0 w-8 h-8 -m-1 cursor-pointer"
-          @input="applyHighlight(customHighlightColor)"
-        />
-      </label>
+      <ColorPickerGrid
+        :model-value="editor.getAttributes('highlight').color || ''"
+        default-color="transparent"
+        @update:model-value="applyHighlight($event)"
+        @close="closeAllPopovers"
+      />
     </div>
 
     <div

@@ -38,7 +38,7 @@ describe("activityStore", () => {
       const before = Date.now();
       await store.record("doc_created", "entity-2");
       const entries = await db.activity.toArray();
-      expect(entries[0]?.id).toBe(true);
+      expect(typeof entries[0]?.id).toBe("string");
       expect(entries[0]?.timestamp).toBeGreaterThanOrEqual(before);
     });
 

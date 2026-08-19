@@ -2,35 +2,33 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "@/db";
-import type { AppSettings, FeatureType } from "@/db/types";
+import type { AppSettings } from "@/db/types";
 
 const SETTINGS_ID = 1;
-
-const DEFAULT_FEATURES: FeatureType[] = ["todo", "note", "doc"];
 
 function createDefaultSettings(): AppSettings {
   return {
     createdAt: Date.now(),
-    enabledFeatures: [...DEFAULT_FEATURES],
     id: SETTINGS_ID,
     onboardingCompleted: false,
     onboardingStep: 0,
+    showActivityChart: true,
     username: null,
   };
 }
 
 export const useSettingsStore = defineStore("settings", () => {
   const username = ref<string | null>(null);
-  const enabledFeatures = ref<FeatureType[]>([...DEFAULT_FEATURES]);
   const onboardingCompleted = ref(false);
   const onboardingStep = ref(0);
+  const showActivityChart = ref(true);
   const isLoaded = ref(false);
 
   function applySettings(settings: AppSettings) {
     username.value = settings.username;
-    enabledFeatures.value = settings.enabledFeatures;
     onboardingCompleted.value = settings.onboardingCompleted;
     onboardingStep.value = settings.onboardingStep;
+    showActivityChart.value = settings.showActivityChart ?? true;
   }
 
   // Loads the singleton settings row, creating it with defaults on first run.
@@ -62,24 +60,8 @@ export const useSettingsStore = defineStore("settings", () => {
     await persist({ onboardingStep: step });
   }
 
-  function isFeatureEnabled(feature: FeatureType): boolean {
-    return enabledFeatures.value.includes(feature);
-  }
-
-  async function toggleFeature(feature: FeatureType) {
-    const current = enabledFeatures.value;
-    const isEnabled = current.includes(feature);
-    if (isEnabled && current.length === 1) {
-      // At least one feature must stay enabled.
-      return;
-    }
-    const next = isEnabled ? current.filter((item) => item !== feature) : [...current, feature];
-    await persist({ enabledFeatures: next });
-  }
-
-  async function setEnabledFeatures(features: FeatureType[]) {
-    const next = features.length > 0 ? features : [...DEFAULT_FEATURES];
-    await persist({ enabledFeatures: next });
+  async function toggleActivityChart() {
+    await persist({ showActivityChart: !showActivityChart.value });
   }
 
   async function completeOnboarding() {
@@ -93,16 +75,14 @@ export const useSettingsStore = defineStore("settings", () => {
 
   return {
     completeOnboarding,
-    enabledFeatures,
-    isFeatureEnabled,
     isLoaded,
     loadSettings,
     onboardingCompleted,
     onboardingStep,
     resetOnboarding,
-    setEnabledFeatures,
     setOnboardingStep,
-    toggleFeature,
+    showActivityChart,
+    toggleActivityChart,
     updateUsername,
     username,
   };

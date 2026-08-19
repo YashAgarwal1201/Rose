@@ -11,7 +11,7 @@ import { nextTick, ref } from "vue";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock(import('vue-router'), () => ({
+vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: pushMock,
     replace: replaceMock,
@@ -24,12 +24,12 @@ vi.mock(import('vue-router'), () => ({
 
 // Mock toast
 const showToastMock = vi.fn();
-vi.mock(import('../../composables/useToast'), () => ({
+vi.mock('@/composables/ui/useToast.ts', () => ({
   useToast: () => ({ showToast: showToastMock }),
 } as any));
 
 // Mock toolbar position
-vi.mock(import('../../composables/useToolbarPosition'), () => ({
+vi.mock('../../composables/useToolbarPosition', () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -38,8 +38,8 @@ vi.mock(import('../../composables/useToolbarPosition'), () => ({
   }),
 } as any));
 
-// Mock NoteCanvas to avoid rendering fabric
-vi.mock(import('../../components/NoteCanvas.vue'), () => ({
+// Mock HandwritingCanvas to avoid rendering fabric
+vi.mock('../../components/notes/HandwritingCanvas.vue', () => ({
   default: {
     template: "<div data-testid='note-canvas'></div>",
     props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
@@ -70,13 +70,13 @@ describe("NoteView.vue", () => {
     it("redirects to /notes/folder when path is empty", async () => {
       await mountNoteView([]);
       expect(showToastMock).toHaveBeenCalledWith("Note not found.", "error");
-      expect(replaceMock).toHaveBeenCalledWith("/notes/folder");
+      expect(replaceMock).toHaveBeenCalledWith("/notes");
     });
 
     it("redirects to /notes/folder when folder doesn't resolve", async () => {
       await mountNoteView(["Missing Folder", "Some Note"]);
       expect(showToastMock).toHaveBeenCalledWith("That note no longer exists.", "error");
-      expect(replaceMock).toHaveBeenCalledWith("/notes/folder");
+      expect(replaceMock).toHaveBeenCalledWith("/notes");
     });
 
     it("redirects to folder path when note name doesn't match", async () => {
@@ -91,7 +91,7 @@ describe("NoteView.vue", () => {
       await mountNoteView(["My Folder", "Missing Note"]);
       expect(showToastMock).toHaveBeenCalledWith("That note no longer exists.", "error");
       expect(replaceMock).toHaveBeenCalledWith({
-        name: "notes-folder",
+        name: "files-folder",
         params: { pathMatch: ["My Folder"] },
       });
     });
@@ -218,7 +218,7 @@ describe("NoteView.vue", () => {
       const wrapper = await mountNoteView(["Nested", "Inside"]);
       await wrapper.find("button .lucide-arrow-left").trigger("click");
       expect(pushMock).toHaveBeenCalledWith({
-        name: "notes-folder",
+        name: "files-folder",
         params: { pathMatch: ["Nested"] },
       });
     });

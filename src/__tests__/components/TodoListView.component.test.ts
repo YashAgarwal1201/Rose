@@ -10,7 +10,7 @@ import { useTodosStore } from "../../stores/todos";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock(import('vue-router'), () => ({
+vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: pushMock,
     replace: replaceMock,
@@ -23,12 +23,12 @@ vi.mock(import('vue-router'), () => ({
 
 // Mock toast & confirm
 const showToastMock = vi.fn();
-vi.mock(import('../../composables/useToast'), () => ({
+vi.mock('../../composables/ui/useToast', () => ({
   useToast: () => ({ showToast: showToastMock }),
 } as any));
 
 const confirmMock = vi.fn().mockResolvedValue(true);
-vi.mock(import('../../composables/useConfirm'), () => ({
+vi.mock('../../composables/ui/useConfirm', () => ({
   useConfirm: () => ({ confirm: confirmMock }),
 } as any));
 
@@ -63,7 +63,7 @@ describe("TodoListView.vue", () => {
     it("redirects to /todos/folder when path is empty", async () => {
       await mountTodoListView([]);
       expect(showToastMock).toHaveBeenCalledWith("List not found.", "error");
-      expect(replaceMock).toHaveBeenCalledWith("/todos/folder");
+      expect(replaceMock).toHaveBeenCalledWith("/todos");
     });
 
     it("renders the list title and todos when it resolves", async () => {

@@ -9,17 +9,59 @@ import { useActivityStore } from "./activity";
 
 export const useFoldersStore = defineStore("folders", () => {
   const folders = ref<Folder[]>([]);
+  const lastLoadedType = ref<FeatureType | "mixed" | null>(null);
+  let migrated = false;
 
-  async function loadFolders(type: FeatureType) {
-    folders.value = await db.folders.where("type").equals(type).toArray();
+  async function loadFolders(type?: FeatureType | "mixed") {
+    if (!migrated) {
+      const all = await db.folders.toArray();
+      const updates = all
+        .filter(f => f.type !== "mixed")
+        .map(f => db.folders.update(f.id, { type: "mixed" }));
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        console.log(`Migrated ${updates.length} existing folders to 'mixed' type`);
+      }
+      migrated = true;
+    }
+
+    if (type) {
+      const allFolders = await db.folders.toArray();
+      folders.value = allFolders.filter(f => f.type === type || f.type === "mixed");
+      lastLoadedType.value = type;
+    } else {
+      folders.value = await db.folders.toArray();
+      lastLoadedType.value = null;
+    }
   }
 
-  async function createFolder(name: string, parentId: string | null, type: FeatureType) {
-    const trimmed = name.trim();
+  async function ensureFolderSupports(folderId: string | null, requiredType: FeatureType | "mixed") {
+    let cursor = folderId;
+    let changed = false;
+    
+    // We need to fetch from DB directly in case folders.value is currently filtered
+    // and doesn't contain the folder we are trying to upgrade.
+    while (cursor) {
+      const folder = await db.folders.get(cursor);
+      if (!folder) break;
+      
+      if (folder.type !== requiredType && folder.type !== "mixed") {
+        await db.folders.update(cursor, { type: "mixed", updatedAt: Date.now() });
+        changed = true;
+      }
+      cursor = folder.parentId;
+    }
+    
+    if (changed) {
+      await reloadCurrent();
+    }
+  }
+
+  async function createFolder(name: string, parentId: string | null, _type: FeatureType | "mixed" = "mixed") {
+    const trimmed = name.trim() || "Untitled folder";
     const duplicate = folders.value.find(
       (folder) =>
         folder.parentId === parentId &&
-        folder.type === type &&
         folder.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
@@ -31,14 +73,22 @@ export const useFoldersStore = defineStore("folders", () => {
       id: crypto.randomUUID(),
       name: trimmed,
       parentId,
-      type,
+      type: "mixed", // All folders are mixed by default now
       updatedAt: now,
     };
-
     await db.folders.add(folder);
     await useActivityStore().record("folder_created", folder.id);
-    await loadFolders(type);
+    await ensureFolderSupports(parentId, "mixed");
+    await reloadCurrent();
     return folder.id;
+  }
+
+  async function reloadCurrent() {
+    if (lastLoadedType.value) {
+      await loadFolders(lastLoadedType.value);
+    } else {
+      await loadFolders();
+    }
   }
 
   async function renameFolder(id: string, name: string) {
@@ -58,7 +108,7 @@ export const useFoldersStore = defineStore("folders", () => {
       throw new Error(`A folder named "${trimmed}" already exists here.`);
     }
     await db.folders.update(id, { name: trimmed, updatedAt: Date.now() });
-    await loadFolders(target.type);
+    await reloadCurrent();
   }
 
   function collectDescendantIds(id: string): string[] {
@@ -75,27 +125,6 @@ export const useFoldersStore = defineStore("folders", () => {
     return result;
   }
 
-  // async function deleteFolder(id: string) {
-  //   const target = folders.value.find((folder) => folder.id === id);
-  //   if (!target) {
-  //     return;
-  //   }
-
-  //   const descendantIds = collectDescendantIds(id);
-  //   const allIds = [id, ...descendantIds];
-  //   const todosStore = useTodosStore();
-
-  //   const todoFolderIds = allIds.filter(
-  //     (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo",
-  //   );
-  //   await Promise.all(
-  //     todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
-  //   );
-
-  //   await db.folders.bulkDelete(allIds);
-  //   await loadFolders(target.type);
-  // }
-
   async function deleteFolder(id: string) {
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
@@ -108,19 +137,20 @@ export const useFoldersStore = defineStore("folders", () => {
     const docsStore = useDocsStore();
 
     const todoFolderIds = allIds.filter(
-      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo",
+      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo" || folders.value.find((folder) => folder.id === folderId)?.type === "mixed",
     );
     await Promise.all(
       todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
     );
 
     const docFolderIds = allIds.filter(
-      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "doc",
+      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "doc" || folders.value.find((folder) => folder.id === folderId)?.type === "mixed",
     );
     await Promise.all(docFolderIds.map((folderId) => docsStore.deleteDocsByFolder(folderId)));
-
+    
+    // TODO: also delete notes when note store has the equivalent method, but for now we just delete the folders
     await db.folders.bulkDelete(allIds);
-    await loadFolders(target.type);
+    await reloadCurrent();
   }
 
   function isDescendantOf(candidateId: string, ancestorId: string): boolean {
@@ -141,11 +171,8 @@ export const useFoldersStore = defineStore("folders", () => {
       }
     }
     await db.folders.update(id, { parentId: newParentId, updatedAt: Date.now() });
-    const target = folders.value.find((folder) => folder.id === id);
-    if (target) {
-      await loadFolders(target.type);
-    }
+    await reloadCurrent();
   }
 
-  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder };
+  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder, ensureFolderSupports };
 });

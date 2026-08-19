@@ -24,35 +24,43 @@ const router = createRouter({
     { component: SettingsView, name: "settings", meta: { title: "Settings" }, path: "/settings" },
 
     {
+      component: () => import("@/views/files/FilesView.vue"),
+      name: "files-folder",
+      meta: { title: "Files" },
+      path: "/files/folder/:pathMatch(.*)*",
+      props: true,
+    },
+
+    {
       component: TodosView,
-      name: "todos-folder",
+      name: "todos-all",
       meta: { title: "Todos" },
-      path: "/todos/folder/:pathMatch(.*)*",
+      path: "/todos",
       props: true,
     },
     {
       component: TodoListView,
-      name: "todos-list",
-      path: "/todos/list/:pathMatch(.*)*",
+      name: "files-list",
+      path: "/files/list/:pathMatch(.*)*",
       props: true,
     },
 
     {
       component: NotesView,
-      name: "notes-folder",
+      name: "notes-all",
       meta: { title: "Notes" },
-      path: "/notes/folder/:pathMatch(.*)*",
+      path: "/notes",
       props: true,
     },
     {
       component: DocsView,
-      name: "docs-folder",
+      name: "docs-all",
       meta: { title: "Docs" },
-      path: "/docs/folder/:pathMatch(.*)*",
+      path: "/docs",
       props: true,
     },
-    { component: DocView, name: "docs-doc", path: "/docs/doc/:pathMatch(.*)*", props: true },
-    { component: NoteView, name: "notes-note", path: "/notes/note/:pathMatch(.*)*", props: true },
+    { component: DocView, name: "files-doc", path: "/files/doc/:pathMatch(.*)*", props: true },
+    { component: NoteView, name: "files-note", path: "/files/note/:pathMatch(.*)*", props: true },
   ],
 });
 

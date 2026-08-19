@@ -12,7 +12,7 @@ export interface Folder {
   id: string;
   name: string;
   parentId: string | null;
-  type: FeatureType;
+  type: FeatureType | "mixed";
   createdAt: number;
   updatedAt: number;
 }
@@ -50,9 +50,9 @@ export interface Doc {
 export interface AppSettings {
   id: 1;
   username: string | null;
-  enabledFeatures: FeatureType[];
   onboardingCompleted: boolean;
   onboardingStep: number;
+  showActivityChart?: boolean;
   createdAt: number;
 }
 

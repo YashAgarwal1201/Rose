@@ -8,8 +8,7 @@
         <PrivacyStep v-else-if="currentStep === 1" />
         <ThemeStep v-else-if="currentStep === 2" />
         <UsernameStep v-else-if="currentStep === 3" v-model="draftUsername" />
-        <FeaturesStep v-else-if="currentStep === 4" />
-        <FinishStep v-else-if="currentStep === 5" />
+        <FinishStep v-else-if="currentStep === 4" />
       </div>
     </div>
 
@@ -57,14 +56,12 @@ import ImportStep from "@/components/onboarding/ImportStep.vue";
 import PrivacyStep from "@/components/onboarding/PrivacyStep.vue";
 import ThemeStep from "@/components/onboarding/ThemeStep.vue";
 import UsernameStep from "@/components/onboarding/UsernameStep.vue";
-import FeaturesStep from "@/components/onboarding/FeaturesStep.vue";
 import FinishStep from "@/components/onboarding/FinishStep.vue";
 
 const router = useRouter();
 const settingsStore = useSettingsStore();
 const { showToast } = useToast();
-
-const steps = ["welcome", "privacy", "theme", "username", "features", "finish"] as const;
+const steps = ["welcome", "privacy", "theme", "username", "finish"] as const;
 
 // `currentStep` can be a numeric index into `steps` or the string 'import'
 // which is a pseudo-step branching off from step 0 (Welcome).
@@ -131,7 +128,7 @@ async function goNext() {
   const step = currentStep.value as number;
 
   // Username is the only step that isn't already writing straight to the
-  // store as the user interacts (theme and features persist immediately),
+  // store as the user interacts (theme persists immediately),
   // so persist it here when leaving that step.
   if (step === 3) {
     await settingsStore.updateUsername(draftUsername.value);

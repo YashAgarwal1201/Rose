@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { onKeyStroke } from "@vueuse/core";
 import {
   MoveUpRight as ArrowIcon,
   Cloud as CloudIcon,
@@ -28,7 +29,7 @@ import {
 import type { ToolbarPosition } from "@/composables/ui/useToolbarPosition";
 import { type PopoverPlacement, usePopoverPosition } from "@/composables/ui/usePopoverPosition.ts";
 import type { CanvasTool, PenTool, ShapeTool } from "@/composables/notes/useHandwritingCanvas";
-import ColorPickerGrid from "./ColorPickerGrid.vue";
+import ColorPickerGrid from "@/components/ui/ColorPickerGrid.vue";
 
 const {
   tool,
@@ -128,6 +129,13 @@ function closeAllPopovers() {
   backgroundAnchor.close();
   exportAnchor.close();
 }
+
+onKeyStroke("Escape", (e) => {
+  if (isAnyPopoverOpen.value) {
+    e.preventDefault();
+    closeAllPopovers();
+  }
+});
 
 function selectTool(next: CanvasTool) {
   emit("update:tool", next);
@@ -245,68 +253,68 @@ defineExpose({ toggleExportMenu });
 
     <div :class="scrollClasses" style="scrollbar-width: none">
       <button type="button" class="p-2 rounded-md transition-colors" :class="tool === 'select' ? activeBtn : idleBtn"
-        title="Select" @click="selectTool('select')">
+        title="Select" aria-label="Select" @click="selectTool('select')">
         <MousePointer2Icon class="w-4.5 h-4.5" />
       </button>
 
       <button ref="pencilTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="tool === 'pen' && penTool === 'pencil' ? activeBtn : idleBtn" title="Pencil"
+        :class="tool === 'pen' && penTool === 'pencil' ? activeBtn : idleBtn" title="Pencil" aria-label="Pencil"
         @click="handlePenToolClick('pencil')">
         <PencilIcon class="w-4.5 h-4.5" />
       </button>
 
       <button ref="penTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="tool === 'pen' && penTool === 'pen' ? activeBtn : idleBtn" title="Pen"
+        :class="tool === 'pen' && penTool === 'pen' ? activeBtn : idleBtn" title="Pen" aria-label="Pen"
         @click="handlePenToolClick('pen')">
         <PenIcon class="w-4.5 h-4.5" />
       </button>
 
       <button ref="markerTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="tool === 'pen' && penTool === 'marker' ? activeBtn : idleBtn" title="Marker"
+        :class="tool === 'pen' && penTool === 'marker' ? activeBtn : idleBtn" title="Marker" aria-label="Marker"
         @click="handlePenToolClick('marker')">
         <HighlighterIcon class="w-4.5 h-4.5" />
       </button>
 
       <button type="button" class="p-2 rounded-md transition-colors" :class="tool === 'eraser' ? activeBtn : idleBtn"
-        title="Eraser" @click="selectTool('eraser')">
+        title="Eraser" aria-label="Eraser" @click="selectTool('eraser')">
         <EraserIcon class="w-4.5 h-4.5" />
       </button>
 
       <button ref="shapeTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="tool === 'shape' ? activeBtn : idleBtn" title="Shapes" @click="toggleShapePopover">
+        :class="tool === 'shape' ? activeBtn : idleBtn" title="Shapes" aria-label="Shapes" @click="toggleShapePopover">
         <SquareIcon class="w-4.5 h-4.5" />
       </button>
 
       <button type="button" class="p-2 rounded-md transition-colors" :class="tool === 'text' ? activeBtn : idleBtn"
-        title="Text box" @click="selectTool('text')">
+        title="Text box" aria-label="Text box" @click="selectTool('text')">
         <TypeIcon class="w-4.5 h-4.5" />
       </button>
 
-      <button type="button" class="p-2 rounded-md transition-colors" :class="idleBtn" title="Insert image"
+      <button type="button" class="p-2 rounded-md transition-colors" :class="idleBtn" title="Insert image" aria-label="Insert image"
         @click="emit('triggerImagePick')">
         <ImageIcon class="w-4.5 h-4.5" />
       </button>
 
       <button ref="backgroundTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="isBackgroundPopoverOpen ? activeBtn : idleBtn" title="Page background" @click="toggleBackgroundPopover">
+        :class="isBackgroundPopoverOpen ? activeBtn : idleBtn" title="Page background" aria-label="Page background" @click="toggleBackgroundPopover">
         <PaletteIcon class="w-4.5 h-4.5" />
       </button>
 
       <div :class="dividerClass"></div>
 
       <button type="button" class="p-2 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
-        :class="idleBtn" :disabled="!canUndo" title="Undo" @click="emit('undo')">
+        :class="idleBtn" :disabled="!canUndo" title="Undo" aria-label="Undo" @click="emit('undo')">
         <Undo2Icon class="w-4.5 h-4.5" />
       </button>
       <button type="button" class="p-2 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
-        :class="idleBtn" :disabled="!canRedo" title="Redo" @click="emit('redo')">
+        :class="idleBtn" :disabled="!canRedo" title="Redo" aria-label="Redo" @click="emit('redo')">
         <Redo2Icon class="w-4.5 h-4.5" />
       </button>
 
       <div :class="dividerClass"></div>
 
       <button ref="exportTriggerRef" type="button" class="p-2 rounded-md transition-colors"
-        :class="isExportMenuOpen ? activeBtn : idleBtn" title="Export" @click="toggleExportMenu">
+        :class="isExportMenuOpen ? activeBtn : idleBtn" title="Export" aria-label="Export" @click="toggleExportMenu">
         <DownloadIcon class="w-4.5 h-4.5" />
       </button>
     </div>

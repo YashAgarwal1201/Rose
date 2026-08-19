@@ -68,23 +68,18 @@
 
       <!-- Recent -->
       <div v-if="summary.recentItems.value.length > 0" class="mt-8">
-        <h2 class="text-xl font-semibold text-rose-text-muted uppercase tracking-wide">Recent</h2>
+        <h2 class="text-xl font-semibold text-rose-text-muted uppercase tracking-wide">Recently Opened</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 mt-3">
           <HomeFileCard v-for="item in summary.recentItems.value" :key="`${item.type}-${item.id}`" :item="item"
             @open="openItem(item)" />
         </div>
       </div>
 
-      <!-- Recent this week, split by feature. Shown/hidden per enabled feature; -->
-      <!-- each widget also self-hides when there's nothing from the last 7 days. -->
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('todo')" title="Recent todos"
-        :items="summary.recentTodos.value" @open="openItem" />
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('doc')" title="Recent docs"
-        :items="summary.recentDocs.value" @open="openItem" />
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('note')" title="Recent notes"
-        :items="summary.recentNotes.value" @open="openItem" />
+      <HomeRecentScroller title="Recent todos" :items="summary.recentTodos.value" @open="openItem" />
+      <HomeRecentScroller title="Recent docs" :items="summary.recentDocs.value" @open="openItem" />
+      <HomeRecentScroller title="Recent notes" :items="summary.recentNotes.value" @open="openItem" />
 
-      <HomeActivityCard />
+      <HomeActivityCard v-if="settingsStore.showActivityChart" />
     </template>
   </div>
 </template>
@@ -141,33 +136,32 @@ const quickJumpConfig: {
   icon: unknown;
   routeName: string;
 }[] = [
-    { feature: "todo", icon: ListTodoIcon, label: "Todos", routeName: "todos-folder" },
-    { feature: "note", icon: PenLineIcon, label: "Notes", routeName: "notes-folder" },
-    { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-folder" },
+    { feature: "todo", icon: ListTodoIcon, label: "Todos", routeName: "todos-all" },
+    { feature: "note", icon: PenLineIcon, label: "Notes", routeName: "notes-all" },
+    { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-all" },
   ];
 
-const quickJumpTiles = computed(() =>
-  quickJumpConfig.filter((tile) => settingsStore.isFeatureEnabled(tile.feature)),
-);
+const quickJumpTiles = computed(() => quickJumpConfig);
 
-const folderRouteNames: Record<FeatureType, string> = {
-  doc: "docs-folder",
-  note: "notes-folder",
-  todo: "todos-folder",
+const folderRouteNames: Record<FeatureType | "mixed", string> = {
+  doc: "docs-all",
+  note: "notes-all",
+  todo: "todos-all",
+  mixed: "files-folder",
 };
 
-function folderRouteName(type: FeatureType): string {
+function folderRouteName(type: FeatureType | "mixed"): string {
   return folderRouteNames[type];
 }
 
 function openItem(item: HomeItem) {
   query.value = "";
   if (item.type === "todo") {
-    router.push({ name: "todos-list", params: { pathMatch: item.path } });
+    router.push({ name: "files-list", params: { pathMatch: item.path } });
   } else if (item.type === "note") {
-    router.push({ name: "notes-note", params: { pathMatch: item.path } });
+    router.push({ name: "files-note", params: { pathMatch: item.path } });
   } else {
-    router.push({ name: "docs-doc", params: { pathMatch: item.path } });
+    router.push({ name: "files-doc", params: { pathMatch: item.path } });
   }
 }
 

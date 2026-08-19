@@ -2,11 +2,9 @@
 <template>
   <div class="p-4 md:p-8 lg:p-10">
     <div class="flex items-center gap-3">
-      <button
-        @click="goBack"
+      <button @click="goBack"
         class="p-1.5 -ml-1.5 rounded-lg text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-        aria-label="Go back"
-      >
+        aria-label="Go back">
         <ArrowLeftIcon class="w-6 h-6" />
       </button>
       <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
@@ -26,18 +24,14 @@
         </SettingsRow>
       </SettingsSection>
 
-      <!-- Features -->
-      <SettingsSection :icon="SlidersHorizontalIcon" title="Features"
-        description="Turn off what you don't use. At least one must stay on.">
-        <SettingsRow v-for="feature in featureOptions" :key="feature.value" :label="feature.label"
-          :description="feature.description" v-slot="{ labelId, descriptionId }">
-          <SettingsSwitch :model-value="settingsStore.isFeatureEnabled(feature.value)" :aria-labelledby="labelId"
-            :aria-describedby="descriptionId" @update:model-value="settingsStore.toggleFeature(feature.value)" />
-        </SettingsRow>
-      </SettingsSection>
-
       <!-- General -->
       <SettingsSection :icon="RotateCcwIcon" title="General">
+        <SettingsRow label="Activity chart" description="Show your contribution graph on the home page."
+          v-slot="{ labelId, descriptionId }">
+          <SettingsSwitch :model-value="settingsStore.showActivityChart" :aria-labelledby="labelId"
+            :aria-describedby="descriptionId" @update:model-value="settingsStore.toggleActivityChart()" />
+        </SettingsRow>
+
         <SettingsRow label="Replay onboarding" description="Go through the welcome setup again."
           v-slot="{ descriptionId }">
           <button type="button" :aria-describedby="descriptionId"
@@ -74,8 +68,8 @@
           </span>
         </SettingsRow>
 
-        <SettingsRow label="Export data"
-          description="Download a backup of your app data as a JSON file." v-slot="{ descriptionId }">
+        <SettingsRow label="Export data" description="Download a backup of your app data as a JSON file."
+          v-slot="{ descriptionId }">
           <button type="button" :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             @click="openExportDialog">
@@ -83,8 +77,8 @@
           </button>
         </SettingsRow>
 
-        <SettingsRow label="Import data"
-          description="Restore from a previously exported backup file." v-slot="{ descriptionId }">
+        <SettingsRow label="Import data" description="Restore from a previously exported backup file."
+          v-slot="{ descriptionId }">
           <button type="button" :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             @click="isImportModalOpen = true">
@@ -127,28 +121,34 @@
               Export data
             </h3>
             <p class="text-sm text-rose-text-muted mb-4">
-              Select the data you want to include in your backup. Folders will be automatically included if you select Notes, Docs, or Todos.
+              Select the data you want to include in your backup. Folders will be automatically included if you select
+              Notes, Docs, or Todos.
             </p>
-            
+
             <div class="flex flex-col gap-3 mb-6">
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.settings" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input type="checkbox" v-model="exportOptions.settings"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
                 <span class="text-sm text-rose-text">Settings & Profile</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.notes" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input type="checkbox" v-model="exportOptions.notes"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
                 <span class="text-sm text-rose-text">Notes</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.docs" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input type="checkbox" v-model="exportOptions.docs"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
                 <span class="text-sm text-rose-text">Documents</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.todos" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input type="checkbox" v-model="exportOptions.todos"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
                 <span class="text-sm text-rose-text">Todos</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.activity" class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input type="checkbox" v-model="exportOptions.activity"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
                 <span class="text-sm text-rose-text">Recent Activity</span>
               </label>
             </div>
@@ -219,7 +219,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ArrowLeftIcon, DatabaseIcon, RotateCcwIcon, SlidersHorizontalIcon, UserIcon } from "@lucide/vue";
+import { ArrowLeftIcon, DatabaseIcon, RotateCcwIcon, UserIcon } from "@lucide/vue";
 import { useSettingsStore } from "@/stores/settings";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import { useToast } from "@/composables/ui/useToast.ts";
@@ -230,7 +230,6 @@ import { exportData, type ExportOptions } from "@/utils/exportData";
 import SettingsSection from "@/components/settings/SettingsSection.vue";
 import SettingsRow from "@/components/settings/SettingsRow.vue";
 import SettingsSwitch from "@/components/settings/SettingsSwitch.vue";
-import type { FeatureType } from "@/db/types";
 import SummaryComp from "@/components/ui/SummaryComp.vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import ImportModal from "@/components/settings/ImportModal.vue";
@@ -280,7 +279,7 @@ function cancelExport() {
 async function confirmExport() {
   const options = { ...exportOptions.value };
   isExportDialogOpen.value = false;
-  
+
   // Wait for the modal to close and the focus trap to deactivate completely
   // FocusTrap intercepts clicks outside the modal, which was blocking the download link
   await nextTick();
@@ -307,11 +306,6 @@ async function saveUsername() {
   showToast(trimmed ? `Saved as "${trimmed}"` : "Username cleared", "info");
 }
 
-const featureOptions: { value: FeatureType; label: string; description: string }[] = [
-  { description: "Checklists and folders", label: "Todos", value: "todo" },
-  { description: "Handwritten sketching", label: "Notes", value: "note" },
-  { description: "Rich-text documents", label: "Docs", value: "doc" },
-];
 
 async function handleReplayOnboarding() {
   const confirmed = await confirm({

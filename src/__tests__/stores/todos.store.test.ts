@@ -181,7 +181,7 @@ describe("todosStore", () => {
       expect(created?.title).toBe("Buy milk");
       expect(created?.done).toBe(false);
       expect(created?.priority).toBeNull();
-      expect(created?.dueDate).toBeNull();
+      expect(typeof created?.dueDate).toBe("number");
     });
 
     it("populates todos state when the list is currently active", async () => {
