@@ -75,10 +75,10 @@ Development is organized by feature flows.
 - [x] Unit/component tests for doc store logic and editor content round-trip
 
 ## Global UI & App State
-- [x] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `enabledFeatures`, `onboardingCompleted`, `onboardingStep`, `createdAt`
+- [x] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `showActivityChart`, `onboardingCompleted`, `onboardingStep`, `createdAt`
 - [x] `src/db/types.ts`: `AppSettings` interface
 - [x] New `stores/ui.ts` — app-level UI state
-- [x] New `stores/settings.ts` — wraps the `settings` Dexie row; `completeOnboarding()`, `updateUsername()`, `toggleFeature()`, `resetOnboarding()`
+- [x] New `stores/settings.ts` — wraps the `settings` Dexie row; `completeOnboarding()`, `updateUsername()`, `toggleActivityChart()`, `resetOnboarding()`
 - [x] Add `lastOpenedAt: number | null` to `todoLists`, `docs`, and `notes`, updated on open — powers Home's "recently opened"
 - [x] Global search across todos/notes/docs (at least by title), surfaced beyond Home
 - [x] Per-page browser tab titles — route `meta.title` + global `afterEach` baseline, refined per-item via `useDocumentTitle.ts` on detail/folder views
@@ -90,7 +90,7 @@ Development is organized by feature flows.
 - [x] Step 2 — Privacy (`PrivacyStep.vue`)
 - [x] Step 3 — Theme picker (`ThemeStep.vue`)
 - [x] Step 4 — Username (`UsernameStep.vue`)
-- [x] Step 5 — Feature selection (`FeaturesStep.vue`)
+- [x] ~~Step 5 — Feature selection (`FeaturesStep.vue`)~~ (Removed)
 - [x] Step 6 — Finish (`FinishStep.vue`)
 - [x] Persist `onboardingStep` so closing mid-flow resumes instead of restarting
 - [x] Clarify and keep distinct: "has completed onboarding" vs. "has any content data"
@@ -99,9 +99,9 @@ Development is organized by feature flows.
 - [x] New `HomeView.vue`, is now the `/` route
 - [x] Greeting + date, using `settings.username`
 - [x] Global search bar
-- [x] Quick-create row (`QuickJumpCard.vue`), filtered by `enabledFeatures`
+- [x] Quick-create row (`QuickJumpCard.vue`)
 - [x] "Recently opened" — merged list across enabled features via `lastOpenedAt` (`HomeRecentScroller.vue`, `HomeFileCard.vue`, `HomeFolderTile.vue`)
-- [x] Stats strip / folder + doc + list counts, `enabledFeatures`-aware
+- [x] Stats strip / folder + doc + list counts
 - [x] Empty state for genuinely fresh installs
 - [x] Sidebar: Home nav entry
 - [x] Activity heatmap — GitHub-style contribution calendar on Home (`activity` Dexie table + `stores/activity.ts` recording todo/doc/note create/update events, `useActivityHeatmap.ts`, `HomeActivityHeatmap.vue`)
@@ -111,7 +111,8 @@ Development is organized by feature flows.
 - [x] New `SettingsView.vue` + `/settings` route
 - [x] Profile section — username edit
 - [x] Appearance section — theme
-- [x] Features section — toggle Todos/Notes/Docs on/off post-onboarding
+- [x] General section — toggle Activity Chart on/off
+- [x] ~~Features section — toggle Todos/Notes/Docs on/off post-onboarding~~ (Removed)
 - [x] Storage usage indicator (`navigator.storage.estimate()` via `useStorageEstimate.ts`)
 - [x] `utils/exportData.ts` and `utils/importData.ts` — export/import logic across all tables
 - [x] Export data → JSON download (all tables)

@@ -75,16 +75,11 @@
         </div>
       </div>
 
-      <!-- Recent this week, split by feature. Shown/hidden per enabled feature; -->
-      <!-- each widget also self-hides when there's nothing from the last 7 days. -->
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('todo')" title="Recent todos"
-        :items="summary.recentTodos.value" @open="openItem" />
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('doc')" title="Recent docs"
-        :items="summary.recentDocs.value" @open="openItem" />
-      <HomeRecentScroller v-if="settingsStore.isFeatureEnabled('note')" title="Recent notes"
-        :items="summary.recentNotes.value" @open="openItem" />
+      <HomeRecentScroller title="Recent todos" :items="summary.recentTodos.value" @open="openItem" />
+      <HomeRecentScroller title="Recent docs" :items="summary.recentDocs.value" @open="openItem" />
+      <HomeRecentScroller title="Recent notes" :items="summary.recentNotes.value" @open="openItem" />
 
-      <HomeActivityCard />
+      <HomeActivityCard v-if="settingsStore.showActivityChart" />
     </template>
   </div>
 </template>
@@ -146,9 +141,7 @@ const quickJumpConfig: {
     { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-all" },
   ];
 
-const quickJumpTiles = computed(() =>
-  quickJumpConfig.filter((tile) => settingsStore.isFeatureEnabled(tile.feature)),
-);
+const quickJumpTiles = computed(() => quickJumpConfig);
 
 const folderRouteNames: Record<FeatureType | "mixed", string> = {
   doc: "docs-all",

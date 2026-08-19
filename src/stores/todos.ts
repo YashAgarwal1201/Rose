@@ -1,6 +1,6 @@
 // src/stores/todos.ts
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import db from "@/db";
 import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
@@ -10,6 +10,27 @@ export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
   const todos = ref<Todo[]>([]);
   const currentListId = ref<string | null>(null);
+
+  const sortedTodos = computed(() => todos.value.toSorted((a, b) => {
+    // 1. Status (Incomplete first)
+    if (a.done !== b.done) {return a.done ? 1 : -1;}
+
+    // 2. Priority (High > Medium > Low > None)
+    const priorityWeight: Record<string, number> = { high: 3, medium: 2, low: 1, null: 0 };
+    const weightA = priorityWeight[a.priority ?? 'null'] ?? 0;
+    const weightB = priorityWeight[b.priority ?? 'null'] ?? 0;
+    if (weightA !== weightB) {return weightB - weightA;}
+
+    // 3. Due Date (Earliest first)
+    if (a.dueDate !== b.dueDate) {
+      if (!a.dueDate) {return 1;}
+      if (!b.dueDate) {return -1;}
+      return a.dueDate - b.dueDate;
+    }
+
+    // 4. Creation Date (Newest first)
+    return b.createdAt - a.createdAt;
+  }));
 
   async function loadTodoLists() {
     todoLists.value = await db.todoLists.toArray();
@@ -168,6 +189,7 @@ export const useTodosStore = defineStore("todos", () => {
     renameTodoList,
     todoLists,
     todos,
+    sortedTodos,
     toggleDone,
     touchTodoList,
     updateTodo,

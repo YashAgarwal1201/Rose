@@ -385,7 +385,7 @@ watch(() => pathMatch, loadList);
       </div>
 
       <div v-else class="flex flex-col gap-3">
-        <div v-for="todo in todosStore.todos" :key="todo.id"
+        <div v-for="todo in todosStore.sortedTodos" :key="todo.id"
           class="flex items-center gap-4 px-5 py-4 rounded-xl bg-rose-surface border border-rose-border shadow-sm hover:border-rose-primary/30 hover:shadow-md transition-all duration-200"
           :class="todo.done ? 'opacity-75' : ''"
           v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(todo, e)">

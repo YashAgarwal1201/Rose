@@ -52,9 +52,7 @@ export function useContributionDistribution() {
     isLoaded.value = true;
   }
 
-  const categories = computed(() =>
-    AXIS_ORDER.filter((type) => settingsStore.isFeatureEnabled(type)),
-  );
+  const categories = computed(() => AXIS_ORDER);
 
   const total = computed(() =>
     categories.value.reduce((sum, type) => sum + rawCounts.value[type], 0),

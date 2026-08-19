@@ -5,16 +5,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { createMemoryHistory, createRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 
-// Mock the settings store to control enabled features
-const mockEnabledFeatures = vi.fn<() => string[]>().mockReturnValue(["todo", "note", "doc"]);
-const mockIsFeatureEnabled = vi.fn((feature: string) => mockEnabledFeatures().includes(feature));
-
-vi.mock('../../stores/settings', () => ({
-  useSettingsStore: () => ({
-    enabledFeatures: mockEnabledFeatures(),
-    isFeatureEnabled: mockIsFeatureEnabled,
-  }),
-}));
 
 function createTestRouter(initialRoute = "/") {
   return createRouter({

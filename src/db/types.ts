@@ -50,9 +50,9 @@ export interface Doc {
 export interface AppSettings {
   id: 1;
   username: string | null;
-  enabledFeatures: FeatureType[];
   onboardingCompleted: boolean;
   onboardingStep: number;
+  showActivityChart?: boolean;
   createdAt: number;
 }
 
