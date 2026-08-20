@@ -9,6 +9,7 @@ import NotesView from "@/views/notes/NotesView.vue";
 import NoteView from "@/views/notes/NoteView.vue";
 import DocsView from "@/views/docs/DocsView.vue";
 import DocView from "@/views/docs/DocView.vue";
+import FilesView from "@/views/files/FilesView.vue";
 import { useSettingsStore } from "@/stores/settings";
 
 const router = createRouter({
@@ -24,7 +25,7 @@ const router = createRouter({
     { component: SettingsView, name: "settings", meta: { title: "Settings" }, path: "/settings" },
 
     {
-      component: () => import("@/views/files/FilesView.vue"),
+      component: FilesView,
       name: "files-folder",
       meta: { title: "Files" },
       path: "/files/folder/:pathMatch(.*)*",

@@ -1,6 +1,6 @@
 <!-- src/components/FolderTree.vue -->
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
 import { useFoldersStore } from "@/stores/folders";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
@@ -70,11 +70,9 @@ watch(() => [visibleNodes.value, activeFolderId], () => {
 }, { immediate: true });
 
 function focusNode(id: string) {
-  import("vue").then(({ nextTick }) => {
-    nextTick(() => {
-      const el = document.getElementById(`tree-node-${id}`);
-      if (el) { el.focus(); }
-    });
+  nextTick().then(() => {
+    const el = document.getElementById(`tree-node-${id}`);
+    if (el) { el.focus(); }
   });
 }
 
@@ -205,7 +203,7 @@ async function handleDelete(id: string, name: string, event: Event) {
 
           <FolderIcon class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
           <span class="text-base text-rose-text truncate flex-1 relative z-10 pointer-events-none">{{ node.name
-          }}</span>
+            }}</span>
 
           <button type="button" tabindex="-1"
             class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"

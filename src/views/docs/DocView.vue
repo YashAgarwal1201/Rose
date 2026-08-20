@@ -33,6 +33,7 @@ import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table
 import Papa from "papaparse";
 import { Markdown } from "@tiptap/markdown";
 import DocToolbar from "@/components/docs/DocToolbar.vue";
+import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 import { type ToolbarPosition, useToolbarPosition } from "@/composables/ui/useToolbarPosition.ts";
 import { type PopoverPlacement, usePopoverPosition } from "@/composables/ui/usePopoverPosition.ts";
 import Underline from "@tiptap/extension-underline";
@@ -396,7 +397,7 @@ async function loadDoc() {
 }
 
 function goBack() {
-  if (window.history.state && window.history.state.back) {
+  if (globalThis.history.state && globalThis.history.state.back) {
     router.back();
     return;
   }
@@ -465,11 +466,11 @@ async function setLink() {
     placeholder: "https://example.com",
     confirmLabel: "Add Link",
   });
-  
+
   if (!url) {
     return;
   }
-  
+
   // Re-focus the editor before setting the link so it applies to the current selection
   editor.value?.chain().focus().setLink({ href: url }).run();
 }
@@ -628,7 +629,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
+      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -638,7 +639,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
+      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -648,7 +649,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
+      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -659,7 +660,7 @@ useKeyboardShortcuts([
     alt: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
+      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -669,7 +670,7 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {return false;}
+      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       setLink();
     },
   },
@@ -716,30 +717,20 @@ onBeforeUnmount(() => {
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Header — always full width on top -->
     <div class="flex items-center gap-2 px-4 pt-4 pb-2 md:px-6 shrink-0">
-      <button
-        class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
-        @click="goBack"
-      >
+      <button class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
+        @click="goBack">
         <ArrowLeftIcon class="w-4 h-4" />
       </button>
 
       <div class="flex items-center gap-2 flex-1 min-w-0 ml-2 group">
-        <input
-          v-if="isRenaming"
-          v-model="renameValue"
-          type="text"
-          v-focus
+        <input v-if="isRenaming" v-model="renameValue" type="text" v-focus
           class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
-          @keyup.enter="confirmRenameTitle"
-          @keyup.escape="cancelRenameTitle"
-          @blur="confirmRenameTitle"
-        />
+          @keyup.enter="confirmRenameTitle" @keyup.escape="cancelRenameTitle" @blur="confirmRenameTitle" />
         <template v-else>
           <h1 class="text-xl font-bold text-rose-text truncate">{{ currentDoc?.title }}</h1>
           <button
             class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
-            @click="startRenameTitle"
-          >
+            @click="startRenameTitle">
             <PencilIcon class="w-4 h-4" />
           </button>
         </template>
@@ -751,18 +742,11 @@ onBeforeUnmount(() => {
 
       <!-- Toolbar position toggle (desktop only) -->
       <div v-if="!isMobile" class="flex items-center gap-0.5 ml-2 shrink-0">
-        <button
-          v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]"
-          :key="pos"
-          :title="`Toolbar ${pos}`"
-          class="p-1 rounded transition-colors"
-          :class="
-            savedPosition === pos
+        <button v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]" :key="pos"
+          :title="`Toolbar ${pos}`" class="p-1 rounded transition-colors" :class="savedPosition === pos
               ? 'text-rose-primary'
               : 'text-rose-text-muted hover:text-rose-text'
-          "
-          @click="setPosition(pos)"
-        >
+            " @click="setPosition(pos)">
           <PanelTopIcon v-if="pos === 'top'" class="w-4 h-4" />
           <PanelBottomIcon v-else-if="pos === 'bottom'" class="w-4 h-4" />
           <PanelLeftIcon v-else-if="pos === 'left'" class="w-4 h-4" />
@@ -772,65 +756,40 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Body: toolbar + editor, direction depends on position -->
-    <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
+    <ErrorBoundary>
+      <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
       <!-- Toolbar: left or top -->
-      <DocToolbar
-        ref="toolbarRef"
-        v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
-        :editor="editor"
-        :max-table-rows="MAX_TABLE_ROWS"
-        :max-table-cols="MAX_TABLE_COLS"
-        :position="effectivePosition"
-        @trigger-image-pick="triggerImagePick"
-        @set-link="setLink"
-        @insert-table="insertTable"
-        @trigger-csv-pick="triggerCsvPick"
-        @export-as-html="exportAsHtml"
-        @export-as-markdown="exportAsMarkdown"
-        @export-as-text="exportAsText"
-        @export-as-pdf="exportAsPdf"
-      />
+      <DocToolbar ref="toolbarRef" v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
+        :editor="editor" :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
+        @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
+        @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
+        @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
 
       <!-- Editor + table context bar -->
-      <div
-        class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6"
-        :class="effectivePosition === 'bottom' ? 'pb-16' : 'pb-6'"
-      >
+      <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6"
+        :class="effectivePosition === 'bottom' ? 'pb-16' : 'pb-6'">
         <!-- Table context toolbar — always horizontal, always above editor -->
-        <div
-          v-if="editor?.isActive('table')"
-          ref="cellBgRootRef"
-          class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0"
-        >
-          <div
-            v-if="isCellBgPickerOpen"
-            class="fixed inset-0 z-10"
-            @click="
-              isCellBgPickerOpen = false;
-              cellBgAnchor.close();
-            "
-          ></div>
+        <div v-if="editor?.isActive('table')" ref="cellBgRootRef"
+          class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0">
+          <div v-if="isCellBgPickerOpen" class="fixed inset-0 z-10" @click="
+            isCellBgPickerOpen = false;
+          cellBgAnchor.close();
+          "></div>
 
           <div class="flex items-center gap-1 p-1.5 overflow-x-auto" style="scrollbar-width: none">
             <span class="text-xs text-rose-text-muted px-1 shrink-0">Table:</span>
             <button
               class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-              :disabled="isTableAtMaxRows()"
-              @click="addRowBeforeGuarded"
-            >
+              :disabled="isTableAtMaxRows()" @click="addRowBeforeGuarded">
               ↑ Row
             </button>
             <button
               class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-              :disabled="isTableAtMaxRows()"
-              @click="addRowAfterGuarded"
-            >
+              :disabled="isTableAtMaxRows()" @click="addRowAfterGuarded">
               ↓ Row
             </button>
-            <button
-              class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-              @click="editor.chain().focus().deleteRow().run()"
-            >
+            <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+              @click="editor.chain().focus().deleteRow().run()">
               Del row
             </button>
 
@@ -838,129 +797,73 @@ onBeforeUnmount(() => {
 
             <button
               class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-              :disabled="isTableAtMaxCols()"
-              @click="addColumnBeforeGuarded"
-            >
+              :disabled="isTableAtMaxCols()" @click="addColumnBeforeGuarded">
               ← Col
             </button>
             <button
               class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-              :disabled="isTableAtMaxCols()"
-              @click="addColumnAfterGuarded"
-            >
+              :disabled="isTableAtMaxCols()" @click="addColumnAfterGuarded">
               → Col
             </button>
-            <button
-              class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-              @click="editor.chain().focus().deleteColumn().run()"
-            >
+            <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+              @click="editor.chain().focus().deleteColumn().run()">
               Del col
             </button>
 
             <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
 
-            <button
-              ref="cellBgTriggerRef"
+            <button ref="cellBgTriggerRef"
               class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-              :aria-expanded="isCellBgPickerOpen"
-              @click="toggleCellBgPicker"
-            >
+              :aria-expanded="isCellBgPickerOpen" @click="toggleCellBgPicker">
               Cell color
             </button>
 
-            <button
-              class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-              @click="toggleTableBorders"
-            >
+            <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+              @click="toggleTableBorders">
               {{ isCurrentTableBordered() ? "Hide borders" : "Show borders" }}
             </button>
 
             <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
 
-            <button
-              class="px-2 py-1 rounded text-xs text-red-400 hover:bg-rose-surface-alt shrink-0"
-              @click="editor.chain().focus().deleteTable().run()"
-            >
+            <button class="px-2 py-1 rounded text-xs text-red-400 hover:bg-rose-surface-alt shrink-0"
+              @click="editor.chain().focus().deleteTable().run()">
               Delete table
             </button>
           </div>
 
-          <div
-            v-if="isCellBgPickerOpen"
-            ref="cellBgPopoverRef"
+          <div v-if="isCellBgPickerOpen" ref="cellBgPopoverRef"
             class="absolute z-20 grid grid-cols-4 gap-1.5 p-2 w-40 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
-            :style="cellBgAnchor.style"
-          >
-            <button
-              v-for="color in CELL_BG_COLORS"
-              :key="color.label"
+            :style="cellBgAnchor.style">
+            <button v-for="color in CELL_BG_COLORS" :key="color.label"
               class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs"
-              :style="color.value ? { backgroundColor: color.value } : {}"
-              :title="color.label"
-              @click="applyCellBackground(color.value)"
-            >
+              :style="color.value ? { backgroundColor: color.value } : {}" :title="color.label"
+              @click="applyCellBackground(color.value)">
               <span v-if="!color.value" class="text-rose-text-muted">×</span>
             </button>
           </div>
         </div>
 
-        <input
-          ref="fileInputRef"
-          type="file"
-          accept="image/*"
-          class="hidden"
-          @change="handleImageSelect"
-        />
-        <input
-          ref="csvFileInputRef"
-          type="file"
-          accept=".csv,text/csv"
-          class="hidden"
-          @change="handleCsvSelect"
-        />
+        <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="handleImageSelect" />
+        <input ref="csvFileInputRef" type="file" accept=".csv,text/csv" class="hidden" @change="handleCsvSelect" />
 
-        <EditorContent
-          :editor="editor"
-          class="prose prose-invert max-w-none rose-editor-content flex-1"
-        />
+        <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" />
       </div>
 
       <!-- Toolbar: right position -->
-      <DocToolbar
-        ref="toolbarRef"
-        v-if="editor && effectivePosition === 'right'"
-        :editor="editor"
-        :max-table-rows="MAX_TABLE_ROWS"
-        :max-table-cols="MAX_TABLE_COLS"
-        :position="effectivePosition"
-        @trigger-image-pick="triggerImagePick"
-        @set-link="setLink"
-        @insert-table="insertTable"
-        @trigger-csv-pick="triggerCsvPick"
-        @export-as-html="exportAsHtml"
-        @export-as-markdown="exportAsMarkdown"
-        @export-as-text="exportAsText"
-        @export-as-pdf="exportAsPdf"
-      />
+      <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'right'" :editor="editor"
+        :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
+        @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
+        @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
+        @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
 
       <!-- Toolbar: bottom position (fixed, rendered outside flow but still here for v-if) -->
-      <DocToolbar
-        ref="toolbarRef"
-        v-if="editor && effectivePosition === 'bottom'"
-        :editor="editor"
-        :max-table-rows="MAX_TABLE_ROWS"
-        :max-table-cols="MAX_TABLE_COLS"
-        :position="effectivePosition"
-        @trigger-image-pick="triggerImagePick"
-        @set-link="setLink"
-        @insert-table="insertTable"
-        @trigger-csv-pick="triggerCsvPick"
-        @export-as-html="exportAsHtml"
-        @export-as-markdown="exportAsMarkdown"
-        @export-as-text="exportAsText"
-        @export-as-pdf="exportAsPdf"
-      />
-    </div>
+      <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'bottom'" :editor="editor"
+        :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
+        @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
+        @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
+        @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+      </div>
+    </ErrorBoundary>
   </div>
 </template>
 
@@ -975,12 +878,14 @@ onBeforeUnmount(() => {
   line-height: 1.2;
   margin: 0.75rem 0 0.5rem;
 }
+
 .rose-editor-content h2 {
   font-size: 1.5em;
   font-weight: 700;
   line-height: 1.3;
   margin: 0.75rem 0 0.5rem;
 }
+
 .rose-editor-content h3 {
   font-size: 1.25em;
   font-weight: 600;
@@ -1028,7 +933,7 @@ onBeforeUnmount(() => {
   margin: 0.2rem 0;
 }
 
-.rose-editor-content li > p {
+.rose-editor-content li>p {
   margin: 0;
 }
 
@@ -1036,12 +941,14 @@ onBeforeUnmount(() => {
   list-style: none;
   padding-left: 0;
 }
+
 .rose-editor-content ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
 }
-.rose-editor-content ul[data-type="taskList"] li > label {
+
+.rose-editor-content ul[data-type="taskList"] li>label {
   margin-top: 0.2rem;
 }
 
@@ -1060,6 +967,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
+
 .rose-editor-content a:hover {
   opacity: 0.8;
 }
@@ -1111,6 +1019,7 @@ onBeforeUnmount(() => {
   margin: 0.75rem 0;
   overflow: hidden;
 }
+
 .rose-editor-content td,
 .rose-editor-content th {
   border: 1px solid var(--color-rose-border, #3a3a3a);
@@ -1118,17 +1027,21 @@ onBeforeUnmount(() => {
   vertical-align: top;
   position: relative;
 }
+
 .rose-editor-content th {
   background-color: var(--color-rose-surface-alt, #2a2a2a);
   font-weight: 600;
   text-align: left;
 }
+
 .rose-editor-content .selectedCell {
   background-color: rgba(236, 72, 153, 0.15);
 }
+
 .rose-editor-content .tableWrapper {
   overflow-x: auto;
 }
+
 .rose-editor-content .column-resize-handle {
   position: absolute;
   right: -2px;
@@ -1138,10 +1051,12 @@ onBeforeUnmount(() => {
   background-color: var(--color-rose-primary, #ec4899);
   pointer-events: none;
 }
+
 .rose-editor-content table[data-bordered="false"] td,
 .rose-editor-content table[data-bordered="false"] th {
   border-color: transparent;
 }
+
 .rose-editor-content.resize-cursor {
   cursor: col-resize;
 }

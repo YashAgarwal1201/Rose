@@ -133,10 +133,6 @@ const displayItems = computed<DisplayItem[]>(() => {
 
 const isEmpty = computed(() => folders.length === 0 && files.length === 0 && !creatingType.value);
 
-function typeLabel(kind: "folder" | "file"): string {
-  return kind === "folder" ? "Folder" : fileLabel[0]?.toUpperCase() + fileLabel?.slice(1);
-}
-
 function focusAndScrollToNewInput() {
   nextTick().then(() => {
     const el = Array.isArray(newItemInputRef.value)

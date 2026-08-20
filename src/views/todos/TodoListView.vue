@@ -185,7 +185,7 @@ async function loadList() {
 }
 
 function goBack() {
-  if (window.history.state && window.history.state.back) {
+  if (globalThis.history.state && globalThis.history.state.back) {
     router.back();
     return;
   }
@@ -295,7 +295,7 @@ async function saveDetailEdit() {
       dueDate: timestamp
     });
     // Update local detail view so it reflects changes immediately in view mode
-    const updated = todosStore.todos.find(t => t.id === detailTodo.value!.id);
+    const updated = todosStore.todos.find((todo) => todo.id === detailTodo.value!.id);
     if (updated) {
       detailTodo.value = updated;
     }
