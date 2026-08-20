@@ -10,7 +10,7 @@ const emit = defineEmits<{ createFolder: []; createFile: [] }>();
 const fabOpen = ref(false);
 const fabContainerRef = ref<HTMLElement | null>(null);
 
-const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false, fallbackFocus: () => fabContainerRef.value ?? undefined });
+const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false, fallbackFocus: () => fabContainerRef.value || document.body });
 watch(fabOpen, (isOpen) => {
   if (isOpen) {
     nextTick().then(() => activate());
