@@ -10,9 +10,11 @@
     <div class="grow h-full relative overflow-hidden">
       <main ref="mainRef" class="h-full w-full overflow-y-auto">
         <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </Transition>
+          <ErrorBoundary>
+            <Transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </Transition>
+          </ErrorBoundary>
         </RouterView>
       </main>
 
@@ -28,7 +30,8 @@
       </Transition>
     </div>
 
-    <SideMenu :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" />
+    <SideMenu :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" @open-feedback="handleOpenFeedback" />
+    <FeedbackSidebar :is-open="isFeedbackOpen" @close="isFeedbackOpen = false" @cancel="handleFeedbackClose" />
     <ToastContainer />
     <ConfirmDialog />
     <InputDialog />
@@ -41,16 +44,17 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 import SideMenu from "@/components/layout/SideMenu.vue";
+import FeedbackSidebar from "@/components/layout/FeedbackSidebar.vue";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
 import InputDialog from "@/components/ui/InputDialog.vue";
 import GlobalSearchModal from "@/components/explorer/GlobalSearchModal.vue";
+import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 
 import { useUiStore } from "./stores/ui";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { useThemeStore } from "./stores/theme";
-import { useSettingsStore } from "./stores/settings";
 import { useBackButtonClose } from "@/composables/ui/useBackButtonClose.ts";
 import { TOAST_AUTO_DISMISS_MS } from "./utils/constants.ts";
 import { useScroll } from "@vueuse/core";
@@ -58,6 +62,7 @@ import { ArrowUpIcon } from "@lucide/vue";
 
 const { showToast } = useToast();
 const isMenuOpen = ref(false);
+const isFeedbackOpen = ref(false);
 const menuInitialPanel = ref(-1);
 const mainRef = ref<HTMLElement | null>(null);
 const { y } = useScroll(mainRef);
@@ -68,7 +73,6 @@ function scrollToTop() {
 
 const router = useRouter();
 const themeStore = useThemeStore();
-const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 useBackButtonClose(
@@ -76,7 +80,19 @@ useBackButtonClose(
   "menu",
   handleMenuClose,
   () => {
-    isMenuOpen.value = true;
+    // Only intercept back button for menu if feedback is not open
+    if (!isFeedbackOpen.value) {
+      isMenuOpen.value = true;
+    }
+  }
+);
+
+useBackButtonClose(
+  isFeedbackOpen,
+  "feedback",
+  handleFeedbackClose,
+  () => {
+    isFeedbackOpen.value = true;
   }
 );
 
@@ -157,9 +173,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (settingsStore.isFeatureEnabled("todo")) {
-        router.push("/todos/folder");
-      }
+      router.push("/todos/folder");
     },
   },
   // Ctrl + Shift + 3 → Notes
@@ -168,9 +182,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (settingsStore.isFeatureEnabled("note")) {
-        router.push("/notes/folder");
-      }
+      router.push("/notes/folder");
     },
   },
   // Ctrl + Shift + 4 → Docs
@@ -179,9 +191,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (settingsStore.isFeatureEnabled("doc")) {
-        router.push("/docs/folder");
-      }
+      router.push("/docs/folder");
     },
   },
   // Escape → Close menu overlay if open
@@ -201,6 +211,21 @@ function handleMenuClose() {
   isMenuOpen.value = false;
   menuInitialPanel.value = -1;
 }
+
+function handleOpenFeedback() {
+  isMenuOpen.value = false;
+  setTimeout(() => {
+    isFeedbackOpen.value = true;
+  }, 100);
+}
+
+function handleFeedbackClose() {
+  isFeedbackOpen.value = false;
+  setTimeout(() => {
+    isMenuOpen.value = true;
+  }, 100);
+}
+
 
 function onSWUpdate() {
   showToast("App updated — refresh to get the latest version.", "info", TOAST_AUTO_DISMISS_MS);

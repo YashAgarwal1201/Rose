@@ -23,7 +23,7 @@
       "warn",
       { "min": 2, "exceptions": ["i", "e", "f", "id", "x", "y", "a", "b"] }
     ],
-    "eslint/no-underscore-dangle": ["error", { "allow": ["__APP_VERSION__"] }],
+    "eslint/no-underscore-dangle": ["error", { "allow": ["__APP_VERSION__", "_errors"] }],
     "eslint/max-statements": "off",
     "eslint/max-params": "off",
     "eslint/sort-keys": "off",

@@ -18,6 +18,7 @@ import { useToast } from "@/composables/ui/useToast.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import type { Note } from "@/db/types";
 import NoteCanvas from "@/components/notes/NoteCanvas.vue";
+import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 import { type ToolbarPosition, useToolbarPosition } from "@/composables/ui/useToolbarPosition.ts";
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
@@ -139,7 +140,7 @@ async function loadNote() {
 }
 
 function goBack() {
-  if (window.history.state && window.history.state.back) {
+  if (globalThis.history.state && globalThis.history.state.back) {
     router.back();
     return;
   }
@@ -289,12 +290,13 @@ watch(() => pathMatch, loadNote);
       </div>
     </div>
 
-    <div class="flex-1 min-h-0 bg-rose-surface m-2 md:m-4 md:mt-2 lg:m-6 lg:mt-2 rounded-2xl shadow-xl border border-rose-border overflow-hidden relative">
-      <NoteCanvas v-if="currentNote" :key="currentNote.id" :initial-canvas-json="currentNote.canvasJSON"
-        :initial-background-color="currentNote.backgroundColor"
-        :initial-background-pattern="currentNote.backgroundPattern"
-        :toolbar-position="effectivePosition"
-        :note-title="currentNote.title" @change="handleCanvasChange" />
+    <div class="flex-1 min-h-0 bg-rose-surface md:mt-2 lg:mt-2 overflow-hidden relative">
+      <ErrorBoundary>
+        <NoteCanvas v-if="currentNote" :key="currentNote.id" :initial-canvas-json="currentNote.canvasJSON"
+          :initial-background-color="currentNote.backgroundColor"
+          :initial-background-pattern="currentNote.backgroundPattern" :toolbar-position="effectivePosition"
+          :note-title="currentNote.title" @change="handleCanvasChange" />
+      </ErrorBoundary>
     </div>
   </div>
 </template>

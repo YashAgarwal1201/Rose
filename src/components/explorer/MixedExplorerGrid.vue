@@ -328,7 +328,7 @@ defineExpose({ startCreate });
           @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
         <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
           item.name
-          }}</span>
+        }}</span>
 
         <div v-if="!item.isNew" class="flex items-center gap-1 shrink-0 relative z-10">
           <button type="button" aria-label="More options"
@@ -376,7 +376,8 @@ defineExpose({ startCreate });
             <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
             <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 flex items-center gap-1">
               <span>{{ typeLabel(item.kind) }}</span>
-              <template v-if="item.itemCount !== undefined"> &bull; <span>{{ item.itemCount }} item{{ item.itemCount === 1 ? '' : 's' }}</span></template>
+              <template v-if="item.itemCount !== undefined"> &bull; <span>{{ item.itemCount }} item{{ item.itemCount ===
+                  1 ? '' : 's' }}</span></template>
               <template v-if="item.createdAt"> &bull; <span>{{ formatRelativeTime(item.createdAt) }}</span></template>
             </span>
           </div>

@@ -75,11 +75,20 @@
 
           <!-- Export & Sharing -->
           <PanelSection :icon="Share2Icon" label="Share" :is-open="openPanel === 2" @toggle="togglePanel(2)">
-            <div class="flex flex-col gap-y-3 px-1 py-2">
-              <p class="text-sm text-rose-text-muted">Share Rose with others.</p>
-              <div class="flex items-center gap-2">
+            <div class="flex flex-col items-center gap-y-4 px-1 py-4">
+              <p class="text-sm text-rose-text-muted text-center w-full">Share Rose with others.</p>
+
+              <div class="flex flex-wrap items-center justify-center gap-3 w-full">
+                <button v-for="option in shareOptions" :key="option.name"
+                  class="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-md hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-primary"
+                  :class="option.colorClass" :title="`Share on ${option.name}`" @click="option.action">
+                  <component :is="option.icon" class="w-5 h-5" />
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2 w-full mt-2">
                 <button
-                  class="flex-1 px-3 py-2 rounded-lg bg-rose-primary text-white text-sm font-medium hover:bg-rose-primary-hover transition-colors"
+                  class="flex-1 px-3 py-2 rounded-lg bg-rose-surface border border-rose-border text-rose-text text-sm font-medium hover:bg-rose-surface-alt transition-colors"
                   @click="handleShare">
                   {{ copied ? "Copied!" : "Copy link" }}
                 </button>
@@ -113,6 +122,15 @@
               </div>
             </div>
           </PanelSection>
+
+          <div class="divider" />
+
+          <button type="button"
+            class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
+            @click="emit('open-feedback')">
+            <MessageSquareIcon class="w-4 h-4 text-rose-primary" />
+            <span class="font-medium text-rose-text">Give Feedback</span>
+          </button>
         </div>
       </div>
     </div>
@@ -124,6 +142,7 @@ import { computed, nextTick, ref, watch } from "vue";
 import {
   InfoIcon,
   KeyboardIcon,
+  MessageSquareIcon,
   MonitorIcon,
   MoonIcon,
   PaletteIcon,
@@ -132,13 +151,19 @@ import {
   SunIcon,
   XIcon,
 } from "@lucide/vue";
+import WhatsappIcon from "@/components/icons/WhatsappIcon.vue";
+import TelegramIcon from "@/components/icons/TelegramIcon.vue";
+import RedditIcon from "@/components/icons/RedditIcon.vue";
+import MessagesIcon from "@/components/icons/MessagesIcon.vue";
+import EmailIcon from "@/components/icons/EmailIcon.vue";
+import SignalIcon from "@/components/icons/SignalIcon.vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import { useThemeStore } from "@/stores/theme";
 import PanelSection from "@/components/ui/PanelSection.vue";
 import { useRouter } from "vue-router";
 
 const { isOpen, initialPanel } = defineProps<{ isOpen: boolean; initialPanel?: number }>();
-const emit = defineEmits<{ close: [] }>();
+const emit = defineEmits<{ close: []; 'open-feedback': [] }>();
 
 const themeStore = useThemeStore();
 const router = useRouter();
@@ -184,6 +209,57 @@ async function handleShare() {
   copied.value = true;
   setTimeout(() => (copied.value = false), 2000);
 }
+
+const shareOptions = [
+  {
+    name: "WhatsApp",
+    icon: WhatsappIcon,
+    colorClass: "bg-[#25D366]",
+    action: () => {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(globalThis.location.href)}`, '_blank');
+    }
+  },
+  {
+    name: "Telegram",
+    icon: TelegramIcon,
+    colorClass: "bg-[#26A5E4]",
+    action: () => {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(globalThis.location.href)}`, '_blank');
+    }
+  },
+  {
+    name: "Reddit",
+    icon: RedditIcon,
+    colorClass: "bg-[#FF4500]",
+    action: () => {
+      window.open(`https://reddit.com/submit?url=${encodeURIComponent(globalThis.location.href)}`, '_blank');
+    }
+  },
+  {
+    name: "Signal",
+    icon: SignalIcon,
+    colorClass: "bg-[#3A76F0]",
+    action: () => {
+      globalThis.location.href = `sgnl://share?text=${encodeURIComponent(globalThis.location.href)}`;
+    }
+  },
+  {
+    name: "Messages",
+    icon: MessagesIcon,
+    colorClass: "bg-[#0B84FF]",
+    action: () => {
+      globalThis.location.href = `sms:?&body=${encodeURIComponent(globalThis.location.href)}`;
+    }
+  },
+  {
+    name: "Email",
+    icon: EmailIcon,
+    colorClass: "bg-[#EA4335]",
+    action: () => {
+      globalThis.location.href = `mailto:?body=${encodeURIComponent(globalThis.location.href)}`;
+    }
+  },
+];
 
 const shortcutCategories = [
   {
