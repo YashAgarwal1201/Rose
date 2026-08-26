@@ -44,10 +44,15 @@
       </div>
       <h2 class="text-xl font-semibold text-rose-text">Nothing here yet</h2>
       <p class="text-sm text-rose-text-muted mt-1">
-        Jump into one of your enabled features to create your first folder.
+        Head over to your files to create your first folder or document.
       </p>
-      <div class="flex flex-wrap justify-center gap-3 mt-6">
-        <QuickJumpCard v-for="tile in quickJumpTiles" :key="tile.feature" v-bind="tile" />
+      <div class="mt-6">
+        <button
+          @click="router.push({ name: 'files-folder', params: { pathMatch: '' } })"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-primary text-white text-sm font-medium rounded-lg hover:bg-rose-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-primary"
+        >
+          Go to Files
+        </button>
       </div>
     </div>
 
@@ -95,7 +100,6 @@ import { useRouter } from "vue-router";
 import { FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, SparklesIcon, XIcon } from "@lucide/vue";
 import { useSettingsStore } from "@/stores/settings";
 import { type HomeItem, useHomeSummary } from "@/composables/home/useHomeSummary.ts";
-import QuickJumpCard from "@/components/home/QuickJumpCard.vue";
 import HomeFolderTile from "@/components/home/HomeFolderTile.vue";
 import HomeFileCard from "@/components/home/HomeFileCard.vue";
 import type { FeatureType } from "@/db/types";
@@ -135,19 +139,6 @@ const formattedDate = computed(() =>
 );
 
 const searchResults = computed(() => summary.search(query.value));
-
-const quickJumpConfig: {
-  feature: FeatureType;
-  label: string;
-  icon: unknown;
-  routeName: string;
-}[] = [
-    { feature: "todo", icon: ListTodoIcon, label: "Todos", routeName: "todos-all" },
-    { feature: "note", icon: PenLineIcon, label: "Notes", routeName: "notes-all" },
-    { feature: "doc", icon: FileTextIcon, label: "Docs", routeName: "docs-all" },
-  ];
-
-const quickJumpTiles = computed(() => quickJumpConfig);
 
 const folderRouteNames: Record<FeatureType | "mixed", string> = {
   doc: "docs-all",
