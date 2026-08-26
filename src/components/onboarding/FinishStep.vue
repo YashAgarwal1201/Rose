@@ -33,7 +33,8 @@ const greetingSuffix = computed(() =>
 );
 
 const enabledFeatureLabel = computed(() => {
-  const labels = settingsStore.enabledFeatures.map((feature) => featureLabels[feature]);
+  const enabledFeatures: Array<'doc'|'note'|'todo'> = ['doc', 'note', 'todo'];
+  const labels = enabledFeatures.map((feature) => featureLabels[feature]);
   if (labels.length === 1) {
     return labels[0];
   }
