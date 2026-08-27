@@ -450,4 +450,28 @@ describe("todosStore", () => {
       expect(remaining).toHaveLength(1);
     });
   });
+
+  describe("moveTodoList", () => {
+    it("moves a list to a new target folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("My Task List", null);
+      await store.moveTodoList(listId, "folder-123");
+      const list = store.todoLists.find((l) => l.id === listId);
+      expect(list?.folderId).toBe("folder-123");
+    });
+
+    it("throws when moving to a destination with duplicate list name", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await store.createTodoList("Shopping List", "folder-123");
+      const listId = await store.createTodoList("Shopping List", null);
+      await expect(store.moveTodoList(listId, "folder-123")).rejects.toThrow("already exists");
+    });
+  });
 });
+

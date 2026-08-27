@@ -78,14 +78,44 @@ export const useNotesStore = defineStore("notes", () => {
     await db.notes.bulkDelete(targets.map((note) => note.id));
   }
 
+  async function moveNote(id: string, newFolderId: string | null, newTitle?: string) {
+    const target = notes.value.find((note) => note.id === id);
+    if (!target) {
+      return;
+    }
+
+    if (target.folderId === newFolderId && (!newTitle || newTitle.trim() === target.title)) {
+      return;
+    }
+
+    const titleToUse = (newTitle || target.title).trim();
+    const duplicate = notes.value.find(
+      (note) =>
+        note.id !== id &&
+        note.folderId === newFolderId &&
+        note.title.toLowerCase() === titleToUse.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A note named "${titleToUse}" already exists in the destination.`);
+    }
+
+    await db.notes.update(id, { folderId: newFolderId, title: titleToUse, updatedAt: Date.now() });
+    if (newFolderId) {
+      await useFoldersStore().ensureFolderSupports(newFolderId, "note");
+    }
+    await loadNotes();
+  }
+
   return {
     createNote,
     deleteNote,
     deleteNotesByFolder,
     getNote,
     loadNotes,
+    moveNote,
     notes,
     touchNote,
     updateNote,
   };
 });
+

@@ -320,4 +320,24 @@ describe("notesStore", () => {
       await expect(store.deleteNotesByFolder("empty-folder")).resolves.not.toThrow();
     });
   });
+
+  describe("moveNote", () => {
+    it("moves a note to a new target folder", async () => {
+      expect.hasAssertions();
+      const store = useNotesStore();
+      const noteId = await store.createNote("Canvas Diagram", null);
+      await store.moveNote(noteId, "folder-789");
+      const note = store.notes.find((n) => n.id === noteId);
+      expect(note?.folderId).toBe("folder-789");
+    });
+
+    it("throws when moving to a destination with duplicate note title", async () => {
+      expect.hasAssertions();
+      const store = useNotesStore();
+      await store.createNote("Wireframe", "folder-789");
+      const noteId = await store.createNote("Wireframe", null);
+      await expect(store.moveNote(noteId, "folder-789")).rejects.toThrow("already exists");
+    });
+  });
 });
+

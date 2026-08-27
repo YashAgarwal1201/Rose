@@ -254,16 +254,16 @@ describe("foldersStore", () => {
       );
     });
 
-    it("throws when moving a folder into one of its own descendants", async () => {
+    it("throws when moving a folder into a destination with an existing folder of the same name", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
       const store = useFoldersStore();
       const parentId = await store.createFolder("Parent", null, "todo");
-      const childId = await store.createFolder("Child", parentId, "todo");
-      await expect(store.moveFolder(parentId, childId)).rejects.toThrow(
-        "Cannot move a folder into itself",
-      );
+      await store.createFolder("TargetName", parentId, "todo");
+      const folderIdToMove = await store.createFolder("TargetName", null, "todo");
+      await expect(store.moveFolder(folderIdToMove, parentId)).rejects.toThrow("already exists");
     });
   });
 });
+

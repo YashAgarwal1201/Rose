@@ -164,15 +164,38 @@ export const useFoldersStore = defineStore("folders", () => {
     return false;
   }
 
-  async function moveFolder(id: string, newParentId: string | null) {
+  async function moveFolder(id: string, newParentId: string | null, newName?: string) {
     if (newParentId !== null) {
       if (newParentId === id || isDescendantOf(newParentId, id)) {
         throw new Error("Cannot move a folder into itself or one of its own subfolders.");
       }
     }
-    await db.folders.update(id, { parentId: newParentId, updatedAt: Date.now() });
+    const target = folders.value.find((folder) => folder.id === id);
+    if (!target) {
+      return;
+    }
+
+    if (target.parentId === newParentId && (!newName || newName.trim() === target.name)) {
+      return;
+    }
+
+    const nameToUse = (newName || target.name).trim();
+    const duplicate = folders.value.find(
+      (folder) =>
+        folder.id !== id &&
+        folder.parentId === newParentId &&
+        folder.name.toLowerCase() === nameToUse.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A folder named "${nameToUse}" already exists in the destination.`);
+    }
+
+    await db.folders.update(id, { name: nameToUse, parentId: newParentId, updatedAt: Date.now() });
+    if (newParentId) {
+      await ensureFolderSupports(newParentId, "mixed");
+    }
     await reloadCurrent();
   }
 
-  return { createFolder, deleteFolder, folders, loadFolders, moveFolder, renameFolder, ensureFolderSupports };
+  return { createFolder, deleteFolder, ensureFolderSupports, folders, isDescendantOf, loadFolders, moveFolder, renameFolder };
 });

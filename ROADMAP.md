@@ -39,6 +39,8 @@ Development is organized by feature flows.
 - [x] Mobile folder tree drawer + speed-dial create actions (`FolderTreeDrawer.vue`, `ExplorerActions.vue`)
 - [x] Surface "Created" date and item type (folder/list) columns in Explorer list view
 - [x] Fix relative-time formatting bug (premature unit rounding in `formatRelativeTime.ts`)
+- [x] Universal item & folder moving system (`FolderPickerModal.vue`, drag-and-drop on grid cards, sidebar tree & breadcrumbs, name collision dialog)
+
 
 ## Todos
 - [x] Design Dexie schema for `todos` table

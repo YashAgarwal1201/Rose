@@ -175,6 +175,34 @@ export const useTodosStore = defineStore("todos", () => {
     }
   }
 
+  async function moveTodoList(id: string, newFolderId: string | null, newName?: string) {
+    const target = todoLists.value.find((list) => list.id === id);
+    if (!target) {
+      return;
+    }
+
+    if (target.folderId === newFolderId && (!newName || newName.trim() === target.name)) {
+      return;
+    }
+
+    const nameToUse = (newName || target.name).trim();
+    const duplicate = todoLists.value.find(
+      (list) =>
+        list.id !== id &&
+        list.folderId === newFolderId &&
+        list.name.toLowerCase() === nameToUse.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A list named "${nameToUse}" already exists in the destination.`);
+    }
+
+    await db.todoLists.update(id, { folderId: newFolderId, name: nameToUse, updatedAt: Date.now() });
+    if (newFolderId) {
+      await useFoldersStore().ensureFolderSupports(newFolderId, "todo");
+    }
+    await loadTodoLists();
+  }
+
   return {
     createTodo,
     createTodoList,
@@ -186,6 +214,7 @@ export const useTodosStore = defineStore("todos", () => {
     getTodoList,
     loadTodoLists,
     loadTodos,
+    moveTodoList,
     renameTodoList,
     todoLists,
     todos,
@@ -195,3 +224,4 @@ export const useTodosStore = defineStore("todos", () => {
     updateTodo,
   };
 });
+

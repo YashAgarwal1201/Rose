@@ -6,6 +6,7 @@ import {
   ChevronUpIcon,
   FileTextIcon,
   FolderIcon,
+  FolderInputIcon,
   LayoutGridIcon,
   ListIcon,
   ListTodoIcon,
@@ -26,6 +27,7 @@ export interface DisplayItem {
   kind: ItemKind;
   id: string;
   name: string;
+  parentId?: string | null;
   itemCount?: number;
   updatedAt?: number;
   createdAt?: number;
@@ -49,7 +51,10 @@ const emit = defineEmits<{
   createItem: [kind: ItemKind, name: string];
   renameItem: [kind: ItemKind, id: string, name: string];
   deleteItem: [kind: ItemKind, id: string, name: string];
+  requestMove: [item: DisplayItem];
+  moveItem: [kind: ItemKind, id: string, targetFolderId: string | null];
 }>();
+
 
 const { confirm } = useConfirm();
 const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
@@ -250,11 +255,65 @@ function handleMenuRename() {
   startRename({ currentName: item.name, event: mockEvent, id: item.id, kind: item.kind });
 }
 
+function handleMenuMove() {
+  const item = contextMenu.activeItem.value;
+  if (!item) { return; }
+  contextMenu.close();
+  emit("requestMove", item);
+}
+
 function handleMenuDelete() {
   const item = contextMenu.activeItem.value;
   if (!item) { return; }
   contextMenu.close();
   handleDelete(item, mockEvent);
+}
+
+const dragOverFolderId = ref<string | null>(null);
+
+function handleDragStart(item: DisplayItem, event: DragEvent) {
+  if (item.isNew || isRenaming(item)) { return; }
+  if (!event.dataTransfer) { return; }
+  event.dataTransfer.setData(
+    "application/json",
+    JSON.stringify({
+      id: item.id,
+      kind: item.kind,
+      name: item.name,
+      parentId: item.parentId ?? null,
+    }),
+  );
+  event.dataTransfer.effectAllowed = "move";
+}
+
+function handleDragOver(targetItem: DisplayItem, event: DragEvent) {
+  if (targetItem.kind !== "folder" || targetItem.isNew) { return; }
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  dragOverFolderId.value = targetItem.id;
+}
+
+function handleDragLeave(targetItem: DisplayItem) {
+  if (dragOverFolderId.value === targetItem.id) {
+    dragOverFolderId.value = null;
+  }
+}
+
+function handleDrop(targetFolder: DisplayItem, event: DragEvent) {
+  dragOverFolderId.value = null;
+  if (targetFolder.kind !== "folder" || targetFolder.isNew) { return; }
+  event.preventDefault();
+  const raw = event.dataTransfer?.getData("application/json");
+  if (!raw) { return; }
+  try {
+    const data = JSON.parse(raw) as { id: string; kind: ItemKind; name: string; parentId: string | null };
+    if (data.id === targetFolder.id && data.kind === "folder") { return; }
+    emit("moveItem", data.kind, data.id, targetFolder.id);
+  } catch {
+    // ignore
+  }
 }
 
 defineExpose({ startCreate });
@@ -307,7 +366,13 @@ defineExpose({ startCreate });
     <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
       role="list">
       <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
+        :draggable="!item.isNew && !isRenaming(item)"
+        @dragstart="handleDragStart(item, $event)"
+        @dragover="handleDragOver(item, $event)"
+        @dragleave="handleDragLeave(item)"
+        @drop="handleDrop(item, $event)"
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
+        :class="dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
         role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
@@ -354,7 +419,13 @@ defineExpose({ startCreate });
 
       <div role="list" class="flex flex-col">
         <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
+          :draggable="!item.isNew && !isRenaming(item)"
+          @dragstart="handleDragStart(item, $event)"
+          @dragover="handleDragOver(item, $event)"
+          @dragleave="handleDragLeave(item)"
+          @drop="handleDrop(item, $event)"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
+          :class="dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
           role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
           <button v-if="!item.isNew && !isRenaming(item)" type="button"
             class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
@@ -419,6 +490,11 @@ defineExpose({ startCreate });
     @close="contextMenu.close()">
     <button
       class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
+      @click="handleMenuMove">
+      <FolderInputIcon class="w-4 h-4" /> Move to...
+    </button>
+    <button
+      class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
       @click="handleMenuRename">
       <PencilIcon class="w-4 h-4" /> Rename
     </button>
@@ -429,3 +505,4 @@ defineExpose({ startCreate });
     </button>
   </ContextMenu>
 </template>
+

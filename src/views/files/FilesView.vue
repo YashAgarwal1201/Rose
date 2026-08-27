@@ -13,8 +13,11 @@ import { useFoldersStore } from "@/stores/folders";
 import { useTodosStore } from "@/stores/todos";
 import { useDocsStore } from "@/stores/docs";
 import { useNotesStore } from "@/stores/notes";
+import FolderPickerModal, { type ItemDescriptor } from "@/components/ui/FolderPickerModal.vue";
+import NameCollisionDialog from "@/components/ui/NameCollisionDialog.vue";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
+
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
@@ -255,6 +258,107 @@ function handleMobileSelect(id: string | null) {
   isDrawerOpen.value = false;
 }
 
+
+const isFolderPickerOpen = ref(false);
+
+const itemsToMove = ref<ItemDescriptor[]>([]);
+
+const isCollisionDialogOpen = ref(false);
+const collisionInfo = ref<{
+  kind: ItemKind;
+  id: string;
+  itemName: string;
+  targetFolderId: string | null;
+  targetFolderName: string;
+  suggestedName: string;
+} | null>(null);
+
+function handleRequestMove(item: DisplayItem) {
+  itemsToMove.value = [
+    {
+      id: item.id,
+      kind: item.kind,
+      name: item.name,
+      parentId: item.parentId ?? currentFolderId.value ?? null,
+    },
+  ];
+  isFolderPickerOpen.value = true;
+}
+
+async function performMove(kind: ItemKind, id: string, targetFolderId: string | null, newName?: string) {
+  try {
+    if (kind === "folder") {
+      await foldersStore.moveFolder(id, targetFolderId, newName);
+      if (currentFolderId.value && (id === currentFolderId.value || foldersStore.isDescendantOf(currentFolderId.value, id))) {
+        navigateToFolder(currentFolderId.value);
+      }
+    } else if (kind === "todo") {
+      await todosStore.moveTodoList(id, targetFolderId, newName);
+    } else if (kind === "doc") {
+      await docsStore.moveDoc(id, targetFolderId, newName);
+    } else if (kind === "note") {
+      await notesStore.moveNote(id, targetFolderId, newName);
+    }
+    const destName = targetFolderId
+      ? foldersStore.folders.find((f) => f.id === targetFolderId)?.name ?? "destination folder"
+      : "Files (Root)";
+    showToast(`Moved to ${destName}`, "success");
+    await loadCurrentFolder();
+  } catch (error) {
+    const message = (error as Error).message;
+    if (message.includes("already exists in the destination")) {
+      const itemToMove = itemsToMove.value.find((i) => i.id === id) || { kind, id, name: "Item", parentId: null };
+      const destName = targetFolderId
+        ? foldersStore.folders.find((f) => f.id === targetFolderId)?.name ?? "destination folder"
+        : "Files (Root)";
+      collisionInfo.value = {
+        id,
+        itemName: itemToMove.name,
+        kind,
+        suggestedName: `${itemToMove.name} (1)`,
+        targetFolderId,
+        targetFolderName: destName,
+      };
+      isCollisionDialogOpen.value = true;
+    } else {
+      showToast(message, "error");
+    }
+  }
+}
+
+async function handleMoveItem(kind: ItemKind, id: string, targetFolderId: string | null) {
+  const folderItem = foldersStore.folders.find((f) => f.id === id);
+  const todoItem = todosStore.todoLists.find((t) => t.id === id);
+  const docItem = docsStore.docs.find((d) => d.id === id);
+  const noteItem = notesStore.notes.find((n) => n.id === id);
+  const name = folderItem?.name || todoItem?.name || docItem?.title || noteItem?.title || "Item";
+
+  itemsToMove.value = [
+    {
+      id,
+      kind,
+      name,
+      parentId: currentFolderId.value ?? null,
+    },
+  ];
+  await performMove(kind, id, targetFolderId);
+}
+
+async function handleSelectTarget(targetFolderId: string | null) {
+  isFolderPickerOpen.value = false;
+  for (const item of itemsToMove.value) {
+    await performMove(item.kind, item.id, targetFolderId);
+  }
+}
+
+async function handleCollisionConfirm(newName: string) {
+  if (!collisionInfo.value) return;
+  const { kind, id, targetFolderId } = collisionInfo.value;
+  isCollisionDialogOpen.value = false;
+  collisionInfo.value = null;
+  await performMove(kind, id, targetFolderId, newName);
+}
+
 const displayItems = computed<DisplayItem[]>(() => {
   const items: DisplayItem[] = [];
   if (filterMode.value === "all") {
@@ -262,6 +366,7 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: f.id,
         name: f.name,
+        parentId: f.parentId,
         kind: "folder",
         itemCount: countChildrenOf(f.id),
         updatedAt: f.updatedAt,
@@ -274,6 +379,7 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: l.id,
         name: l.name,
+        parentId: l.folderId,
         kind: "todo",
         itemCount: listItemCounts.value[l.id] ?? 0,
         updatedAt: l.updatedAt,
@@ -286,6 +392,7 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: d.id,
         name: d.title,
+        parentId: d.folderId,
         kind: "doc",
         updatedAt: d.updatedAt,
         createdAt: d.createdAt,
@@ -297,6 +404,7 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: n.id,
         name: n.title,
+        parentId: n.folderId,
         kind: "note",
         thumbnail: n.thumbnail,
         updatedAt: n.updatedAt,
@@ -306,6 +414,7 @@ const displayItems = computed<DisplayItem[]>(() => {
   }
   return items;
 });
+
 
 onMounted(loadCurrentFolder);
 watch(() => pathMatch, loadCurrentFolder);
@@ -344,6 +453,7 @@ useKeyboardShortcuts([
       <FolderTree
         :active-folder-id="currentFolderId ?? null"
         @select="navigateToFolder"
+        @move-item="handleMoveItem"
       />
     </aside>
 
@@ -351,6 +461,7 @@ useKeyboardShortcuts([
       <FolderTree
         :active-folder-id="currentFolderId ?? null"
         @select="handleMobileSelect"
+        @move-item="handleMoveItem"
       />
     </FolderTreeDrawer>
 
@@ -405,7 +516,7 @@ useKeyboardShortcuts([
           />
         </div>
       </div>
-      <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" />
+      <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" @move-item="handleMoveItem" />
       <MixedExplorerGrid
         ref="explorerGridRef"
         :items="displayItems"
@@ -413,6 +524,8 @@ useKeyboardShortcuts([
         @create-item="handleCreateItem"
         @rename-item="handleRenameItem"
         @delete-item="handleDeleteItem"
+        @request-move="handleRequestMove"
+        @move-item="handleMoveItem"
       />
     </main>
     <!-- Mobile floating filter pills -->
@@ -448,5 +561,25 @@ useKeyboardShortcuts([
         </button>
       </div>
     </div>
+
+    <!-- Move picker modal -->
+    <FolderPickerModal
+      :is-open="isFolderPickerOpen"
+      :items-to-move="itemsToMove"
+      @close="isFolderPickerOpen = false"
+      @select-target="handleSelectTarget"
+    />
+
+    <!-- Collision dialog -->
+    <NameCollisionDialog
+      v-if="collisionInfo"
+      :is-open="isCollisionDialogOpen"
+      :item-name="collisionInfo.itemName"
+      :target-folder-name="collisionInfo.targetFolderName"
+      :suggested-name="collisionInfo.suggestedName"
+      @close="isCollisionDialogOpen = false; collisionInfo = null"
+      @confirm="handleCollisionConfirm"
+    />
   </div>
 </template>
+
