@@ -12,7 +12,11 @@ const { type, activeFolderId } = defineProps<{
   activeFolderId: string | null;
 }>();
 
-const emit = defineEmits<{ select: [folderId: string | null] }>();
+const emit = defineEmits<{
+  select: [folderId: string | null];
+  moveItem: [kind: any, id: string, targetFolderId: string | null];
+}>();
+
 
 const foldersStore = useFoldersStore();
 const { confirm } = useConfirm();
@@ -180,6 +184,35 @@ async function handleDelete(id: string, name: string, event: Event) {
   await foldersStore.deleteFolder(id);
   showToast(`Deleted "${name}"`, "info");
 }
+
+const dragOverNodeId = ref<string | null>(null);
+
+function handleDragOver(nodeId: string, event: DragEvent) {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  dragOverNodeId.value = nodeId;
+}
+
+function handleDragLeave(nodeId: string) {
+  if (dragOverNodeId.value === nodeId) {
+    dragOverNodeId.value = null;
+  }
+}
+
+function handleDrop(targetFolderId: string, event: DragEvent) {
+  dragOverNodeId.value = null;
+  event.preventDefault();
+  const raw = event.dataTransfer?.getData("application/json");
+  if (!raw) { return; }
+  try {
+    const data = JSON.parse(raw) as { id: string; kind: any; name: string };
+    emit("moveItem", data.kind, data.id, targetFolderId);
+  } catch {
+    // ignore
+  }
+}
 </script>
 <template>
   <div>
@@ -188,9 +221,16 @@ async function handleDelete(id: string, name: string, event: Event) {
         :aria-level="node.depth + 1" :aria-selected="node.id === activeFolderId"
         :aria-expanded="hasChildren(node.id) ? expanded.has(node.id) : undefined"
         :tabindex="node.id === (focusedNodeId || visibleNodes[0]?.id) ? 0 : -1"
+        @dragover="handleDragOver(node.id, $event)"
+        @dragleave="handleDragLeave(node.id)"
+        @drop="handleDrop(node.id, $event)"
         class="rounded relative outline-none focus-visible:ring-2 focus-visible:ring-rose-primary cursor-pointer select-none"
-        :class="node.id === activeFolderId ? 'bg-rose-surface-alt' : ''" @click="emit('select', node.id)"
+        :class="[
+          node.id === activeFolderId ? 'bg-rose-surface-alt' : '',
+          dragOverNodeId === node.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''
+        ]" @click="emit('select', node.id)"
         @keydown="handleTreeKeydown($event, node.id)">
+
         <div class="flex items-center gap-1 px-2 py-1.5 group"
           :style="{ paddingLeft: `${0.5 + node.depth * 1.25}rem` }">
           <button v-if="hasChildren(node.id)" type="button" tabindex="-1"

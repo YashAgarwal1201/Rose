@@ -71,6 +71,34 @@ export const useDocsStore = defineStore("docs", () => {
     await db.docs.bulkDelete(targets.map((doc) => doc.id));
   }
 
+  async function moveDoc(id: string, newFolderId: string | null, newTitle?: string) {
+    const target = docs.value.find((doc) => doc.id === id);
+    if (!target) {
+      return;
+    }
+
+    if (target.folderId === newFolderId && (!newTitle || newTitle.trim() === target.title)) {
+      return;
+    }
+
+    const titleToUse = (newTitle || target.title).trim();
+    const duplicate = docs.value.find(
+      (doc) =>
+        doc.id !== id &&
+        doc.folderId === newFolderId &&
+        doc.title.toLowerCase() === titleToUse.toLowerCase(),
+    );
+    if (duplicate) {
+      throw new Error(`A document named "${titleToUse}" already exists in the destination.`);
+    }
+
+    await db.docs.update(id, { folderId: newFolderId, title: titleToUse, updatedAt: Date.now() });
+    if (newFolderId) {
+      await useFoldersStore().ensureFolderSupports(newFolderId, "doc");
+    }
+    await loadDocs();
+  }
+
   return {
     createDoc,
     deleteDoc,
@@ -78,7 +106,9 @@ export const useDocsStore = defineStore("docs", () => {
     docs,
     getDoc,
     loadDocs,
+    moveDoc,
     touchDoc,
     updateDoc,
   };
 });
+
