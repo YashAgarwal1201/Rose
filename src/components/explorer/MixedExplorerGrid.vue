@@ -13,7 +13,9 @@ import {
   MoreVerticalIcon,
   PencilIcon,
   PenLineIcon,
-  TrashIcon
+  TrashIcon,
+  LockIcon,
+  UnlockIcon
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
@@ -33,6 +35,7 @@ export interface DisplayItem {
   createdAt?: number;
   isNew?: boolean;
   thumbnail?: string | null;
+  isVaulted?: boolean;
 }
 
 interface RenameOptions {
@@ -131,7 +134,10 @@ function typeLabel(kind: ItemKind): string {
   }
 }
 
-function itemIcon(kind: ItemKind): Component {
+function itemIcon(kind: ItemKind, id?: string): Component {
+  if (id === "vault") {
+    return LockIcon;
+  }
   switch (kind) {
     case "folder": {
       return FolderIcon;
@@ -242,7 +248,7 @@ function isRenaming(item: DisplayItem) {
 const contextMenu = useContextMenu<DisplayItem>();
 
 function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent | HTMLElement) {
-  if (item.isNew || isRenaming(item)) { return; }
+  if (item.isNew || isRenaming(item) || item.id === 'vault') { return; }
   contextMenu.open(item, event);
 }
 
@@ -267,6 +273,20 @@ function handleMenuDelete() {
   if (!item) { return; }
   contextMenu.close();
   handleDelete(item, mockEvent);
+}
+
+function handleMenuMoveToVault() {
+  const item = contextMenu.activeItem.value;
+  if (!item) { return; }
+  contextMenu.close();
+  emit("moveItem", item.kind, item.id, "vault");
+}
+
+function handleMenuRemoveFromVault() {
+  const item = contextMenu.activeItem.value;
+  if (!item) { return; }
+  contextMenu.close();
+  emit("moveItem", item.kind, item.id, null);
 }
 
 const dragOverFolderId = ref<string | null>(null);
@@ -372,16 +392,19 @@ defineExpose({ startCreate });
         @dragleave="handleDragLeave(item)"
         @drop="handleDrop(item, $event)"
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
-        :class="dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
+        :class="[
+          dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
+          item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary/30 shadow-[0_0_10px_rgba(225,29,72,0.1)]' : 'border border-transparent'
+        ]"
         role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
           :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
 
-        <img v-if="item.kind === 'note' && item.thumbnail" :src="item.thumbnail"
+        <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')" :src="item.thumbnail"
           class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
           alt="" />
-        <component v-else :is="itemIcon(item.kind)" class="w-12 h-12 shrink-0 relative z-10 pointer-events-none"
+        <component v-else :is="itemIcon(item.kind, item.id)" class="w-12 h-12 shrink-0 relative z-10 pointer-events-none"
           :class="itemIconClass(item.kind)" />
 
         <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus aria-label="New item name"
@@ -425,15 +448,18 @@ defineExpose({ startCreate });
           @dragleave="handleDragLeave(item)"
           @drop="handleDrop(item, $event)"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
-          :class="dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
+          :class="[
+            dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
+            item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.1)]' : 'border border-transparent'
+          ]"
           role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
           <button v-if="!item.isNew && !isRenaming(item)" type="button"
             class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
             :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
 
-          <img v-if="item.kind === 'note' && item.thumbnail" :src="item.thumbnail"
+          <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')" :src="item.thumbnail"
             class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none" alt="" />
-          <component v-else :is="itemIcon(item.kind)" class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
+          <component v-else :is="itemIcon(item.kind, item.id)" class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
             :class="itemIconClass(item.kind)" />
 
           <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus
@@ -467,7 +493,7 @@ defineExpose({ startCreate });
               {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
             </span>
             <div class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10">
-              <button type="button" aria-label="More options"
+              <button v-if="item.id !== 'vault'" type="button" aria-label="More options"
                 class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
                 @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)">
                 <MoreVerticalIcon class="w-4 h-4" />
@@ -488,17 +514,27 @@ defineExpose({ startCreate });
 
   <ContextMenu :is-open="contextMenu.isOpen.value" :x="contextMenu.x.value" :y="contextMenu.y.value"
     @close="contextMenu.close()">
-    <button
-      class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
-      @click="handleMenuMove">
-      <FolderInputIcon class="w-4 h-4" /> Move to...
+    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
+      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+      @click="handleMenuMove()">
+      <FolderInputIcon class="w-4 h-4 text-rose-text-muted" /> Move to...
     </button>
-    <button
+    <button v-if="!contextMenu.activeItem.value?.isVaulted && contextMenu.activeItem.value?.id !== 'vault'"
+      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+      @click="handleMenuMoveToVault()">
+      <LockIcon class="w-4 h-4 text-rose-text-muted" /> Move to Secure Vault
+    </button>
+    <button v-else-if="contextMenu.activeItem.value?.id !== 'vault'"
+      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+      @click="handleMenuRemoveFromVault()">
+      <UnlockIcon class="w-4 h-4 text-rose-text-muted" /> Remove from Secure Vault
+    </button>
+    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
       class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
       @click="handleMenuRename">
       <PencilIcon class="w-4 h-4" /> Rename
     </button>
-    <button
+    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
       class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
       @click="handleMenuDelete">
       <TrashIcon class="w-4 h-4" /> Delete

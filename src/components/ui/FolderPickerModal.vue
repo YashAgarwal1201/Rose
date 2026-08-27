@@ -10,6 +10,7 @@ export interface ItemDescriptor {
   id: string;
   name: string;
   parentId: string | null;
+  isVaulted?: boolean;
 }
 
 const props = defineProps<{
@@ -27,6 +28,11 @@ const searchQuery = ref("");
 const selectedTargetId = ref<string | null>(null);
 const expanded = ref<Set<string>>(new Set());
 
+const isVaultMove = computed(() => {
+  if (props.itemsToMove.length === 0) return false;
+  return props.itemsToMove.every((i) => i.isVaulted);
+});
+
 // Reset selection when modal opens
 watch(
   () => props.isOpen,
@@ -34,7 +40,9 @@ watch(
     if (open) {
       searchQuery.value = "";
       selectedTargetId.value = null;
-      const rootFolders = foldersStore.folders.filter((f) => f.parentId === null);
+      const rootFolders = foldersStore.folders.filter(
+        (f) => f.parentId === null && (isVaultMove.value ? f.isVaulted : !f.isVaulted)
+      );
       expanded.value = new Set(rootFolders.map((f) => f.id));
     }
   },
@@ -85,7 +93,9 @@ const treeNodes = computed<FolderTreeNode[]>(() => {
   const q = searchQuery.value.trim().toLowerCase();
 
   if (q) {
-    const matches = foldersStore.folders.filter((f) => f.name.toLowerCase().includes(q));
+    const matches = foldersStore.folders.filter(
+      (f) => f.name.toLowerCase().includes(q) && (isVaultMove.value ? f.isVaulted : !f.isVaulted)
+    );
     for (const folder of matches) {
       nodes.push({
         depth: 0,
@@ -99,6 +109,7 @@ const treeNodes = computed<FolderTreeNode[]>(() => {
     function walk(parentId: string | null, depth: number) {
       const children = foldersStore.folders
         .filter((f) => f.parentId === parentId)
+        .filter((f) => (isVaultMove.value ? f.isVaulted : !f.isVaulted))
         .toSorted((a, b) => a.name.localeCompare(b.name));
 
       for (const folder of children) {
@@ -185,23 +196,29 @@ const modalTitle = computed(() => {
         <!-- Folder tree content -->
         <div class="flex-1 overflow-y-auto px-5 py-2 space-y-1">
           <!-- Root item ("Files") -->
-          <div
-            v-if="!searchQuery"
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors border"
+          <button
+            type="button"
+            class="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors border"
             :class="[
               selectedTargetId === null
-                ? 'bg-rose-primary/10 border-rose-primary text-rose-primary font-medium'
+                ? 'bg-rose-primary/10 border-rose-primary text-rose-primary shadow-sm'
                 : 'border-transparent text-rose-text hover:bg-rose-surface-alt',
-              isInvalidTarget(null) ? 'opacity-40 cursor-not-allowed' : '',
+              isCurrentLocation(null) && selectedTargetId !== null ? 'opacity-50' : '',
             ]"
-            @click="handleSelect(null, isInvalidTarget(null))"
+            :disabled="isVaultMove"
+            @click="handleSelect(null, isVaultMove)"
           >
-            <HardDriveIcon class="w-4 h-4 shrink-0" />
-            <span class="text-sm flex-1 truncate">Files (Root)</span>
-            <span v-if="isCurrentLocation(null)" class="text-xs text-rose-text-muted italic shrink-0">
-              (Current)
+            <div class="w-5 h-5 flex items-center justify-center shrink-0">
+              <HardDriveIcon class="w-4.5 h-4.5" />
+            </div>
+            <span class="text-sm font-medium">Root</span>
+            <span
+              v-if="isCurrentLocation(null)"
+              class="ml-auto text-xs font-medium text-rose-text-muted bg-rose-bg px-2 py-0.5 rounded-full"
+            >
+              Current
             </span>
-          </div>
+          </button>
 
           <!-- Tree nodes -->
           <div

@@ -15,8 +15,10 @@ import { useDocsStore } from "@/stores/docs";
 import { useNotesStore } from "@/stores/notes";
 import FolderPickerModal, { type ItemDescriptor } from "@/components/ui/FolderPickerModal.vue";
 import NameCollisionDialog from "@/components/ui/NameCollisionDialog.vue";
+import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
+import { useVaultStore } from "@/stores/vault";
 
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
@@ -26,6 +28,7 @@ const foldersStore = useFoldersStore();
 const todosStore = useTodosStore();
 const docsStore = useDocsStore();
 const notesStore = useNotesStore();
+const vaultStore = useVaultStore();
 const { showToast } = useToast();
 
 const isDrawerOpen = ref(false);
@@ -68,6 +71,15 @@ function buildFolderPath(folderId: string | null): string[] {
 }
 
 const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
+
+const currentFolder = computed(() => {
+  if (!currentFolderId.value) return null;
+  return foldersStore.folders.find((f) => f.id === currentFolderId.value);
+});
+
+const isVaultLocked = computed(() => {
+  return currentFolder.value?.isVaulted && !vaultStore.isUnlocked;
+});
 
 const subfolders = computed(() => {
   if (currentFolderId.value === undefined) {
@@ -280,6 +292,7 @@ function handleRequestMove(item: DisplayItem) {
       kind: item.kind,
       name: item.name,
       parentId: item.parentId ?? currentFolderId.value ?? null,
+      isVaulted: item.isVaulted,
     },
   ];
   isFolderPickerOpen.value = true;
@@ -371,6 +384,7 @@ const displayItems = computed<DisplayItem[]>(() => {
         itemCount: countChildrenOf(f.id),
         updatedAt: f.updatedAt,
         createdAt: f.createdAt,
+        isVaulted: f.isVaulted,
       });
     }
   }
@@ -384,6 +398,7 @@ const displayItems = computed<DisplayItem[]>(() => {
         itemCount: listItemCounts.value[l.id] ?? 0,
         updatedAt: l.updatedAt,
         createdAt: l.createdAt,
+        isVaulted: l.isVaulted,
       });
     }
   }
@@ -396,6 +411,7 @@ const displayItems = computed<DisplayItem[]>(() => {
         kind: "doc",
         updatedAt: d.updatedAt,
         createdAt: d.createdAt,
+        isVaulted: d.isVaulted,
       });
     }
   }
@@ -409,6 +425,7 @@ const displayItems = computed<DisplayItem[]>(() => {
         thumbnail: n.thumbnail,
         updatedAt: n.updatedAt,
         createdAt: n.createdAt,
+        isVaulted: n.isVaulted,
       });
     }
   }
@@ -466,10 +483,12 @@ useKeyboardShortcuts([
     </FolderTreeDrawer>
 
     <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0 pb-28 md:pb-6">
-      <div class="flex items-center justify-between gap-2 mb-4">
-        <h1 class="text-2xl font-bold text-rose-text">Files</h1>
-        
-        <div class="flex items-center gap-2">
+      <VaultAuthView v-if="isVaultLocked" @unlocked="loadCurrentFolder" />
+      <template v-else>
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <h1 class="text-2xl font-bold text-rose-text">Files</h1>
+          
+          <div class="flex items-center gap-2">
           <!-- Filter pills for large screens -->
           <div class="hidden md:flex items-center gap-1 bg-rose-surface-alt p-1 rounded-lg">
             <button
@@ -527,9 +546,10 @@ useKeyboardShortcuts([
         @request-move="handleRequestMove"
         @move-item="handleMoveItem"
       />
+      </template>
     </main>
     <!-- Mobile floating filter pills -->
-    <div class="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+    <div v-if="!isVaultLocked" class="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
       <div class="flex items-center gap-1 bg-rose-surface/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-border">
         <button
           class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"

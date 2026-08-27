@@ -7,7 +7,7 @@ import type { ExportPayload } from "@/utils/exportData";
 function makeValidPayload(overrides: Partial<ExportPayload> = {}): ExportPayload {
   return {
     data: {
-      docs: [{ id: "doc1", folderId: null, title: "Test Doc", contentJSON: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null }],
+      docs: [{ id: "doc1", folderId: null, title: "Test Doc", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null }],
       folders: [],
       notes: [],
       settings: [],
@@ -70,21 +70,21 @@ describe("summarisePayload", () => {
     const payload = makeValidPayload({
       data: {
         docs: [
-          { id: "d1", folderId: null, title: "D1", contentJSON: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
-          { id: "d2", folderId: null, title: "D2", contentJSON: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
+          { id: "d1", folderId: null, title: "D1", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
+          { id: "d2", folderId: null, title: "D2", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
         ],
         notes: [
-          { id: "n1", folderId: null, title: "N1", canvasJSON: null, backgroundColor: "#fff", backgroundPattern: "solid", thumbnail: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null },
+          { id: "n1", folderId: null, title: "N1", canvasJSON: null, backgroundColor: "#fff", backgroundPattern: "solid", thumbnail: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
         ],
         todos: [
-          { id: "t1", listId: "l1", title: "Buy milk", done: false, priority: null, dueDate: null, createdAt: 1, updatedAt: 1 },
+          { id: "t1", listId: "l1", title: "Buy milk", done: false, priority: null, dueDate: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
         ],
         todoLists: [
-          { id: "l1", folderId: null, name: "Groceries", createdAt: 1, updatedAt: 1, lastOpenedAt: null },
+          { id: "l1", folderId: null, name: "Groceries", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
         ],
         folders: [
-          { id: "f1", name: "Personal", parentId: null, type: "doc", createdAt: 1, updatedAt: 1 },
-          { id: "f2", name: "Work", parentId: null, type: "doc", createdAt: 1, updatedAt: 1 },
+          { id: "f1", name: "Personal", parentId: null, type: "doc", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
+          { id: "f2", name: "Work", parentId: null, type: "doc", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
         ],
         activity: [],
         settings: [],

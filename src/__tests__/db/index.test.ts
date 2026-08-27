@@ -36,7 +36,7 @@ describe("db/index.ts", () => {
       name: "Test Folder",
       type: "mixed",
       createdAt: Date.now(),
-      updatedAt: Date.now(),
+      updatedAt: Date.now(), isVaulted: false, iv: null,
     };
 
     // Create

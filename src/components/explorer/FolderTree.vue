@@ -1,7 +1,7 @@
 <!-- src/components/FolderTree.vue -->
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
-import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
+import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon, LockIcon } from "@lucide/vue";
 import { useFoldersStore } from "@/stores/folders";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import { useToast } from "@/composables/ui/useToast.ts";
@@ -55,6 +55,7 @@ const visibleNodes = computed<TreeNode[]>(() => {
   function walk(parentId: string | null, depth: number) {
     const children = foldersStore.folders
       .filter((folder) => folder.parentId === parentId && (!type || folder.type === type || folder.type === "mixed"))
+      .filter((folder) => folder.id !== "vault")
       .toSorted((folderA, folderB) => folderA.name.localeCompare(folderB.name));
     for (const folder of children) {
       nodes.push({ depth, id: folder.id, name: folder.name });
@@ -241,7 +242,8 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
           </button>
           <span v-else class="w-4 h-4 shrink-0 relative z-10"></span>
 
-          <FolderIcon class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
+          <LockIcon v-if="node.id === 'vault'" class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
+          <FolderIcon v-else class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
           <span class="text-base text-rose-text truncate flex-1 relative z-10 pointer-events-none">{{ node.name
             }}</span>
 
@@ -251,7 +253,7 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
             title="New subfolder" aria-label="New subfolder" @click.stop="startCreating(node.id)">
             <PlusIcon class="w-4 h-4" />
           </button>
-          <button type="button" tabindex="-1"
+          <button v-if="node.id !== 'vault'" type="button" tabindex="-1"
             class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"
             :class="node.id === activeFolderId ? 'opacity-100!' : '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100'"
             title="Delete folder" aria-label="Delete folder" @click.stop="handleDelete(node.id, node.name, $event)">

@@ -68,6 +68,7 @@ import {
   FolderIcon,
   HomeIcon,
   MenuIcon,
+  LockIcon,
 } from "@lucide/vue";
 import { computed } from "vue";
 
@@ -75,7 +76,8 @@ const route = useRoute();
 
 const navItems = computed(() => [
   { icon: HomeIcon, label: "Home", name: "home", path: "/" },
-  { icon: FolderIcon, label: "Files", name: "files", path: "/files/folder" }
+  { icon: FolderIcon, label: "Files", name: "files", path: "/files/folder" },
+  { icon: LockIcon, label: "Vault", name: "vault", path: "/files/folder/Secure Vault" }
 ]);
 
 const emit = defineEmits<{ toggleMenu: [] }>();
@@ -83,6 +85,12 @@ const emit = defineEmits<{ toggleMenu: [] }>();
 function isActive(path: string): boolean {
   if (path === "/") {
     return route.path === "/";
+  }
+  if (path === "/files/folder/Secure Vault") {
+    return route.path.includes("/Secure Vault") || route.path.includes("/Secure%20Vault");
+  }
+  if (path === "/files/folder") {
+    return route.path.split("/")[1] === "files" && !route.path.includes("/Secure Vault") && !route.path.includes("/Secure%20Vault");
   }
   return route.path.split("/")[1] === path.split("/")[1];
 }

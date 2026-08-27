@@ -23,7 +23,7 @@ describe("FolderPickerModal.vue", () => {
     });
 
     expect(wrapper.find("h2").text()).toBe('Move "My Doc"');
-    expect(wrapper.text()).toContain("Files (Root)");
+    expect(wrapper.text()).toContain("Root");
   });
 
   it("emits selectTarget with chosen folder when Move Here is clicked", async () => {
@@ -31,7 +31,7 @@ describe("FolderPickerModal.vue", () => {
     const pinia = createPinia();
     setActivePinia(pinia);
     const store = useFoldersStore();
-    store.folders = [{ createdAt: 1, id: "folder-1", name: "Work", parentId: null, type: "mixed", updatedAt: 1 }];
+    store.folders = [{ createdAt: 1, id: "folder-1", name: "Work", parentId: null, type: "mixed", updatedAt: 1, isVaulted: false, iv: null }];
 
     const wrapper = mount(FolderPickerModal, {
       global: {

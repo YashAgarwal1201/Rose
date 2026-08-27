@@ -73,7 +73,7 @@ describe("TodoListView.vue", () => {
         folderId: null,
         lastOpenedAt: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       await db.todos.add({
         id: "todo-1",
@@ -83,7 +83,7 @@ describe("TodoListView.vue", () => {
         priority: null,
         dueDate: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       const wrapper = await mountTodoListView(["Test List"]);
       expect(wrapper.find("h1").text()).toBe("Test List");
@@ -101,7 +101,7 @@ describe("TodoListView.vue", () => {
         folderId: null,
         lastOpenedAt: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       const wrapper = await mountTodoListView(["Old Title"]);
       // Click rename icon
@@ -126,7 +126,7 @@ describe("TodoListView.vue", () => {
         folderId: null,
         lastOpenedAt: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       const wrapper = await mountTodoListView(["My Tasks"]);
       
@@ -146,7 +146,7 @@ describe("TodoListView.vue", () => {
         folderId: null,
         lastOpenedAt: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       await db.todos.add({
         id: "todo-2",
@@ -156,7 +156,7 @@ describe("TodoListView.vue", () => {
         priority: null,
         dueDate: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       const wrapper = await mountTodoListView(["Toggle Tasks"]);
       
@@ -175,7 +175,7 @@ describe("TodoListView.vue", () => {
         folderId: null,
         lastOpenedAt: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       await db.todos.add({
         id: "todo-3",
@@ -185,7 +185,7 @@ describe("TodoListView.vue", () => {
         priority: null,
         dueDate: null,
         createdAt: 1,
-        updatedAt: 1,
+        updatedAt: 1, isVaulted: false, iv: null,
       });
       const wrapper = await mountTodoListView(["Delete Tasks"]);
       

@@ -25,9 +25,10 @@ describe("Navbar.vue", () => {
     });
 
     const links = wrapper.findAll("a");
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links[0]?.text()).toContain("Home");
     expect(links[1]?.text()).toContain("Files");
+    expect(links[2]?.text()).toContain("Vault");
 
     const menuButton = wrapper.find("button");
     expect(menuButton.text()).toContain("Menu");

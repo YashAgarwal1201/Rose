@@ -27,6 +27,7 @@ import type { Todo, TodoList } from "@/db/types";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
+import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 
 // const MENU_WIDTH_PX = 288;
 // const MENU_OFFSET_PX = 8;
@@ -42,6 +43,7 @@ const { showToast } = useToast();
 const segments = computed(() => pathMatch ?? []);
 
 const currentList = ref<TodoList | undefined>(undefined);
+const isVaultLocked = ref(false);
 const isRenaming = ref(false);
 const renameValue = ref("");
 
@@ -175,11 +177,17 @@ async function loadList() {
 
   currentList.value = match;
   todosStore.touchTodoList(match.id);
+  
+  isVaultLocked.value = false;
   try {
     await todosStore.loadTodos(match.id);
-  } catch (error) {
+  } catch (err: any) {
+    if (err.message === "Vault is locked") {
+      isVaultLocked.value = true;
+      return;
+    }
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(err.message, "error");
     }
   }
 }
@@ -342,7 +350,9 @@ watch(() => pathMatch, loadList);
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <VaultAuthView v-if="isVaultLocked" @unlocked="loadList" />
+  <template v-else>
+    <div class="flex flex-col h-full">
     <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6">
       <div class="flex items-center gap-3 mb-6 group">
         <button
@@ -689,7 +699,8 @@ watch(() => pathMatch, loadList);
             </div>
           </div>
         </div>
-      </Transition>
-    </Teleport>
-  </div>
+        </Transition>
+      </Teleport>
+    </div>
+  </template>
 </template>

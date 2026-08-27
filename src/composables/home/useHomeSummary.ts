@@ -68,11 +68,11 @@ export function useHomeSummary() {
       db.notes.toArray(),
     ]);
 
-    folders.value = folderRows;
-    todoLists.value = listRows;
-    docs.value = docRows;
-    notes.value = noteRows;
-    openTodoCount.value = todoRows.filter((todo) => !todo.done).length;
+    folders.value = folderRows.filter(f => !f.isVaulted);
+    todoLists.value = listRows.filter(l => !l.isVaulted);
+    docs.value = docRows.filter(d => !d.isVaulted);
+    notes.value = noteRows.filter(n => !n.isVaulted);
+    openTodoCount.value = todoRows.filter((todo) => !todo.done && !todo.isVaulted).length;
     isLoaded.value = true;
   }
 
