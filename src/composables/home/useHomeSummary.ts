@@ -68,7 +68,7 @@ export function useHomeSummary() {
       db.notes.toArray(),
     ]);
 
-    folders.value = folderRows.filter(f => !f.isVaulted);
+    folders.value = folderRows.filter(f => !f.isVaulted && f.id !== "vault");
     todoLists.value = listRows.filter(l => !l.isVaulted);
     docs.value = docRows.filter(d => !d.isVaulted);
     notes.value = noteRows.filter(n => !n.isVaulted);

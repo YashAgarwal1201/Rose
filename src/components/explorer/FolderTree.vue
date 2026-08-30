@@ -211,6 +211,7 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
   if (!raw) { return; }
   try {
     const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
+    if (data.id === "vault") { return; }
     emit("moveItem", data.kind, data.id, targetFolderId);
   } catch {
     // ignore

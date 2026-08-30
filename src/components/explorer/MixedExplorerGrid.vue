@@ -10,11 +10,11 @@ import {
   LayoutGridIcon,
   ListIcon,
   ListTodoIcon,
+  LockIcon,
   MoreVerticalIcon,
   PencilIcon,
   PenLineIcon,
   TrashIcon,
-  LockIcon,
   UnlockIcon
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
@@ -292,7 +292,7 @@ function handleMenuRemoveFromVault() {
 const dragOverFolderId = ref<string | null>(null);
 
 function handleDragStart(item: DisplayItem, event: DragEvent) {
-  if (item.isNew || isRenaming(item)) { return; }
+  if (item.isNew || isRenaming(item) || item.id === 'vault') { return; }
   if (!event.dataTransfer) { return; }
   event.dataTransfer.setData(
     "application/json",
@@ -307,7 +307,7 @@ function handleDragStart(item: DisplayItem, event: DragEvent) {
 }
 
 function handleDragOver(targetItem: DisplayItem, event: DragEvent) {
-  if (targetItem.kind !== "folder" || targetItem.isNew) { return; }
+  if (targetItem.kind !== "folder" || targetItem.isNew || targetItem.id === "vault") { return; }
   event.preventDefault();
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
@@ -323,12 +323,13 @@ function handleDragLeave(targetItem: DisplayItem) {
 
 function handleDrop(targetFolder: DisplayItem, event: DragEvent) {
   dragOverFolderId.value = null;
-  if (targetFolder.kind !== "folder" || targetFolder.isNew) { return; }
+  if (targetFolder.kind !== "folder" || targetFolder.isNew || targetFolder.id === "vault") { return; }
   event.preventDefault();
   const raw = event.dataTransfer?.getData("application/json");
   if (!raw) { return; }
   try {
     const data = JSON.parse(raw) as { id: string; kind: ItemKind; name: string; parentId: string | null };
+    if (data.id === "vault") { return; }
     if (data.id === targetFolder.id && data.kind === "folder") { return; }
     emit("moveItem", data.kind, data.id, targetFolder.id);
   } catch {
@@ -385,13 +386,13 @@ defineExpose({ startCreate });
     <!-- Grid view -->
     <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
       role="list">
-      <div v-for="item in displayItems" :key="item.kind + '-' + item.id" :draggable="!item.isNew && !isRenaming(item)"
-        @dragstart="handleDragStart(item, $event)" @dragover="handleDragOver(item, $event)"
-        @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
+      <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
+        :draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault'" @dragstart="handleDragStart(item, $event)"
+        @dragover="handleDragOver(item, $event)" @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         :class="[
           dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
-          item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary shadow-[0_0_10px_rgba(225,29,72,0.1)]' : 'border border-transparent'
+          item.id === 'vault' ? 'bg-rose-primary/5 ' : 'border border-transparent'
         ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
@@ -415,7 +416,7 @@ defineExpose({ startCreate });
           item.name
           }}</span>
 
-        <div v-if="!item.isNew" class="flex items-center gap-1 shrink-0 relative z-10">
+        <div v-if="!item.isNew && item.id !== 'vault'" class="flex items-center gap-1 shrink-0 relative z-10">
           <button type="button" aria-label="More options"
             class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
             @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)">
@@ -438,13 +439,14 @@ defineExpose({ startCreate });
       </div>
 
       <div role="list" class="flex flex-col">
-        <div v-for="item in displayItems" :key="item.kind + '-' + item.id" :draggable="!item.isNew && !isRenaming(item)"
+        <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
+          :draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault'"
           @dragstart="handleDragStart(item, $event)" @dragover="handleDragOver(item, $event)"
           @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
           :class="[
             dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
-            item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.1)]' : 'border border-transparent'
+            item.id === 'vault' ? 'bg-rose-primary/5' : 'border border-transparent'
           ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
           <button v-if="!item.isNew && !isRenaming(item)" type="button"
             class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"

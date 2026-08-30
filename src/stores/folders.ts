@@ -28,8 +28,21 @@ export const useFoldersStore = defineStore("folders", () => {
     }
 
     const vault = await db.folders.get("vault");
-    if (vault && vault.parentId !== null) {
-      await db.folders.update("vault", { parentId: null });
+    if (!vault) {
+      // Fresh DB - seed the vault folder
+      await db.folders.add({
+        id: "vault",
+        name: "Secure Vault",
+        parentId: null,
+        type: "mixed",
+        isVaulted: true,
+        iv: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    } else if (vault.parentId !== null || !vault.isVaulted) {
+      // Repair any corruption: ensure vault is always at root and always isVaulted
+      await db.folders.update("vault", { parentId: null, isVaulted: true });
     }
 
     if (type) {
