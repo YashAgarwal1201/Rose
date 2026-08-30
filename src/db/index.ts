@@ -138,7 +138,7 @@ db.version(9)
     todos: "id, listId, done, isVaulted",
   })
   .upgrade(async (tx) => {
-    const addVaultFields = (item: any) => {
+    const addVaultFields = (item: { isVaulted?: boolean; iv?: string | null }) => {
       item.isVaulted = false;
       item.iv = null;
     };

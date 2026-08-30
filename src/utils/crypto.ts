@@ -1,6 +1,6 @@
 // src/utils/crypto.ts
 
-const ITERATIONS = 100000;
+const ITERATIONS = 100_000;
 const KEY_LENGTH = 256;
 const DIGEST = "SHA-256";
 
@@ -9,8 +9,8 @@ const DIGEST = "SHA-256";
  */
 export function generateSalt(): string {
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  return Array.from(salt)
-    .map((b) => b.toString(16).padStart(2, "0"))
+  return [...salt]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 }
 
@@ -19,8 +19,8 @@ export function generateSalt(): string {
  */
 export function generateIV(): string {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  return Array.from(iv)
-    .map((b) => b.toString(16).padStart(2, "0"))
+  return [...iv]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 }
 
@@ -30,8 +30,8 @@ export function generateIV(): string {
 export async function hashString(text: string): Promise<string> {
   const enc = new TextEncoder();
   const digest = await crypto.subtle.digest(DIGEST, enc.encode(text));
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 }
 
@@ -89,8 +89,8 @@ export async function encryptData(
     enc.encode(plaintext)
   );
 
-  const rawCiphertext = Array.from(new Uint8Array(encryptedBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
+  const rawCiphertext = [...new Uint8Array(encryptedBuffer)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 
   const ciphertext = `${ivHex}:${rawCiphertext}`;
@@ -112,11 +112,11 @@ export async function decryptData(
 
   if (ciphertextString.includes(":")) {
     const parts = ciphertextString.split(":");
-    actualIvHex = parts[0];
-    actualCiphertextHex = parts[1];
+    actualIvHex = parts[0] || "";
+    actualCiphertextHex = parts[1] || "";
   }
 
-  if (!actualIvHex) throw new Error("No IV provided");
+  if (!actualIvHex) {throw new Error("No IV provided");}
 
   const ivBuffer = new Uint8Array(
     actualIvHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16))
@@ -144,8 +144,8 @@ export async function decryptData(
 export function generateRecoveryKey(): string {
   const array = new Uint8Array(8);
   crypto.getRandomValues(array);
-  const hex = Array.from(array)
-    .map((b) => b.toString(16).padStart(2, "0"))
+  const hex = [...array]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("")
     .toUpperCase();
   return `${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}`;
@@ -160,9 +160,9 @@ export async function encryptField<T extends { iv: string | null }>(
   fieldName: keyof T,
 ): Promise<void> {
   const value = item[fieldName];
-  if (typeof value !== "string" || !value) return;
+  if (typeof value !== "string" || !value) {return;}
   const { ciphertext, iv } = await encryptData(key, value);
-  item[fieldName] = ciphertext as any;
+  item[fieldName] = ciphertext as unknown as T[keyof T];
   item.iv = iv;
 }
 
@@ -175,12 +175,12 @@ export async function decryptField<T extends { iv: string | null }>(
   fieldName: keyof T,
 ): Promise<void> {
   const value = item[fieldName];
-  if (typeof value !== "string" || !value || !item.iv) return;
+  if (typeof value !== "string" || !value || !item.iv) {return;}
   try {
     const plaintext = await decryptData(key, value, item.iv);
-    item[fieldName] = plaintext as any;
-  } catch (e) {
-    console.error(`Failed to decrypt field ${String(fieldName)}`);
+    item[fieldName] = plaintext as unknown as T[keyof T];
+  } catch (error) {
+    console.error(`Failed to decrypt field ${String(fieldName)}`, error);
   }
 }
 
@@ -193,9 +193,9 @@ export async function encryptJSONField<T extends { iv: string | null }>(
   fieldName: keyof T,
 ): Promise<void> {
   const value = item[fieldName];
-  if (!value) return;
+  if (!value) {return;}
   const { ciphertext, iv } = await encryptData(key, JSON.stringify(value));
-  item[fieldName] = ciphertext as any;
+  item[fieldName] = ciphertext as unknown as T[keyof T];
   item.iv = iv;
 }
 
@@ -208,12 +208,12 @@ export async function decryptJSONField<T extends { iv: string | null }>(
   fieldName: keyof T,
 ): Promise<void> {
   const value = item[fieldName];
-  if (typeof value !== "string" || !value || !item.iv) return;
+  if (typeof value !== "string" || !value || !item.iv) {return;}
   try {
     const plaintext = await decryptData(key, value, item.iv);
-    item[fieldName] = JSON.parse(plaintext) as any;
-  } catch (e) {
-    console.error(`Failed to decrypt JSON field ${String(fieldName)}`);
+    item[fieldName] = JSON.parse(plaintext) as unknown as T[keyof T];
+  } catch (error) {
+    console.error(`Failed to decrypt JSON field ${String(fieldName)}`, error);
   }
 }
 

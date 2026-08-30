@@ -21,6 +21,7 @@ import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import { type ToolbarPosition, useToolbarPosition } from "@/composables/ui/useToolbarPosition.ts";
+import { getErrorMessage } from "@/utils/error";
 
 const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
 
@@ -90,9 +91,10 @@ async function loadNote() {
   const token = ++activeLoadToken;
   try {
     await foldersStore.loadFolders("note");
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error:", error);
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(getErrorMessage(error), "error");
     }
     return;
   }
@@ -116,9 +118,10 @@ async function loadNote() {
 
   try {
     await notesStore.loadNotes();
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error:", error);
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(getErrorMessage(error), "error");
     }
     return;
   }
@@ -139,16 +142,17 @@ async function loadNote() {
   isVaultLocked.value = false;
   try {
     const fullNote = await notesStore.getNote(match.id);
-    if (!fullNote) throw new Error("Note not found in db");
+    if (!fullNote) { throw new Error("Note not found in db"); }
     currentNote.value = fullNote;
     notesStore.touchNote(fullNote.id);
-  } catch (err: any) {
-    if (err.message === "Vault is locked") {
+  } catch (error: unknown) {
+    console.error("loadNote Error:", error);
+    if (getErrorMessage(error) === "Vault is locked") {
       isVaultLocked.value = true;
       return;
     }
     if (token === activeLoadToken) {
-      showToast(err.message, "error");
+      showToast(getErrorMessage(error), "error");
     }
   }
 }
@@ -186,8 +190,9 @@ async function confirmRenameTitle() {
           params: { pathMatch: [...buildFolderPath(updated.folderId), updated.title] },
         });
       }
-    } catch (error) {
-      showToast((error as Error).message, "error");
+    } catch (error: unknown) {
+      console.error("Error:", error);
+      showToast(getErrorMessage(error), "error");
     }
   }
   isRenaming.value = false;
@@ -219,8 +224,8 @@ watch(() => pathMatch, loadNote);
     <template v-else-if="currentNote">
       <Teleport to="body">
         <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-          enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
-          leave-to-class="opacity-0">
+          enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200"
+          leave-from-class="opacity-100" leave-to-class="opacity-0">
           <div v-if="isInfoOpen" role="dialog" aria-modal="true" aria-labelledby="info-dialog-title"
             class="fixed inset-0 z-210 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
             @click.self="isInfoOpen = false" @keydown.escape="isInfoOpen = false">
@@ -237,11 +242,13 @@ watch(() => pathMatch, loadNote);
               <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
                   <dt class="text-rose-text-muted">Created</dt>
-                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.createdAt ?? 0).toLocaleString() }}</dd>
+                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.createdAt ?? 0).toLocaleString() }}
+                  </dd>
                 </div>
                 <div class="flex justify-between">
                   <dt class="text-rose-text-muted">Last modified</dt>
-                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.updatedAt ?? 0).toLocaleString() }}</dd>
+                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.updatedAt ?? 0).toLocaleString() }}
+                  </dd>
                 </div>
                 <div class="flex justify-between">
                   <dt class="text-rose-text-muted">Estimated size</dt>

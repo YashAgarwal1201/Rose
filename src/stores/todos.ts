@@ -189,7 +189,7 @@ export const useTodosStore = defineStore("todos", () => {
     if (todoRecord?.isVaulted && sanitized.title) {
       const vault = useVaultStore();
       if (!vault.derivedKey) throw new Error("Vault is locked");
-      await encryptField(vault.derivedKey, sanitized as any, "title");
+      await encryptField(vault.derivedKey, sanitized as Partial<Todo> & { iv: string | null }, "title");
     }
     await db.todos.update(id, sanitized);
     await useActivityStore().record("todo_updated", id);

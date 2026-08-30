@@ -27,6 +27,11 @@ export const useFoldersStore = defineStore("folders", () => {
       migrated = true;
     }
 
+    const vault = await db.folders.get("vault");
+    if (vault && vault.parentId !== null) {
+      await db.folders.update("vault", { parentId: null });
+    }
+
     if (type) {
       const allFolders = await db.folders.toArray();
       folders.value = allFolders.filter(f => f.type === type || f.type === "mixed");
@@ -102,6 +107,9 @@ export const useFoldersStore = defineStore("folders", () => {
   }
 
   async function renameFolder(id: string, name: string) {
+    if (id === "vault") {
+      throw new Error("Secure Vault cannot be renamed.");
+    }
     const trimmed = name.trim();
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
@@ -136,6 +144,9 @@ export const useFoldersStore = defineStore("folders", () => {
   }
 
   async function deleteFolder(id: string) {
+    if (id === "vault") {
+      throw new Error("Secure Vault cannot be deleted.");
+    }
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
       return;
@@ -175,6 +186,9 @@ export const useFoldersStore = defineStore("folders", () => {
   }
 
   async function moveFolder(id: string, newParentId: string | null, newName?: string) {
+    if (id === "vault") {
+      throw new Error("Secure Vault cannot be moved.");
+    }
     if (newParentId !== null) {
       if (newParentId === id || isDescendantOf(newParentId, id)) {
         throw new Error("Cannot move a folder into itself or one of its own subfolders.");

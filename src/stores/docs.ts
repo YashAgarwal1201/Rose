@@ -76,7 +76,7 @@ export const useDocsStore = defineStore("docs", () => {
     if (doc?.isVaulted && "contentJSON" in sanitized && sanitized.contentJSON) {
       const vault = useVaultStore();
       if (!vault.derivedKey) throw new Error("Vault is locked");
-      await encryptJSONField(vault.derivedKey, sanitized as any, "contentJSON");
+      await encryptJSONField(vault.derivedKey, sanitized as Partial<Doc> & { iv: string | null }, "contentJSON");
     }
     await db.docs.update(id, sanitized);
     if ("contentJSON" in changes) {
@@ -121,7 +121,7 @@ export const useDocsStore = defineStore("docs", () => {
       newIsVaulted = parent?.isVaulted ?? false;
     }
 
-    const updatePayload: any = { 
+    const updatePayload: Partial<Doc> = { 
       folderId: newFolderId, 
       title: titleToUse, 
       updatedAt: Date.now(),

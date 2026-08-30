@@ -57,12 +57,12 @@ export const useNotesStore = defineStore("notes", () => {
 
   async function getNote(id: string): Promise<Note | undefined> {
     const note = await db.notes.get(id);
-    if (!note) return;
+    if (!note) {return;}
     if (note.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
-      if (note.canvasJSON) await decryptJSONField(vault.derivedKey, note, "canvasJSON");
-      if (note.thumbnail) await decryptField(vault.derivedKey, note, "thumbnail");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (note.canvasJSON) {await decryptJSONField(vault.derivedKey, note, "canvasJSON");}
+      if (note.thumbnail) {await decryptField(vault.derivedKey, note, "thumbnail");}
     }
     return note;
   }
@@ -80,20 +80,16 @@ export const useNotesStore = defineStore("notes", () => {
     if ("canvasJSON" in changes) {
       sanitized.canvasJSON = changes.canvasJSON ? structuredClone(changes.canvasJSON) : null;
     }
-    
+
     const note = await db.notes.get(id);
     if (note?.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       if ("canvasJSON" in sanitized && sanitized.canvasJSON) {
-        await encryptJSONField(vault.derivedKey, sanitized as any, "canvasJSON");
+        await encryptJSONField(vault.derivedKey, sanitized as Partial<Note> & { iv: string | null }, "canvasJSON");
       }
       if ("thumbnail" in sanitized && sanitized.thumbnail) {
-        await encryptField(vault.derivedKey, sanitized as any, "thumbnail");
-      }
-      // Ensure IV is saved if we generated a new one during encryption
-      if ((sanitized as any).iv) {
-        sanitized.iv = (sanitized as any).iv;
+        await encryptField(vault.derivedKey, sanitized as Partial<Note> & { iv: string | null }, "thumbnail");
       }
     }
 
@@ -140,18 +136,18 @@ export const useNotesStore = defineStore("notes", () => {
       newIsVaulted = parent?.isVaulted ?? false;
     }
 
-    const updatePayload: any = { 
-      folderId: newFolderId, 
-      title: titleToUse, 
+    const updatePayload: Partial<Note> = {
+      folderId: newFolderId,
+      title: titleToUse,
       updatedAt: Date.now(),
-      isVaulted: newIsVaulted 
+      isVaulted: newIsVaulted
     };
 
     const dbNote = await db.notes.get(id);
     if (dbNote && dbNote.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
-      
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+
       if (newIsVaulted) {
         if (dbNote.canvasJSON) {
           await encryptJSONField(vault.derivedKey, dbNote, "canvasJSON");

@@ -385,27 +385,24 @@ defineExpose({ startCreate });
     <!-- Grid view -->
     <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
       role="list">
-      <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
-        :draggable="!item.isNew && !isRenaming(item)"
-        @dragstart="handleDragStart(item, $event)"
-        @dragover="handleDragOver(item, $event)"
-        @dragleave="handleDragLeave(item)"
-        @drop="handleDrop(item, $event)"
+      <div v-for="item in displayItems" :key="item.kind + '-' + item.id" :draggable="!item.isNew && !isRenaming(item)"
+        @dragstart="handleDragStart(item, $event)" @dragover="handleDragOver(item, $event)"
+        @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         :class="[
           dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
-          item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary/30 shadow-[0_0_10px_rgba(225,29,72,0.1)]' : 'border border-transparent'
-        ]"
-        role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
+          item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary shadow-[0_0_10px_rgba(225,29,72,0.1)]' : 'border border-transparent'
+        ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
           :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
 
-        <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')" :src="item.thumbnail"
+        <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
+          :src="item.thumbnail"
           class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
           alt="" />
-        <component v-else :is="itemIcon(item.kind, item.id)" class="w-12 h-12 shrink-0 relative z-10 pointer-events-none"
-          :class="itemIconClass(item.kind)" />
+        <component v-else :is="itemIcon(item.kind, item.id)"
+          class="w-12 h-12 shrink-0 relative z-10 pointer-events-none" :class="itemIconClass(item.kind)" />
 
         <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus aria-label="New item name"
           :placeholder="typeLabel(item.kind) + ' name'"
@@ -416,7 +413,7 @@ defineExpose({ startCreate });
           @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
         <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
           item.name
-        }}</span>
+          }}</span>
 
         <div v-if="!item.isNew" class="flex items-center gap-1 shrink-0 relative z-10">
           <button type="button" aria-label="More options"
@@ -441,26 +438,23 @@ defineExpose({ startCreate });
       </div>
 
       <div role="list" class="flex flex-col">
-        <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
-          :draggable="!item.isNew && !isRenaming(item)"
-          @dragstart="handleDragStart(item, $event)"
-          @dragover="handleDragOver(item, $event)"
-          @dragleave="handleDragLeave(item)"
-          @drop="handleDrop(item, $event)"
+        <div v-for="item in displayItems" :key="item.kind + '-' + item.id" :draggable="!item.isNew && !isRenaming(item)"
+          @dragstart="handleDragStart(item, $event)" @dragover="handleDragOver(item, $event)"
+          @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
           :class="[
             dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
             item.id === 'vault' ? 'bg-rose-primary/5 border border-rose-primary/30 shadow-[0_0_8px_rgba(225,29,72,0.1)]' : 'border border-transparent'
-          ]"
-          role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
+          ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
           <button v-if="!item.isNew && !isRenaming(item)" type="button"
             class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
             :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
 
-          <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')" :src="item.thumbnail"
-            class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none" alt="" />
-          <component v-else :is="itemIcon(item.kind, item.id)" class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
-            :class="itemIconClass(item.kind)" />
+          <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
+            :src="item.thumbnail" class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
+            alt="" />
+          <component v-else :is="itemIcon(item.kind, item.id)"
+            class="w-5 h-5 shrink-0 relative z-10 pointer-events-none" :class="itemIconClass(item.kind)" />
 
           <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus
             aria-label="New item name" :placeholder="typeLabel(item.kind) + ' name'"
@@ -474,7 +468,7 @@ defineExpose({ startCreate });
             <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 flex items-center gap-1">
               <span>{{ typeLabel(item.kind) }}</span>
               <template v-if="item.itemCount !== undefined"> &bull; <span>{{ item.itemCount }} item{{ item.itemCount ===
-                  1 ? '' : 's' }}</span></template>
+                1 ? '' : 's' }}</span></template>
               <template v-if="item.createdAt"> &bull; <span>{{ formatRelativeTime(item.createdAt) }}</span></template>
             </span>
           </div>
@@ -541,4 +535,3 @@ defineExpose({ startCreate });
     </button>
   </ContextMenu>
 </template>
-

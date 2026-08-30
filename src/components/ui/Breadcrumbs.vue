@@ -8,7 +8,7 @@ import type { Crumb } from "@/types/explorer";
 defineProps<{ crumbs: Crumb[] }>();
 const emit = defineEmits<{
   navigate: [id: string | null];
-  moveItem: [kind: any, id: string, targetFolderId: string | null];
+  moveItem: [kind: "folder" | "doc" | "note" | "todo", id: string, targetFolderId: string | null];
 }>();
 
 const dragOverCrumbId = ref<string | null | undefined>(undefined);
@@ -33,7 +33,7 @@ function handleDrop(targetFolderId: string | null, event: DragEvent) {
   const raw = event.dataTransfer?.getData("application/json");
   if (!raw) { return; }
   try {
-    const data = JSON.parse(raw) as { id: string; kind: any; name: string };
+    const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
     emit("moveItem", data.kind, data.id, targetFolderId);
   } catch {
     // ignore
