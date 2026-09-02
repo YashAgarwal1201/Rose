@@ -170,6 +170,8 @@ async function mountDocView(pathMatch: string[] = []) {
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
+  await new Promise(resolve => setTimeout(resolve, 50));
+  await flushPromises();
   return { wrapper, router };
 }
 
@@ -203,6 +205,8 @@ describe("DocView", () => {
         type: "doc",
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { router } = await mountDocView(["Notes", "MissingDoc"]);
       expect(router.currentRoute.value.name).toBe("files-folder");
@@ -222,6 +226,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["My Doc"]);
       expect(wrapper.find("h1").text()).toBe("My Doc");
@@ -236,6 +242,8 @@ describe("DocView", () => {
         type: "doc",
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       await db.docs.add({
         id: "doc-nested-2",
@@ -245,6 +253,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Work", "Nested Doc"]);
       expect(wrapper.find("h1").text()).toBe("Nested Doc");
@@ -261,6 +271,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       await mountDocView(["Content Doc"]);
       expect(fakeEditor.commands.setContent).toHaveBeenCalledWith(content, { emitUpdate: false });
@@ -276,8 +288,11 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Editor Doc"]);
+      console.log("Wrapper HTML:", wrapper.html());
       expect(wrapper.find("[data-testid='editor-content']").exists()).toBeTruthy();
     });
   });
@@ -293,6 +308,8 @@ describe("DocView", () => {
         type: "doc",
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       await db.docs.add({
         id: "doc-5",
@@ -302,6 +319,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper, router } = await mountDocView(["Personal", "Back Doc"]);
       await wrapper.find("button").trigger("click");
@@ -323,6 +342,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Rename Me"]);
       const pencilBtn = wrapper.findAll("button")[1];
@@ -342,6 +363,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Old Title"]);
       const pencilBtn = wrapper.findAll("button")[1];
@@ -365,6 +388,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Untouched Title"]);
       const pencilBtn = wrapper.findAll("button")[1];
@@ -390,6 +415,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: Date.now(),
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Timestamp Doc"]);
       expect(wrapper.text()).toContain("Saved");
@@ -405,6 +432,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Toolbar Doc"]);
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBeTruthy();
@@ -423,6 +452,8 @@ describe("DocView", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const { wrapper } = await mountDocView(["Unmount Doc"]);
       wrapper.unmount();

@@ -8,12 +8,14 @@ import type { Crumb } from "@/types/explorer";
 defineProps<{ crumbs: Crumb[] }>();
 const emit = defineEmits<{
   navigate: [id: string | null];
-  moveItem: [kind: any, id: string, targetFolderId: string | null];
+  moveItem: [kind: "folder" | "doc" | "note" | "todo", id: string, targetFolderId: string | null];
 }>();
 
 const dragOverCrumbId = ref<string | null | undefined>(undefined);
 
 function handleDragOver(crumbId: string | null, event: DragEvent) {
+  // Prevent dropping onto the vault crumb (use "Move to Secure Vault" context menu instead)
+  if (crumbId === "vault") { return; }
   event.preventDefault();
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
@@ -29,11 +31,14 @@ function handleDragLeave(crumbId: string | null) {
 
 function handleDrop(targetFolderId: string | null, event: DragEvent) {
   dragOverCrumbId.value = undefined;
+  // Prevent dropping onto the vault folder (use "Move to Secure Vault" context menu instead)
+  if (targetFolderId === "vault") { return; }
   event.preventDefault();
   const raw = event.dataTransfer?.getData("application/json");
   if (!raw) { return; }
   try {
-    const data = JSON.parse(raw) as { id: string; kind: any; name: string };
+    const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
+    if (data.id === "vault") { return; }
     emit("moveItem", data.kind, data.id, targetFolderId);
   } catch {
     // ignore

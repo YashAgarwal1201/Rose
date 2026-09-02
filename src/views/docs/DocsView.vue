@@ -7,6 +7,7 @@ import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 import { useDocsStore } from "@/stores/docs";
 import { useFoldersStore } from "@/stores/folders";
 import { useToast } from "@/composables/ui/useToast.ts";
+import { getErrorMessage } from "@/utils/error";
 
 const router = useRouter();
 const docsStore = useDocsStore();
@@ -18,8 +19,9 @@ const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
 async function loadDocs() {
   try {
     await docsStore.loadDocs();
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -52,16 +54,18 @@ async function handleRenameFile(id: string, name: string) {
   try {
     await docsStore.updateDoc(id, { title: name.trim() || "Untitled" });
     await docsStore.loadDocs();
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
 async function handleDeleteFile(id: string) {
   try {
     await docsStore.deleteDoc(id);
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 

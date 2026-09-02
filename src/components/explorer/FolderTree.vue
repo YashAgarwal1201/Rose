@@ -1,11 +1,12 @@
 <!-- src/components/FolderTree.vue -->
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
-import { ChevronDownIcon, ChevronRightIcon, FolderIcon, PlusIcon, XIcon } from "@lucide/vue";
+import { ChevronDownIcon, ChevronRightIcon, FolderIcon, LockIcon, PlusIcon, XIcon } from "@lucide/vue";
 import { useFoldersStore } from "@/stores/folders";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import { useToast } from "@/composables/ui/useToast.ts";
 import type { FeatureType } from "@/db/types";
+import { getErrorMessage } from "@/utils/error";
 
 const { type, activeFolderId } = defineProps<{
   type?: FeatureType;
@@ -14,7 +15,7 @@ const { type, activeFolderId } = defineProps<{
 
 const emit = defineEmits<{
   select: [folderId: string | null];
-  moveItem: [kind: any, id: string, targetFolderId: string | null];
+  moveItem: [kind: "folder" | "doc" | "note" | "todo", id: string, targetFolderId: string | null];
 }>();
 
 
@@ -55,6 +56,7 @@ const visibleNodes = computed<TreeNode[]>(() => {
   function walk(parentId: string | null, depth: number) {
     const children = foldersStore.folders
       .filter((folder) => folder.parentId === parentId && (!type || folder.type === type || folder.type === "mixed"))
+      .filter((folder) => folder.id !== "vault")
       .toSorted((folderA, folderB) => folderA.name.localeCompare(folderB.name));
     for (const folder of children) {
       nodes.push({ depth, id: folder.id, name: folder.name });
@@ -160,8 +162,9 @@ async function confirmCreate() {
         expanded.value = new Set(expanded.value).add(creatingParentId.value);
       }
       showToast(`Created folder "${name}"`, "success");
-    } catch (error) {
-      showToast((error as Error).message, "error");
+    } catch (error: unknown) {
+      console.error("Error:", error);
+      showToast(getErrorMessage(error), "error");
     }
   }
   creatingParentId.value = undefined;
@@ -207,7 +210,8 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
   const raw = event.dataTransfer?.getData("application/json");
   if (!raw) { return; }
   try {
-    const data = JSON.parse(raw) as { id: string; kind: any; name: string };
+    const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
+    if (data.id === "vault") { return; }
     emit("moveItem", data.kind, data.id, targetFolderId);
   } catch {
     // ignore
@@ -221,15 +225,13 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
         :aria-level="node.depth + 1" :aria-selected="node.id === activeFolderId"
         :aria-expanded="hasChildren(node.id) ? expanded.has(node.id) : undefined"
         :tabindex="node.id === (focusedNodeId || visibleNodes[0]?.id) ? 0 : -1"
-        @dragover="handleDragOver(node.id, $event)"
-        @dragleave="handleDragLeave(node.id)"
+        @dragover="handleDragOver(node.id, $event)" @dragleave="handleDragLeave(node.id)"
         @drop="handleDrop(node.id, $event)"
         class="rounded relative outline-none focus-visible:ring-2 focus-visible:ring-rose-primary cursor-pointer select-none"
         :class="[
           node.id === activeFolderId ? 'bg-rose-surface-alt' : '',
           dragOverNodeId === node.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''
-        ]" @click="emit('select', node.id)"
-        @keydown="handleTreeKeydown($event, node.id)">
+        ]" @click="emit('select', node.id)" @keydown="handleTreeKeydown($event, node.id)">
 
         <div class="flex items-center gap-1 px-2 py-1.5 group"
           :style="{ paddingLeft: `${0.5 + node.depth * 1.25}rem` }">
@@ -241,9 +243,11 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
           </button>
           <span v-else class="w-4 h-4 shrink-0 relative z-10"></span>
 
-          <FolderIcon class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
+          <LockIcon v-if="node.id === 'vault'"
+            class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
+          <FolderIcon v-else class="w-4 h-4 text-rose-primary shrink-0 relative z-10 pointer-events-none" />
           <span class="text-base text-rose-text truncate flex-1 relative z-10 pointer-events-none">{{ node.name
-            }}</span>
+          }}</span>
 
           <button type="button" tabindex="-1"
             class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"
@@ -251,7 +255,7 @@ function handleDrop(targetFolderId: string, event: DragEvent) {
             title="New subfolder" aria-label="New subfolder" @click.stop="startCreating(node.id)">
             <PlusIcon class="w-4 h-4" />
           </button>
-          <button type="button" tabindex="-1"
+          <button v-if="node.id !== 'vault'" type="button" tabindex="-1"
             class="opacity-100 text-rose-text-muted hover:text-rose-primary shrink-0 relative z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded transition-opacity"
             :class="node.id === activeFolderId ? 'opacity-100!' : '[@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100'"
             title="Delete folder" aria-label="Delete folder" @click.stop="handleDelete(node.id, node.name, $event)">

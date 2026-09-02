@@ -13,6 +13,8 @@ export interface Folder {
   name: string;
   parentId: string | null;
   type: FeatureType | "mixed";
+  isVaulted: boolean;
+  iv: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -21,6 +23,8 @@ export interface TodoList {
   id: string;
   folderId: string | null;
   name: string;
+  isVaulted: boolean;
+  iv: string | null;
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
@@ -33,6 +37,8 @@ export interface Todo {
   done: boolean;
   priority: "low" | "medium" | "high" | null;
   dueDate: number | null;
+  isVaulted: boolean;
+  iv: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -42,6 +48,8 @@ export interface Doc {
   folderId: string | null;
   title: string;
   contentJSON: Record<string, unknown> | null; // TipTap JSON output
+  isVaulted: boolean;
+  iv: string | null;
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
@@ -53,6 +61,9 @@ export interface AppSettings {
   onboardingCompleted: boolean;
   onboardingStep: number;
   showActivityChart?: boolean;
+  vaultPinSalt?: string | null;
+  vaultPinHash?: string | null;
+  vaultRecoveryHash?: string | null;
   createdAt: number;
 }
 
@@ -82,6 +93,8 @@ export interface Note {
   backgroundColor: string; // page background, independent of pen color
   backgroundPattern: BackgroundPattern;
   thumbnail: string | null; // Data URL for the grid previewcard
+  isVaulted: boolean;
+  iv: string | null;
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;

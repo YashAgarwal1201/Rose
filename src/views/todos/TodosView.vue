@@ -7,6 +7,7 @@ import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 import { useTodosStore } from "@/stores/todos";
 import { useFoldersStore } from "@/stores/folders";
 import { useToast } from "@/composables/ui/useToast.ts";
+import { getErrorMessage } from "@/utils/error";
 
 const router = useRouter();
 const todosStore = useTodosStore();
@@ -29,8 +30,9 @@ async function loadLists() {
   try {
     await todosStore.loadTodoLists();
     await loadListItemCounts();
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -62,8 +64,9 @@ function openList(id: string) {
 async function handleRenameFile(id: string, name: string) {
   try {
     await todosStore.renameTodoList(id, name);
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -71,8 +74,9 @@ async function handleDeleteFile(id: string) {
   try {
     await todosStore.deleteTodoList(id);
     await loadListItemCounts();
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 

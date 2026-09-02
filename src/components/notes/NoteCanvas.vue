@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts"
 import { useToast } from "@/composables/ui/useToast.ts";
 import { TOAST_AUTO_DISMISS_MS } from "@/utils/constants";
 import type { BackgroundPattern } from "@/db/types";
+import { getErrorMessage } from "@/utils/error";
 
 // const props = withDefaults(
 //   defineProps<{
@@ -215,8 +216,9 @@ async function handleImageSelected(event: Event) {
   if (file) {
     try {
       await addImage(file);
-    } catch (error) {
-      showToast((error as Error).message, "error");
+    } catch (error: unknown) {
+    console.error("Error:", error);
+      showToast(getErrorMessage(error), "error");
     }
   }
   input.value = "";

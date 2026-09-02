@@ -264,6 +264,55 @@ describe("foldersStore", () => {
       const folderIdToMove = await store.createFolder("TargetName", null, "todo");
       await expect(store.moveFolder(folderIdToMove, parentId)).rejects.toThrow("already exists");
     });
+
+    it("throws when attempting to move, rename, or delete the vault folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      // Don't pre-add vault - loadFolders auto-seeds it now
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const targetId = await store.createFolder("Target", null, "todo");
+      await expect(store.moveFolder("vault", targetId)).rejects.toThrow("Secure Vault cannot be moved.");
+      await expect(store.renameFolder("vault", "New Vault Name")).rejects.toThrow("Secure Vault cannot be renamed.");
+      await expect(store.deleteFolder("vault")).rejects.toThrow("Secure Vault cannot be deleted.");
+    });
+
+    it("seeds the vault folder automatically on fresh DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const vaultInDb = await db.folders.get("vault");
+      expect(vaultInDb).toBeTruthy();
+      expect(vaultInDb?.parentId).toBeNull();
+      expect(vaultInDb?.isVaulted).toBe(true);
+    });
+
+    it("auto-repairs vault parentId and isVaulted if corrupted in DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      await db.folders.add({
+        id: "vault",
+        name: "Secure Vault",
+        parentId: "some-corrupted-parent-id",
+        type: "mixed",
+        isVaulted: false, // simulates vault being moved to a non-vaulted folder
+        iv: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const vaultInDb = await db.folders.get("vault");
+      expect(vaultInDb?.parentId).toBeNull();
+      expect(vaultInDb?.isVaulted).toBe(true);
+    });
   });
 });
 

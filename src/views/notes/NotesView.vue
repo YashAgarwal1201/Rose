@@ -7,6 +7,7 @@ import ExplorerGrid from "@/components/explorer/ExplorerGrid.vue";
 import { useNotesStore } from "@/stores/notes";
 import { useFoldersStore } from "@/stores/folders";
 import { useToast } from "@/composables/ui/useToast.ts";
+import { getErrorMessage } from "@/utils/error";
 
 const router = useRouter();
 const notesStore = useNotesStore();
@@ -18,8 +19,9 @@ const explorerGridRef = ref<InstanceType<typeof ExplorerGrid> | null>(null);
 async function loadNotes() {
   try {
     await notesStore.loadNotes();
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -51,16 +53,18 @@ function openNote(id: string) {
 async function handleRenameFile(id: string, name: string) {
   try {
     await notesStore.updateNote(id, { title: name });
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
 async function handleDeleteFile(id: string) {
   try {
     await notesStore.deleteNote(id);
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
