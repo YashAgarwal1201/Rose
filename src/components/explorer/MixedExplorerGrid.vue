@@ -395,7 +395,7 @@ defineExpose({ startCreate });
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         :class="[
           dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
-          item.id === 'vault' ? 'bg-rose-primary/5 ' : 'border border-transparent'
+          item.id === 'vault' ? 'bg-rose-primary/5 justify-center' : 'border border-transparent'
         ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
@@ -417,7 +417,7 @@ defineExpose({ startCreate });
           @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
         <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
           item.name
-        }}</span>
+          }}</span>
 
         <div v-if="!item.isNew && item.id !== 'vault'" class="flex items-center gap-1 shrink-0 relative z-10">
           <button type="button" aria-label="More options"
