@@ -32,7 +32,7 @@ describe("SettingsSwitch.vue", () => {
 
     const button = wrapper.find("button");
     expect(button.attributes("aria-checked")).toBe("true");
-    expect(button.classes()).toContain("bg-rose-green");
+    expect(button.classes()).toContain("bg-rose-primary");
     expect(wrapper.find("span").classes()).toContain("translate-x-5");
   });
 });
