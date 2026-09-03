@@ -23,14 +23,14 @@ import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import { type ToolbarPosition, useToolbarPosition } from "@/composables/ui/useToolbarPosition.ts";
 import { getErrorMessage } from "@/utils/error";
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 const currentNote = ref<Note | undefined>(undefined);
 const isVaultLocked = ref(false);
 const isRenaming = ref(false);

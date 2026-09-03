@@ -9,7 +9,7 @@
       </button>
       <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
     </div>
-    <p class="text-sm sm:text-base text-rose-cream mt-1">
+    <p class="text-sm sm:text-base text-rose-text-muted mt-1">
       Manage your profile, enabled features, and app data.
     </p>
 

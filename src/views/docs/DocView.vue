@@ -48,7 +48,7 @@ const AUTOSAVE_DELAY_MS = 600;
 const MAX_TABLE_ROWS = 20;
 const MAX_TABLE_COLS = 10;
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const docsStore = useDocsStore();
@@ -56,7 +56,7 @@ const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 const { requestInput } = useInput();
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 const currentDoc = ref<Doc | undefined>(undefined);
 const isVaultLocked = ref(false);

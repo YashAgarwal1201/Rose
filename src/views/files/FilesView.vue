@@ -24,7 +24,7 @@ import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts"
 import { useVaultStore } from "@/stores/vault";
 import { getErrorMessage } from "@/utils/error";
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const foldersStore = useFoldersStore();
@@ -41,7 +41,7 @@ let activeLoadToken = 0;
 
 const filterMode = ref<"all" | "doc" | "note" | "todo">("all");
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;

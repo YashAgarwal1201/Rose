@@ -1,11 +1,7 @@
 <!-- src/components/onboarding/PrivacyStep.vue -->
 <template>
   <div>
-    <div
-      class="mx-auto mb-6 w-16 h-16 rounded-2xl bg-rose-primary/10 flex items-center justify-center"
-    >
-      <ShieldCheckIcon :size="28" class="text-rose-primary" />
-    </div>
+    <img :src="PrivacyIllustration" alt="Privacy" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
     <h2 class="text-xl font-semibold text-rose-text text-center">Your data stays with you</h2>
     <ul class="mt-5 space-y-3 text-sm text-rose-text-muted">
       <li class="flex gap-2.5">
@@ -33,5 +29,6 @@
 </template>
 
 <script setup lang="ts">
-import { CheckIcon, ShieldCheckIcon } from "@lucide/vue";
+import { CheckIcon } from "@lucide/vue";
+import PrivacyIllustration from "@/assets/illustrations/privacy-step.svg";
 </script>

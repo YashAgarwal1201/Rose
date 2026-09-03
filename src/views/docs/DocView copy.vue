@@ -51,14 +51,14 @@ import { getErrorMessage } from "@/utils/error";
 
 const AUTOSAVE_DELAY_MS = 600;
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const docsStore = useDocsStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 const MAX_TABLE_ROWS = 20;
 const MAX_TABLE_COLS = 10;

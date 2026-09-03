@@ -22,6 +22,7 @@ import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import EmptyIllustration from "@/assets/illustrations/not-found2.svg";
 
 export type ItemKind = "folder" | "doc" | "note" | "todo";
 
@@ -379,8 +380,10 @@ defineExpose({ startCreate });
       </div>
     </div>
 
-    <div v-if="isEmpty" class="text-base text-rose-text-muted italic py-8 text-center">
-      This folder is empty.
+    <div v-if="isEmpty" class="flex flex-col items-center justify-center min-h-[50vh] text-center">
+      <img :src="EmptyIllustration" alt="Empty folder"
+        class="w-52 md:w-64 h-auto mb-6 opacity-70 select-none pointer-events-none" />
+      <p class="text-base text-rose-text-muted italic">This folder is empty.</p>
     </div>
 
     <!-- Grid view -->
@@ -392,7 +395,7 @@ defineExpose({ startCreate });
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         :class="[
           dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
-          item.id === 'vault' ? 'bg-rose-primary/5 ' : 'border border-transparent'
+          item.id === 'vault' ? 'bg-rose-primary/5 justify-center' : 'border border-transparent'
         ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
         <button v-if="!item.isNew && !isRenaming(item)" type="button"
           class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"

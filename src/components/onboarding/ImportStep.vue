@@ -1,9 +1,7 @@
 <!-- src/components/onboarding/ImportStep.vue -->
 <template>
   <div>
-    <div class="mx-auto mb-6 w-16 h-16 rounded-2xl bg-rose-primary/10 flex items-center justify-center">
-      <UploadIcon :size="28" class="text-rose-primary" />
-    </div>
+    <img :src="ImportIllustration" alt="Import Data" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
     <h2 class="text-xl font-semibold text-rose-text text-center">
       Restore from backup
     </h2>
@@ -122,8 +120,8 @@ import {
   AlertCircleIcon,
   AlertTriangleIcon,
   FileIcon,
-  UploadIcon,
 } from "@lucide/vue";
+import ImportIllustration from "@/assets/illustrations/import-data-step.svg";
 import {
   type ImportMode,
   type ImportOptions,

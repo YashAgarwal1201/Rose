@@ -32,26 +32,25 @@
       </div>
 
       <div v-else-if="query.trim() && summary.isLoaded.value"
-        class="absolute z-10 mt-2 w-full rounded-xl bg-rose-surface border border-rose-border shadow-xl px-4 py-3 text-sm text-rose-text-muted">
-        No matches for "{{ query.trim() }}"
+        class="absolute z-10 mt-2 w-full rounded-xl bg-rose-surface border border-rose-border shadow-xl px-4 py-8 flex flex-col items-center justify-center text-center">
+        <img :src="NoFileFoundIllustration" alt="No matches" class="w-24 h-auto mb-3 opacity-80 select-none pointer-events-none" />
+        <span class="text-sm text-rose-text-muted">No matches for "{{ query.trim() }}"</span>
       </div>
     </div>
 
     <!-- Empty state: nothing created anywhere yet -->
-    <div v-if="summary.isEmpty.value" class="m-auto flex flex-col items-center justify-center pb-20 text-center">
-      <div class="mb-4 w-14 h-14 rounded-2xl bg-rose-primary/10 flex items-center justify-center">
-        <SparklesIcon :size="24" class="text-rose-primary" />
-      </div>
+    <div v-if="summary.isEmpty.value" class="flex-1 flex flex-col items-center justify-center pb-0 text-center">
+      <img :src="NoDataIllustration" alt="No data yet"
+        class="w-52 md:w-64 h-auto mb-6 opacity-80 select-none pointer-events-none" />
       <h2 class="text-xl font-semibold text-rose-text">Nothing here yet</h2>
       <p class="text-sm text-rose-text-muted mt-1">
         Head over to your files to create your first folder or document.
       </p>
       <div class="mt-6">
-        <button
-          @click="router.push({ name: 'files-folder', params: { pathMatch: '' } })"
-          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-primary text-white text-sm font-medium rounded-lg hover:bg-rose-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-primary"
-        >
+        <button @click="router.push({ name: 'files-folder', params: { pathMatch: '' } })"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-primary text-white text-sm font-medium rounded-lg hover:bg-rose-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-primary">
           Go to Files
+          <ArrowRight :size="16" />
         </button>
       </div>
     </div>
@@ -85,11 +84,8 @@
       <HomeRecentScroller title="Recent notes" :items="summary.recentNotes.value" @open="openItem" />
 
       <HomeActivityCard v-if="settingsStore.showActivityChart" />
-      <HomeStatsWidget
-        :list-count="summary.listCount.value"
-        :note-count="summary.noteCount.value"
-        :doc-count="summary.docCount.value"
-      />
+      <HomeStatsWidget :list-count="summary.listCount.value" :note-count="summary.noteCount.value"
+        :doc-count="summary.docCount.value" />
     </template>
   </div>
 </template>
@@ -97,9 +93,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, SparklesIcon, XIcon } from "@lucide/vue";
+import { ArrowRight, FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, XIcon } from "@lucide/vue";
 import { useSettingsStore } from "@/stores/settings";
 import { type HomeItem, useHomeSummary } from "@/composables/home/useHomeSummary.ts";
+import NoDataIllustration from "@/assets/illustrations/no-data-home.svg";
+import NoFileFoundIllustration from "@/assets/illustrations/no-file-found.svg";
 import HomeFolderTile from "@/components/home/HomeFolderTile.vue";
 import HomeFileCard from "@/components/home/HomeFileCard.vue";
 import type { FeatureType } from "@/db/types";

@@ -1,132 +1,103 @@
 <template>
-  <div class="flex h-full w-full flex-col items-center justify-center p-8 text-center text-slate-800 dark:text-slate-200">
-    <LockIcon class="mb-6 h-16 w-16 text-rose-500" />
-    <h1 class="mb-2 text-3xl font-bold tracking-tight">Secure Vault</h1>
-    
-    <div v-if="!vaultStore.isSetup && setupPhase === 'initial'" class="max-w-md w-full">
-      <p class="mb-6 text-slate-500 dark:text-slate-400">
-        Welcome to your Secure Vault. Items moved here are fully encrypted. Please create a Master PIN to protect your vault.
-      </p>
-      
-      <form @submit.prevent="handleSetup" class="space-y-4">
-        <!-- Hidden username to help password managers -->
-        <input type="text" name="username" id="setup-username" autocomplete="username" class="hidden" value="RoseVault" />
-        <div>
-          <label for="new-pin" class="mb-1 block text-sm font-medium text-left">Master PIN</label>
-          <input
-            v-model="pin"
-            id="new-pin"
-            name="new-password"
-            autocomplete="new-password"
-            type="password"
-            required
-            class="w-full rounded-md border border-slate-300 px-4 py-2 dark:border-slate-700 dark:bg-slate-900 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-            placeholder="Enter a secure PIN"
-          />
-        </div>
-        <div>
-          <label for="confirm-pin" class="mb-1 block text-sm font-medium text-left">Confirm PIN</label>
-          <input
-            v-model="confirmPin"
-            id="confirm-pin"
-            name="confirm-password"
-            autocomplete="new-password"
-            type="password"
-            required
-            class="w-full rounded-md border border-slate-300 px-4 py-2 dark:border-slate-700 dark:bg-slate-900 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-            placeholder="Re-enter your PIN"
-          />
-        </div>
+  <div class="flex h-full w-full flex-col overflow-y-auto p-4 md:p-8 text-center text-rose-text">
+    <div class="m-auto flex w-full max-w-md flex-col items-center justify-center py-2 md:py-4 shrink-0">
+      <img :src="SecureFolderIllustration" alt="Secure Vault"
+        class="w-24 md:w-48 h-auto mb-2 md:mb-6 opacity-80 select-none pointer-events-none shrink-0" />
+      <h1 class="mb-1 md:mb-2 text-2xl md:text-3xl font-bold tracking-tight">Secure Vault</h1>
 
-        <div v-if="errorMsg" class="text-sm text-red-500 font-medium">{{ errorMsg }}</div>
-
-        <button
-          type="submit"
-          class="w-full rounded-md bg-rose-600 px-4 py-2 font-medium text-white hover:bg-rose-700 transition-colors"
-        >
-          Generate Recovery Key
-        </button>
-      </form>
-    </div>
-
-    <div v-else-if="setupPhase === 'recovery'" class="max-w-md w-full">
-      <div class="p-4 mb-6 rounded-md bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-left">
-        <h3 class="font-bold text-yellow-800 dark:text-yellow-400 mb-2 flex items-center">
-          <AlertTriangleIcon class="w-5 h-5 mr-2" />
-          Crucial: Save Your Recovery Key
-        </h3>
-        <p class="text-sm text-yellow-700 dark:text-yellow-500 mb-4">
-          If you forget your PIN, this is the <strong>only</strong> way to recover your encrypted data. Copy it somewhere safe.
+      <div v-if="!vaultStore.isSetup && setupPhase === 'initial'" class="max-w-md w-full">
+        <p class="mb-3 md:mb-6 text-sm md:text-base text-rose-text-muted">
+          Please create a Master PIN to protect your vault.
         </p>
-        <div class="p-3 bg-white dark:bg-black rounded border border-yellow-300 dark:border-yellow-600 font-mono text-center tracking-widest text-lg select-all">
-          {{ generatedRecoveryKey }}
-        </div>
+
+        <form @submit.prevent="handleSetup" class="space-y-3 md:space-y-4">
+          <!-- Hidden username to help password managers -->
+          <input type="text" name="username" id="setup-username" autocomplete="username" class="hidden"
+            value="RoseVault" />
+          <div>
+            <label for="new-pin" class="mb-1 block text-sm font-medium text-left">Master PIN</label>
+            <input v-model="pin" id="new-pin" name="new-password" autocomplete="new-password" type="password" required
+              class="w-full rounded-md border border-rose-border bg-rose-surface text-rose-text px-3 py-1.5 md:px-4 md:py-2 focus:border-rose-primary focus:ring-1 focus:ring-rose-primary placeholder:text-rose-text-muted"
+              placeholder="Enter a secure PIN" />
+          </div>
+          <div>
+            <label for="confirm-pin" class="mb-1 block text-sm font-medium text-left">Confirm PIN</label>
+            <input v-model="confirmPin" id="confirm-pin" name="confirm-password" autocomplete="new-password"
+              type="password" required
+              class="w-full rounded-md border border-rose-border bg-rose-surface text-rose-text px-3 py-1.5 md:px-4 md:py-2 focus:border-rose-primary focus:ring-1 focus:ring-rose-primary placeholder:text-rose-text-muted"
+              placeholder="Re-enter your PIN" />
+          </div>
+
+          <div v-if="errorMsg" class="text-sm text-red-500 font-medium">{{ errorMsg }}</div>
+
+          <button type="submit"
+            class="w-full flex items-center justify-center gap-x-2 rounded-md bg-rose-primary px-4 py-2 font-medium text-white hover:bg-rose-primary-hover transition-colors">
+            <Key :size="16" /> Generate Recovery Key
+          </button>
+        </form>
       </div>
-      <button
-        @click="finishSetup"
-        class="w-full rounded-md bg-rose-600 px-4 py-2 font-medium text-white hover:bg-rose-700 transition-colors"
-      >
-        I have saved my Recovery Key
-      </button>
-    </div>
 
-    <div v-else class="max-w-sm w-full">
-      <p class="mb-6 text-slate-500 dark:text-slate-400">
-        {{ promptMessage || "Enter your PIN to unlock this item." }}
-      </p>
-
-      <form @submit.prevent="handleUnlock" class="space-y-4">
-        <!-- Hidden username to help password managers -->
-        <input type="text" name="username" id="unlock-username" autocomplete="username" class="hidden" value="RoseVault" />
-        <input
-          v-model="pin"
-          id="pin"
-          name="password"
-          autocomplete="current-password"
-          type="password"
-          required
-          autofocus
-          class="w-full rounded-md border border-slate-300 px-4 py-3 text-center text-xl tracking-[0.5em] dark:border-slate-700 dark:bg-slate-900 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-          placeholder="••••"
-        />
-        
-        <div v-if="errorMsg" class="text-sm text-red-500 font-medium">{{ errorMsg }}</div>
-
-        <button
-          type="submit"
-          class="w-full rounded-md bg-rose-600 px-4 py-2 font-medium text-white hover:bg-rose-700 transition-colors"
-        >
-          Unlock
+      <div v-else-if="setupPhase === 'recovery'" class="max-w-md w-full">
+        <div class="p-4 mb-6 rounded-md bg-amber-500/10 border border-amber-500/20 text-left">
+          <h3 class="font-bold text-amber-600 dark:text-amber-400 mb-2 flex items-center">
+            <AlertTriangleIcon class="w-5 h-5 mr-2" />
+            Crucial: Save Your Recovery Key
+          </h3>
+          <p class="text-sm text-amber-700 dark:text-amber-500 mb-4">
+            If you forget your PIN, this is the <strong>only</strong> way to recover your encrypted data. Copy it
+            somewhere safe.
+          </p>
+          <div
+            class="p-3 bg-rose-surface rounded border border-amber-500/30 font-mono text-center tracking-widest text-lg select-all text-rose-text">
+            {{ generatedRecoveryKey }}
+          </div>
+        </div>
+        <button @click="finishSetup"
+          class="w-full rounded-md bg-rose-primary px-4 py-2 font-medium text-white hover:bg-rose-primary-hover transition-colors">
+          I have saved my Recovery Key
         </button>
-      </form>
-      
-      <button 
-        @click="showRecoveryMode = !showRecoveryMode" 
-        class="mt-6 text-sm text-slate-500 hover:text-rose-500 transition-colors"
-      >
-        Forgot PIN?
-      </button>
+      </div>
 
-      <div v-if="showRecoveryMode" class="mt-4 p-4 border rounded-md dark:border-slate-700">
-        <p class="text-sm mb-2 text-left">Enter your Recovery Key to reset your PIN:</p>
-        <input
-          v-model="recoveryInput"
-          type="text"
-          class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm mb-3 font-mono dark:border-slate-700 dark:bg-slate-900 uppercase"
-          placeholder="XXXX-XXXX-XXXX-XXXX"
-        />
-        <input
-          v-model="newPinInput"
-          type="password"
-          class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm mb-3 dark:border-slate-700 dark:bg-slate-900"
-          placeholder="Enter new PIN"
-        />
-        <button
-          @click="handleRecover"
-          class="w-full rounded-md bg-slate-800 dark:bg-slate-200 text-white dark:text-black px-4 py-1.5 text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          Recover Vault
+      <div v-else class="max-w-sm w-full">
+        <p class="mb-3 md:mb-6 text-sm md:text-base text-rose-text-muted">
+          {{ promptMessage || "Enter your PIN to unlock this item." }}
+        </p>
+
+        <form @submit.prevent="handleUnlock" class="space-y-4">
+          <!-- Hidden username to help password managers -->
+          <input type="text" name="username" id="unlock-username" autocomplete="username" class="hidden"
+            value="RoseVault" />
+          <input v-model="pin" id="pin" name="password" autocomplete="current-password" type="password" required
+            autofocus
+            class="w-full rounded-md border border-rose-border bg-rose-surface text-rose-text px-4 py-2 md:py-3 text-center text-xl tracking-[0.5em] focus:border-rose-primary focus:ring-1 focus:ring-rose-primary placeholder:text-rose-text-muted"
+            placeholder="••••" />
+
+          <div v-if="errorMsg" class="text-sm text-red-500 font-medium">{{ errorMsg }}</div>
+
+          <button type="submit"
+            class="w-full rounded-md bg-rose-primary px-4 py-1.5 md:py-2 text-sm md:text-base font-medium text-white hover:bg-rose-primary-hover transition-colors">
+            Unlock
+          </button>
+        </form>
+
+        <button @click="showRecoveryMode = !showRecoveryMode"
+          class="mt-3 md:mt-6 text-sm text-rose-text-muted hover:text-rose-primary transition-colors">
+          Forgot PIN?
         </button>
+
+        <div v-if="showRecoveryMode" class="mt-4 p-4 border border-rose-border bg-rose-surface-alt rounded-md">
+          <p class="text-sm mb-2 text-left text-rose-text">Enter your Recovery Key to reset your PIN:</p>
+          <input v-model="recoveryInput" type="text"
+            class="w-full rounded-md border border-rose-border bg-rose-surface text-rose-text px-3 py-2 text-sm mb-3 font-mono uppercase focus:border-rose-primary focus:ring-1 focus:ring-rose-primary placeholder:text-rose-text-muted"
+            placeholder="XXXX-XXXX-XXXX-XXXX" />
+          <input v-model="newPinInput" type="password"
+            class="w-full rounded-md border border-rose-border bg-rose-surface text-rose-text px-3 py-2 text-sm mb-3 focus:border-rose-primary focus:ring-1 focus:ring-rose-primary placeholder:text-rose-text-muted"
+            placeholder="Enter new PIN" />
+          <button @click="handleRecover"
+            class="w-full rounded-md bg-rose-primary text-white px-4 py-1.5 text-sm font-medium hover:bg-rose-primary-hover transition-colors">
+            Recover Vault
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -134,11 +105,12 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { LockIcon, AlertTriangleIcon } from "@lucide/vue";
+import { AlertTriangleIcon, Key } from "@lucide/vue";
+import SecureFolderIllustration from "@/assets/illustrations/secure-folder.svg";
 import { useVaultStore } from "@/stores/vault";
 import { generateRecoveryKey } from "@/utils/crypto";
 
-const props = defineProps<{
+defineProps<{
   promptMessage?: string;
 }>();
 
