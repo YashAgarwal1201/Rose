@@ -1,6 +1,7 @@
 <!-- src/components/onboarding/UsernameStep.vue -->
 <template>
   <div>
+    <img :src="UsernameIllustration" alt="Username" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
     <h2 class="text-xl font-semibold text-rose-text text-center">What should we call you?</h2>
     <p class="text-sm text-rose-text-muted text-center mt-2">
       Used for a friendly greeting on Home. Totally optional.
@@ -18,6 +19,8 @@
 </template>
 
 <script setup lang="ts">
+import UsernameIllustration from "@/assets/illustrations/username-step.svg";
+
 defineProps<{ modelValue: string }>();
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 </script>

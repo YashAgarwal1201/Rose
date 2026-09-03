@@ -5,8 +5,8 @@
       enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
       leave-to-class="opacity-0">
       <div v-if="isOpen" ref="dialogRef"
-        class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
-        role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-desc"
+        class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog"
+        aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-desc"
         @click.self="handleCancel" @keydown.escape="handleCancel">
         <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40">
           <h3 id="confirm-dialog-title" v-if="options.title" class="text-xl font-semibold text-rose-text mb-2">
@@ -20,7 +20,7 @@
             </button>
 
             <button
-              class="px-4 py-2 text-base rounded-md bg-rose-primary text-white hover:bg-rose-primary-hover transition-colors"
+              class="px-4 py-2 text-base rounded-md bg-red-500 text-white hover:bg-rose-primary-hover transition-colors"
               @click="handleConfirm">
               {{ options.confirmLabel || "Confirm" }}
             </button>

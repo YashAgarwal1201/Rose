@@ -22,6 +22,7 @@ import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import EmptyIllustration from "@/assets/illustrations/not-found2.svg";
 
 export type ItemKind = "folder" | "doc" | "note" | "todo";
 
@@ -379,8 +380,10 @@ defineExpose({ startCreate });
       </div>
     </div>
 
-    <div v-if="isEmpty" class="text-base text-rose-text-muted italic py-8 text-center">
-      This folder is empty.
+    <div v-if="isEmpty" class="flex flex-col items-center justify-center min-h-[50vh] text-center">
+      <img :src="EmptyIllustration" alt="Empty folder"
+        class="w-52 md:w-64 h-auto mb-6 opacity-70 select-none pointer-events-none" />
+      <p class="text-base text-rose-text-muted italic">This folder is empty.</p>
     </div>
 
     <!-- Grid view -->
@@ -414,7 +417,7 @@ defineExpose({ startCreate });
           @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
         <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
           item.name
-          }}</span>
+        }}</span>
 
         <div v-if="!item.isNew && item.id !== 'vault'" class="flex items-center gap-1 shrink-0 relative z-10">
           <button type="button" aria-label="More options"

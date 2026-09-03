@@ -16,7 +16,7 @@
       <!-- Dot indicators (hide the 'import' pseudo-step from the dots) -->
       <div class="flex gap-1.5" role="presentation">
         <span v-for="(step, index) in steps" :key="step" class="h-1.5 rounded-full transition-all duration-200"
-          :class="index === numericCurrentStep ? 'w-6 bg-rose-primary' : 'w-1.5 bg-rose-border'" />
+          :class="index === numericCurrentStep ? 'w-6 bg-rose-green-muted' : 'w-1.5 bg-rose-border'" />
       </div>
 
       <div class="flex gap-2">

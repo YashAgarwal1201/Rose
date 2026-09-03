@@ -1,11 +1,7 @@
 <!-- src/components/onboarding/WelcomeStep.vue -->
 <template>
   <div class="text-center">
-    <div
-      class="mx-auto mb-6 w-16 h-16 rounded-2xl bg-rose-primary/10 flex items-center justify-center"
-    >
-      <SparklesIcon :size="28" class="text-rose-primary" />
-    </div>
+    <img :src="WelcomeIllustration" alt="Welcome" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
     <h1 class="text-2xl font-semibold text-rose-text">Welcome to Rose</h1>
     <p class="text-sm text-rose-text-muted mt-3 leading-relaxed">
       A local-first home for your todos, notes, and docs — no account, no cloud, nothing leaves your
@@ -31,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { SparklesIcon } from "@lucide/vue";
+import WelcomeIllustration from "@/assets/illustrations/welcome-step.svg";
 
 const emit = defineEmits<{ skip: []; restore: [] }>();
 </script>

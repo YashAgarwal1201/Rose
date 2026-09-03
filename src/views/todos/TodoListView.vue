@@ -28,12 +28,13 @@ import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import VaultAuthView from "@/components/ui/VaultAuthView.vue";
+import TodoListIllustration from "@/assets/illustrations/todo-list.svg";
 import { getErrorMessage } from "@/utils/error";
 
 // const MENU_WIDTH_PX = 288;
 // const MENU_OFFSET_PX = 8;
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const todosStore = useTodosStore();
@@ -41,7 +42,7 @@ const foldersStore = useFoldersStore();
 const { confirm } = useConfirm();
 const { showToast } = useToast();
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 const currentList = ref<TodoList | undefined>(undefined);
 const isVaultLocked = ref(false);
@@ -400,8 +401,9 @@ watch(() => pathMatch, loadList);
           </button>
         </div>
 
-        <div v-if="todosStore.todos.length === 0" class="text-base text-rose-text-muted italic py-12 text-center">
-          No todos yet. Add one to get started.
+        <div v-if="todosStore.todos.length === 0" class="flex flex-col items-center justify-center min-h-[50vh] text-center">
+          <img :src="TodoListIllustration" alt="No todos" class="w-48 md:w-56 h-auto mb-6 opacity-70 select-none pointer-events-none" />
+          <p class="text-base text-rose-text-muted italic">No todos yet. Add one to get started.</p>
         </div>
 
         <div v-else class="flex flex-col gap-3">

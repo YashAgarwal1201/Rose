@@ -3,7 +3,7 @@
   <div
     class="flex flex-col-reverse md:flex-row h-dvh overflow-hidden bg-rose-bg text-rose-text antialiased"
   >
-    <div class="w-full md:w-20 h-16 md:h-full shrink-0">
+    <div v-if="router.currentRoute.value.name !== 'onboarding'" class="w-full md:w-20 h-16 md:h-full shrink-0">
       <Navbar @toggle-menu="isMenuOpen = true" />
     </div>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onErrorCaptured, ref } from "vue";
-import { AlertTriangleIcon } from "@lucide/vue";
+import PageEatenIllustration from "@/assets/illustrations/page-eaten-error-boundary.svg";
 
 const hasError = ref(false);
 const errorMessage = ref("");
@@ -21,8 +21,8 @@ function retry() {
 <template>
   <div v-if="hasError"
     class="flex flex-col items-center justify-center p-8 text-center h-full w-full min-h-50 bg-rose-bg rounded-xl border border-rose-border">
-    <div class="bg-red-500/10 p-4 rounded-full mb-4">
-      <AlertTriangleIcon class="w-8 h-8 text-red-500" />
+    <div class="mb-4 flex items-center justify-center">
+      <img :src="PageEatenIllustration" alt="Error" class="w-48 h-auto select-none pointer-events-none" />
     </div>
     <h2 class="text-xl font-bold text-rose-text mb-2">Something went wrong</h2>
     <p class="text-rose-text-muted text-sm mb-6 max-w-md">
