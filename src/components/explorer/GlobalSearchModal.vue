@@ -52,8 +52,9 @@
             </button>
           </div>
           <div v-else-if="query.trim() && summary.isLoaded.value"
-            class="border-t border-rose-border px-4 py-6 text-center text-sm text-rose-text-muted">
-            No matches found for "{{ query.trim() }}"
+            class="border-t border-rose-border px-4 py-12 flex flex-col items-center justify-center text-center">
+            <img :src="NoFileFoundIllustration" alt="No matches" class="w-32 h-auto mb-4 opacity-80 select-none pointer-events-none" />
+            <span class="text-sm text-rose-text-muted">No matches found for "{{ query.trim() }}"</span>
           </div>
         </div>
       </div>
@@ -69,6 +70,7 @@ import { useUiStore } from "@/stores/ui";
 import { useHomeSummary } from "@/composables/home/useHomeSummary.ts";
 import { useBackButtonClose } from "@/composables/ui/useBackButtonClose.ts";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
+import NoFileFoundIllustration from "@/assets/illustrations/no-file-found.svg";
 
 const uiStore = useUiStore();
 const router = useRouter();

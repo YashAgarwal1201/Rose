@@ -345,7 +345,7 @@ defineExpose({ startCreate });
         ></button>
 
         <img
-          v-if="item.kind === 'file' && item.thumbnail"
+          v-if="item.kind === 'file' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
           :src="item.thumbnail"
           class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
           alt=""
@@ -433,7 +433,7 @@ defineExpose({ startCreate });
         ></button>
 
         <img
-          v-if="item.kind === 'file' && item.thumbnail"
+          v-if="item.kind === 'file' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
           :src="item.thumbnail"
           class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
           alt=""

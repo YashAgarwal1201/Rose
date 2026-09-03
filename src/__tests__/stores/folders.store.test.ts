@@ -35,8 +35,8 @@ describe("foldersStore", () => {
       const store = useFoldersStore();
       await store.createFolder("Work", null, "todo");
       await store.loadFolders("todo");
-      expect(store.folders).toHaveLength(1);
-      expect(store.folders[0]?.name).toBe("Work");
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(1);
+      expect(store.folders.find(f => f.id !== "vault")?.name).toBe("Work");
     });
 
     it("returns an empty array when no folders exist for that type", async () => {
@@ -45,7 +45,7 @@ describe("foldersStore", () => {
       setActivePinia(createPinia());
       const store = useFoldersStore();
       await store.loadFolders("todo");
-      expect(store.folders).toHaveLength(0);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
     });
   });
 
@@ -56,8 +56,8 @@ describe("foldersStore", () => {
       setActivePinia(createPinia());
       const store = useFoldersStore();
       await store.createFolder("Personal", null, "todo");
-      expect(store.folders).toHaveLength(1);
-      expect(store.folders[0]?.name).toBe("Personal");
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(1);
+      expect(store.folders.find(f => f.id !== "vault")?.name).toBe("Personal");
     });
 
     it("persists the folder in the DB", async () => {
@@ -67,8 +67,8 @@ describe("foldersStore", () => {
       const store = useFoldersStore();
       await store.createFolder("Saved", null, "todo");
       const rows = await db.folders.toArray();
-      expect(rows).toHaveLength(1);
-      expect(rows[0]?.name).toBe("Saved");
+      expect(rows.filter(f => f.id !== "vault")).toHaveLength(1);
+      expect(rows.find(f => f.id !== "vault")?.name).toBe("Saved");
     });
 
     it("throws when a duplicate name exists under the same parent", async () => {
@@ -97,7 +97,7 @@ describe("foldersStore", () => {
       const parentId = await store.createFolder("Parent", null, "todo");
       await store.createFolder("Child", parentId, "todo");
       await store.createFolder("Child", null, "todo");
-      expect(store.folders).toHaveLength(3);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(3);
     });
 
     it("trims whitespace from the folder name", async () => {
@@ -106,7 +106,7 @@ describe("foldersStore", () => {
       setActivePinia(createPinia());
       const store = useFoldersStore();
       await store.createFolder("  Trimmed  ", null, "todo");
-      expect(store.folders[0]?.name).toBe("Trimmed");
+      expect(store.folders.find(f => f.id !== "vault")?.name).toBe("Trimmed");
     });
   });
 
@@ -152,7 +152,7 @@ describe("foldersStore", () => {
       setActivePinia(createPinia());
       const store = useFoldersStore();
       await store.renameFolder("nonexistent-id", "Anything");
-      expect(store.folders).toHaveLength(0);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
     });
   });
 
@@ -164,7 +164,7 @@ describe("foldersStore", () => {
       const store = useFoldersStore();
       const folderId = await store.createFolder("Leaf", null, "todo");
       await store.deleteFolder(folderId);
-      expect(store.folders).toHaveLength(0);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
       const row = await db.folders.get(folderId);
       expect(row).toBeUndefined();
     });
@@ -177,7 +177,7 @@ describe("foldersStore", () => {
       const parentId = await store.createFolder("Parent", null, "todo");
       await store.createFolder("Child", parentId, "todo");
       await store.deleteFolder(parentId);
-      expect(store.folders).toHaveLength(0);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
     });
 
     it("cascade-deletes todo lists inside a deleted folder", async () => {
@@ -214,7 +214,7 @@ describe("foldersStore", () => {
       setActivePinia(createPinia());
       const store = useFoldersStore();
       await store.deleteFolder("ghost-id");
-      expect(store.folders).toHaveLength(0);
+      expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
     });
   });
 
@@ -254,16 +254,65 @@ describe("foldersStore", () => {
       );
     });
 
-    it("throws when moving a folder into one of its own descendants", async () => {
+    it("throws when moving a folder into a destination with an existing folder of the same name", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
       const store = useFoldersStore();
       const parentId = await store.createFolder("Parent", null, "todo");
-      const childId = await store.createFolder("Child", parentId, "todo");
-      await expect(store.moveFolder(parentId, childId)).rejects.toThrow(
-        "Cannot move a folder into itself",
-      );
+      await store.createFolder("TargetName", parentId, "todo");
+      const folderIdToMove = await store.createFolder("TargetName", null, "todo");
+      await expect(store.moveFolder(folderIdToMove, parentId)).rejects.toThrow("already exists");
+    });
+
+    it("throws when attempting to move, rename, or delete the vault folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      // Don't pre-add vault - loadFolders auto-seeds it now
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const targetId = await store.createFolder("Target", null, "todo");
+      await expect(store.moveFolder("vault", targetId)).rejects.toThrow("Secure Vault cannot be moved.");
+      await expect(store.renameFolder("vault", "New Vault Name")).rejects.toThrow("Secure Vault cannot be renamed.");
+      await expect(store.deleteFolder("vault")).rejects.toThrow("Secure Vault cannot be deleted.");
+    });
+
+    it("seeds the vault folder automatically on fresh DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const vaultInDb = await db.folders.get("vault");
+      expect(vaultInDb).toBeTruthy();
+      expect(vaultInDb?.parentId).toBeNull();
+      expect(vaultInDb?.isVaulted).toBe(true);
+    });
+
+    it("auto-repairs vault parentId and isVaulted if corrupted in DB", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      await db.folders.add({
+        id: "vault",
+        name: "Secure Vault",
+        parentId: "some-corrupted-parent-id",
+        type: "mixed",
+        isVaulted: false, // simulates vault being moved to a non-vaulted folder
+        iv: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      const store = useFoldersStore();
+      await store.loadFolders();
+
+      const vaultInDb = await db.folders.get("vault");
+      expect(vaultInDb?.parentId).toBeNull();
+      expect(vaultInDb?.isVaulted).toBe(true);
     });
   });
 });
+

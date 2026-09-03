@@ -1,16 +1,17 @@
 // Src/router/index.ts
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "@/views/home/HomeView.vue";
-import OnboardingView from "@/views/onboarding/OnboardingView.vue";
-import SettingsView from "@/views/settings/SettingsView.vue";
-import TodosView from "@/views/todos/TodosView.vue";
-import TodoListView from "@/views/todos/TodoListView.vue";
-import NotesView from "@/views/notes/NotesView.vue";
-import NoteView from "@/views/notes/NoteView.vue";
-import DocsView from "@/views/docs/DocsView.vue";
-import DocView from "@/views/docs/DocView.vue";
-import FilesView from "@/views/files/FilesView.vue";
 import { useSettingsStore } from "@/stores/settings";
+
+const HomeView = () => import("@/views/home/HomeView.vue");
+const OnboardingView = () => import("@/views/onboarding/OnboardingView.vue");
+const SettingsView = () => import("@/views/settings/SettingsView.vue");
+const TodosView = () => import("@/views/todos/TodosView.vue");
+const TodoListView = () => import("@/views/todos/TodoListView.vue");
+const NotesView = () => import("@/views/notes/NotesView.vue");
+const NoteView = () => import("@/views/notes/NoteView.vue");
+const DocsView = () => import("@/views/docs/DocsView.vue");
+const DocView = () => import("@/views/docs/DocView.vue");
+const FilesView = () => import("@/views/files/FilesView.vue");
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

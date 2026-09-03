@@ -83,7 +83,8 @@ export async function exportData(options: ExportOptions) {
     }, 1000);
 
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error:", error);
     console.error("Export failed:", error);
     throw error;
   }

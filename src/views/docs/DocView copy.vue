@@ -47,17 +47,18 @@ import { Highlight } from "@tiptap/extension-highlight";
 // import { TableKit } from "@tiptap/extension-table";
 import { TableMap } from "@tiptap/pm/tables";
 import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
+import { getErrorMessage } from "@/utils/error";
 
 const AUTOSAVE_DELAY_MS = 600;
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const docsStore = useDocsStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 const MAX_TABLE_ROWS = 20;
 const MAX_TABLE_COLS = 10;
@@ -369,9 +370,10 @@ async function loadDoc() {
   const token = ++activeLoadToken;
   try {
     await foldersStore.loadFolders("doc");
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error:", error);
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(getErrorMessage(error), "error");
     }
     return;
   }
@@ -395,9 +397,10 @@ async function loadDoc() {
   try {
     // await docsStore.loadDocs(folderId);
     await docsStore.loadDocs();
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error:", error);
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(getErrorMessage(error), "error");
     }
     return;
   }
@@ -450,8 +453,9 @@ async function confirmRenameTitle() {
           params: { pathMatch: [...buildFolderPath(updated.folderId), updated.title] },
         });
       }
-    } catch (error) {
-      showToast((error as Error).message, "error");
+    } catch (error: unknown) {
+    console.error("Error:", error);
+      showToast(getErrorMessage(error), "error");
     }
   }
   isRenaming.value = false;

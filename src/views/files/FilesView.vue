@@ -4,7 +4,10 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { FoldersIcon } from "@lucide/vue";
 import FolderTree from "@/components/explorer/FolderTree.vue";
-import MixedExplorerGrid, { type DisplayItem, type ItemKind } from "@/components/explorer/MixedExplorerGrid.vue";
+import MixedExplorerGrid, {
+  type DisplayItem,
+  type ItemKind,
+} from "@/components/explorer/MixedExplorerGrid.vue";
 import Breadcrumbs from "@/components/ui/Breadcrumbs.vue";
 import FolderTreeDrawer from "@/components/explorer/FolderTreeDrawer.vue";
 import MixedExplorerActions from "@/components/explorer/MixedExplorerActions.vue";
@@ -13,16 +16,22 @@ import { useFoldersStore } from "@/stores/folders";
 import { useTodosStore } from "@/stores/todos";
 import { useDocsStore } from "@/stores/docs";
 import { useNotesStore } from "@/stores/notes";
+import FolderPickerModal, { type ItemDescriptor } from "@/components/ui/FolderPickerModal.vue";
+import NameCollisionDialog from "@/components/ui/NameCollisionDialog.vue";
+import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
+import { useVaultStore } from "@/stores/vault";
+import { getErrorMessage } from "@/utils/error";
 
-const { pathMatch } = defineProps<{ pathMatch?: string[] }>();
+const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
 const foldersStore = useFoldersStore();
 const todosStore = useTodosStore();
 const docsStore = useDocsStore();
 const notesStore = useNotesStore();
+const vaultStore = useVaultStore();
 const { showToast } = useToast();
 
 const isDrawerOpen = ref(false);
@@ -32,15 +41,13 @@ let activeLoadToken = 0;
 
 const filterMode = ref<"all" | "doc" | "note" | "todo">("all");
 
-const segments = computed(() => pathMatch ?? []);
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
 
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;
   for (const segment of segs) {
     const match = foldersStore.folders.find(
-      (folder) =>
-        folder.parentId === cursor &&
-        folder.name.toLowerCase() === segment.toLowerCase(),
+      (folder) => folder.parentId === cursor && folder.name.toLowerCase() === segment.toLowerCase(),
     );
     if (!match) {
       return undefined;
@@ -65,6 +72,15 @@ function buildFolderPath(folderId: string | null): string[] {
 }
 
 const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
+
+const currentFolder = computed(() => {
+  if (!currentFolderId.value) { return null; }
+  return foldersStore.folders.find((f) => f.id === currentFolderId.value);
+});
+
+const isVaultLocked = computed(() =>
+  currentFolder.value?.isVaulted && !vaultStore.isUnlocked
+);
 
 const subfolders = computed(() => {
   if (currentFolderId.value === undefined) {
@@ -137,9 +153,10 @@ async function loadCurrentFolder() {
     await todosStore.loadTodoLists();
     await docsStore.loadDocs();
     await notesStore.loadNotes();
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error("Error loading items:", error);
     if (token === activeLoadToken) {
-      showToast((error as Error).message, "error");
+      showToast(getErrorMessage(error), "error");
     }
     return;
   }
@@ -207,8 +224,9 @@ async function handleCreateItem(kind: ItemKind, name: string) {
       const id = await notesStore.createNote(name, currentFolderId.value ?? null);
       openItem("note", id);
     }
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error creating item:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -228,8 +246,9 @@ async function handleRenameItem(kind: ItemKind, id: string, name: string) {
       await notesStore.updateNote(id, { title: name.trim() || "Untitled" });
       await notesStore.loadNotes();
     }
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error renaming item:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
@@ -245,14 +264,130 @@ async function handleDeleteItem(kind: ItemKind, id: string) {
     } else if (kind === "note") {
       await notesStore.deleteNote(id);
     }
-  } catch (error) {
-    showToast((error as Error).message, "error");
+  } catch (error: unknown) {
+    console.error("Error deleting item:", error);
+    showToast(getErrorMessage(error), "error");
   }
 }
 
 function handleMobileSelect(id: string | null) {
   navigateToFolder(id);
   isDrawerOpen.value = false;
+}
+
+const isFolderPickerOpen = ref(false);
+
+const itemsToMove = ref<ItemDescriptor[]>([]);
+
+const isCollisionDialogOpen = ref(false);
+const collisionInfo = ref<{
+  kind: ItemKind;
+  id: string;
+  itemName: string;
+  targetFolderId: string | null;
+  targetFolderName: string;
+  suggestedName: string;
+} | null>(null);
+
+function handleRequestMove(item: DisplayItem) {
+  itemsToMove.value = [
+    {
+      id: item.id,
+      kind: item.kind,
+      name: item.name,
+      parentId: item.parentId ?? currentFolderId.value ?? null,
+      isVaulted: item.isVaulted,
+    },
+  ];
+  isFolderPickerOpen.value = true;
+}
+
+async function performMove(
+  kind: ItemKind,
+  id: string,
+  targetFolderId: string | null,
+  newName?: string,
+) {
+  try {
+    if (kind === "folder") {
+      await foldersStore.moveFolder(id, targetFolderId, newName);
+      if (
+        currentFolderId.value &&
+        (id === currentFolderId.value || foldersStore.isDescendantOf(currentFolderId.value, id))
+      ) {
+        navigateToFolder(currentFolderId.value);
+      }
+    } else if (kind === "todo") {
+      await todosStore.moveTodoList(id, targetFolderId, newName);
+    } else if (kind === "doc") {
+      await docsStore.moveDoc(id, targetFolderId, newName);
+    } else if (kind === "note") {
+      await notesStore.moveNote(id, targetFolderId, newName);
+    }
+    const destName = targetFolderId
+      ? (foldersStore.folders.find((f) => f.id === targetFolderId)?.name ?? "destination folder")
+      : "Files (Root)";
+    showToast(`Moved to ${destName}`, "success");
+    await loadCurrentFolder();
+  } catch (error: unknown) {
+    console.error("Error moving item:", error);
+    const message = getErrorMessage(error);
+    if (message.includes("already exists in the destination")) {
+      const itemToMove = itemsToMove.value.find((i) => i.id === id) || {
+        kind,
+        id,
+        name: "Item",
+        parentId: null,
+      };
+      const destName = targetFolderId
+        ? (foldersStore.folders.find((f) => f.id === targetFolderId)?.name ?? "destination folder")
+        : "Files (Root)";
+      collisionInfo.value = {
+        id,
+        itemName: itemToMove.name,
+        kind,
+        suggestedName: `${itemToMove.name} (1)`,
+        targetFolderId,
+        targetFolderName: destName,
+      };
+      isCollisionDialogOpen.value = true;
+    } else {
+      showToast(message, "error");
+    }
+  }
+}
+
+async function handleMoveItem(kind: ItemKind, id: string, targetFolderId: string | null) {
+  const folderItem = foldersStore.folders.find((f) => f.id === id);
+  const todoItem = todosStore.todoLists.find((t) => t.id === id);
+  const docItem = docsStore.docs.find((d) => d.id === id);
+  const noteItem = notesStore.notes.find((n) => n.id === id);
+  const name = folderItem?.name || todoItem?.name || docItem?.title || noteItem?.title || "Item";
+
+  itemsToMove.value = [
+    {
+      id,
+      kind,
+      name,
+      parentId: currentFolderId.value ?? null,
+    },
+  ];
+  await performMove(kind, id, targetFolderId);
+}
+
+async function handleSelectTarget(targetFolderId: string | null) {
+  isFolderPickerOpen.value = false;
+  for (const item of itemsToMove.value) {
+    await performMove(item.kind, item.id, targetFolderId);
+  }
+}
+
+async function handleCollisionConfirm(newName: string) {
+  if (!collisionInfo.value) { return; }
+  const { kind, id, targetFolderId } = collisionInfo.value;
+  isCollisionDialogOpen.value = false;
+  collisionInfo.value = null;
+  await performMove(kind, id, targetFolderId, newName);
 }
 
 const displayItems = computed<DisplayItem[]>(() => {
@@ -262,10 +397,12 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: f.id,
         name: f.name,
+        parentId: f.parentId,
         kind: "folder",
         itemCount: countChildrenOf(f.id),
         updatedAt: f.updatedAt,
         createdAt: f.createdAt,
+        isVaulted: f.isVaulted,
       });
     }
   }
@@ -274,10 +411,12 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: l.id,
         name: l.name,
+        parentId: l.folderId,
         kind: "todo",
         itemCount: listItemCounts.value[l.id] ?? 0,
         updatedAt: l.updatedAt,
         createdAt: l.createdAt,
+        isVaulted: l.isVaulted,
       });
     }
   }
@@ -286,9 +425,11 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: d.id,
         name: d.title,
+        parentId: d.folderId,
         kind: "doc",
         updatedAt: d.updatedAt,
         createdAt: d.createdAt,
+        isVaulted: d.isVaulted,
       });
     }
   }
@@ -297,10 +438,12 @@ const displayItems = computed<DisplayItem[]>(() => {
       items.push({
         id: n.id,
         name: n.title,
+        parentId: n.folderId,
         kind: "note",
         thumbnail: n.thumbnail,
         updatedAt: n.updatedAt,
         createdAt: n.createdAt,
+        isVaulted: n.isVaulted,
       });
     }
   }
@@ -341,112 +484,105 @@ useKeyboardShortcuts([
   <div class="flex h-full relative">
     <aside class="hidden md:block w-64 border-r border-rose-border p-4 overflow-y-auto shrink-0">
       <h2 class="text-lg font-semibold text-rose-text mb-3">Folders</h2>
-      <FolderTree
-        :active-folder-id="currentFolderId ?? null"
-        @select="navigateToFolder"
-      />
+      <FolderTree :active-folder-id="currentFolderId ?? null" @select="navigateToFolder" @move-item="handleMoveItem" />
     </aside>
 
     <FolderTreeDrawer :is-open="isDrawerOpen" @close="isDrawerOpen = false">
-      <FolderTree
-        :active-folder-id="currentFolderId ?? null"
-        @select="handleMobileSelect"
-      />
+      <FolderTree :active-folder-id="currentFolderId ?? null" @select="handleMobileSelect"
+        @move-item="handleMoveItem" />
     </FolderTreeDrawer>
 
     <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0 pb-28 md:pb-6">
-      <div class="flex items-center justify-between gap-2 mb-4">
-        <h1 class="text-2xl font-bold text-rose-text">Files</h1>
-        
-        <div class="flex items-center gap-2">
-          <!-- Filter pills for large screens -->
-          <div class="hidden md:flex items-center gap-1 bg-rose-surface-alt p-1 rounded-lg">
-            <button
-              class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
-              :class="filterMode === 'all' ? 'bg-rose-surface shadow text-rose-text' : 'text-rose-text-muted hover:text-rose-text'"
-              @click="filterMode = 'all'"
-            >
-              All
-            </button>
-            <button
-              class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
-              :class="filterMode === 'doc' ? 'bg-rose-surface shadow text-rose-text' : 'text-rose-text-muted hover:text-rose-text'"
-              @click="filterMode = 'doc'"
-            >
-              Docs
-            </button>
-            <button
-              class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
-              :class="filterMode === 'note' ? 'bg-rose-surface shadow text-rose-text' : 'text-rose-text-muted hover:text-rose-text'"
-              @click="filterMode = 'note'"
-            >
-              Notes
-            </button>
-            <button
-              class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
-              :class="filterMode === 'todo' ? 'bg-rose-surface shadow text-rose-text' : 'text-rose-text-muted hover:text-rose-text'"
-              @click="filterMode = 'todo'"
-            >
-              Lists
-            </button>
-          </div>
+      <VaultAuthView v-if="isVaultLocked" @unlocked="loadCurrentFolder" />
+      <template v-else>
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <h1 class="text-2xl font-bold text-rose-text">Files</h1>
 
-          <button
-            class="md:hidden flex items-center gap-2 px-3 py-2 rounded-md bg-rose-surface-alt text-rose-text text-base shrink-0"
-            @click="isDrawerOpen = true"
-          >
-            <FoldersIcon class="w-4 h-4" />
-          </button>
-          <MixedExplorerActions
-            @create-folder="explorerGridRef?.startCreate('folder')"
-            @create-todo="explorerGridRef?.startCreate('todo')"
-            @create-note="explorerGridRef?.startCreate('note')"
-            @create-doc="explorerGridRef?.startCreate('doc')"
-          />
+          <div class="flex items-center gap-2">
+            <!-- Filter pills for large screens -->
+            <div class="hidden md:flex items-center gap-1 bg-rose-surface-alt p-1 rounded-lg">
+              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'all'
+                  ? 'bg-rose-surface shadow text-rose-text'
+                  : 'text-rose-text-muted hover:text-rose-text'
+                " @click="filterMode = 'all'">
+                All
+              </button>
+              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'doc'
+                  ? 'bg-rose-surface shadow text-rose-text'
+                  : 'text-rose-text-muted hover:text-rose-text'
+                " @click="filterMode = 'doc'">
+                Docs
+              </button>
+              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'note'
+                  ? 'bg-rose-surface shadow text-rose-text'
+                  : 'text-rose-text-muted hover:text-rose-text'
+                " @click="filterMode = 'note'">
+                Notes
+              </button>
+              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'todo'
+                  ? 'bg-rose-surface shadow text-rose-text'
+                  : 'text-rose-text-muted hover:text-rose-text'
+                " @click="filterMode = 'todo'">
+                Lists
+              </button>
+            </div>
+
+            <button
+              class="md:hidden flex items-center gap-2 px-3 py-2 rounded-md bg-rose-surface-alt text-rose-text text-base shrink-0"
+              @click="isDrawerOpen = true">
+              <FoldersIcon class="w-4 h-4" />
+            </button>
+            <MixedExplorerActions @create-folder="explorerGridRef?.startCreate('folder')"
+              @create-todo="explorerGridRef?.startCreate('todo')" @create-note="explorerGridRef?.startCreate('note')"
+              @create-doc="explorerGridRef?.startCreate('doc')" />
+          </div>
         </div>
-      </div>
-      <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" />
-      <MixedExplorerGrid
-        ref="explorerGridRef"
-        :items="displayItems"
-        @open-item="openItem"
-        @create-item="handleCreateItem"
-        @rename-item="handleRenameItem"
-        @delete-item="handleDeleteItem"
-      />
+        <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" @move-item="handleMoveItem" />
+        <MixedExplorerGrid ref="explorerGridRef" :items="displayItems" @open-item="openItem"
+          @create-item="handleCreateItem" @rename-item="handleRenameItem" @delete-item="handleDeleteItem"
+          @request-move="handleRequestMove" @move-item="handleMoveItem" />
+      </template>
     </main>
     <!-- Mobile floating filter pills -->
-    <div class="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-      <div class="flex items-center gap-1 bg-rose-surface/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-border">
-        <button
-          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          :class="filterMode === 'all' ? 'bg-rose-primary text-white shadow' : 'text-rose-text hover:bg-rose-surface-alt'"
-          @click="filterMode = 'all'"
-        >
+    <div v-if="!isVaultLocked" class="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+      <div
+        class="flex items-center gap-1 bg-rose-surface/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-border">
+        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'all'
+            ? 'bg-rose-primary text-white shadow'
+            : 'text-rose-text hover:bg-rose-surface-alt'
+          " @click="filterMode = 'all'">
           All
         </button>
-        <button
-          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          :class="filterMode === 'doc' ? 'bg-rose-primary text-white shadow' : 'text-rose-text hover:bg-rose-surface-alt'"
-          @click="filterMode = 'doc'"
-        >
+        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'doc'
+            ? 'bg-rose-primary text-white shadow'
+            : 'text-rose-text hover:bg-rose-surface-alt'
+          " @click="filterMode = 'doc'">
           Docs
         </button>
-        <button
-          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          :class="filterMode === 'note' ? 'bg-rose-primary text-white shadow' : 'text-rose-text hover:bg-rose-surface-alt'"
-          @click="filterMode = 'note'"
-        >
+        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'note'
+            ? 'bg-rose-primary text-white shadow'
+            : 'text-rose-text hover:bg-rose-surface-alt'
+          " @click="filterMode = 'note'">
           Notes
         </button>
-        <button
-          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          :class="filterMode === 'todo' ? 'bg-rose-primary text-white shadow' : 'text-rose-text hover:bg-rose-surface-alt'"
-          @click="filterMode = 'todo'"
-        >
+        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'todo'
+            ? 'bg-rose-primary text-white shadow'
+            : 'text-rose-text hover:bg-rose-surface-alt'
+          " @click="filterMode = 'todo'">
           Lists
         </button>
       </div>
     </div>
+
+    <!-- Move picker modal -->
+    <FolderPickerModal :is-open="isFolderPickerOpen" :items-to-move="itemsToMove" @close="isFolderPickerOpen = false"
+      @select-target="handleSelectTarget" />
+
+    <!-- Collision dialog -->
+    <NameCollisionDialog v-if="collisionInfo" :is-open="isCollisionDialogOpen" :item-name="collisionInfo.itemName"
+      :target-folder-name="collisionInfo.targetFolderName" :suggested-name="collisionInfo.suggestedName" @close="
+        isCollisionDialogOpen = false;
+      collisionInfo = null;
+      " @confirm="handleCollisionConfirm" />
   </div>
 </template>

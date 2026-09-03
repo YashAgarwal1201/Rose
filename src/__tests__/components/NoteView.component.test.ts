@@ -87,6 +87,8 @@ describe("NoteView.vue", () => {
         type: "note",
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       await mountNoteView(["My Folder", "Missing Note"]);
       expect(showToastMock).toHaveBeenCalledWith("That note no longer exists.", "error");
@@ -108,6 +110,8 @@ describe("NoteView.vue", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const wrapper = await mountNoteView(["Test Note"]);
       expect(wrapper.find("h1").text()).toBe("Test Note");
@@ -128,6 +132,8 @@ describe("NoteView.vue", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const wrapper = await mountNoteView(["Old Title"]);
       await wrapper.find("button .lucide-pencil").trigger("click");
@@ -148,6 +154,8 @@ describe("NoteView.vue", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const wrapper = await mountNoteView(["Old Title"]);
       await wrapper.find("button .lucide-pencil").trigger("click");
@@ -178,6 +186,8 @@ describe("NoteView.vue", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const wrapper = await mountNoteView(["Canvas Note"]);
       
@@ -202,6 +212,8 @@ describe("NoteView.vue", () => {
         type: "note",
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       await db.notes.add({
         id: "note-5",
@@ -214,6 +226,8 @@ describe("NoteView.vue", () => {
         lastOpenedAt: null,
         createdAt: 1,
         updatedAt: 1,
+        isVaulted: false,
+        iv: null,
       });
       const wrapper = await mountNoteView(["Nested", "Inside"]);
       await wrapper.find("button .lucide-arrow-left").trigger("click");

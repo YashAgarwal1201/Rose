@@ -65,6 +65,20 @@ export default defineConfig(({ command }) => {
       __APP_VERSION__: JSON.stringify(getBuildVersion()),
     },
     plugins: [vue(), tailwindcss(), swManifestPlugin()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@tiptap')) return 'vendor-editor';
+              if (id.includes('fabric') || id.includes('perfect-freehand')) return 'vendor-canvas';
+              if (id.includes('vue') || id.includes('pinia')) return 'vendor-vue';
+              return 'vendor-utils';
+            }
+          }
+        }
+      }
+    },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("src", import.meta.url)),

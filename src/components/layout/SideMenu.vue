@@ -29,8 +29,8 @@
             </template>
 
             <div class="flex items-center justify-between gap-3 px-1 py-2">
-              <span class="text-sm text-rose-text">Theme</span>
-              <select v-model="selectedMode"
+              <label for="theme-select" class="text-sm text-rose-text">Theme</label>
+              <select id="theme-select" name="theme" v-model="selectedMode"
                 class="text-sm bg-rose-surface border border-rose-border rounded-md px-2 py-1.5 text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer">
                 <option value="system">System</option>
                 <option value="light">Light</option>
@@ -98,6 +98,15 @@
 
           <div class="divider" />
 
+          <button type="button"
+            class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
+            @click="emit('open-feedback')">
+            <MessageSquareIcon class="w-4 h-4 text-rose-primary" />
+            <span class="font-medium text-rose-text">Give Feedback</span>
+          </button>
+
+          <div class="divider" />
+
           <!-- About This App -->
           <PanelSection :icon="InfoIcon" label="About This App" :is-open="openPanel === 3" @toggle="togglePanel(3)">
             <div class="flex flex-col gap-y-4 px-1 py-2">
@@ -123,14 +132,6 @@
             </div>
           </PanelSection>
 
-          <div class="divider" />
-
-          <button type="button"
-            class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
-            @click="emit('open-feedback')">
-            <MessageSquareIcon class="w-4 h-4 text-rose-primary" />
-            <span class="font-medium text-rose-text">Give Feedback</span>
-          </button>
         </div>
       </div>
     </div>

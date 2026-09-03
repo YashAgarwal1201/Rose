@@ -339,4 +339,28 @@ describe("docsStore", () => {
       await expect(store.deleteDocsByFolder("empty-folder")).resolves.not.toThrow();
     });
   });
+
+  describe("moveDoc", () => {
+    it("moves a document to a new target folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      const docId = await store.createDoc("Design Spec", null);
+      await store.moveDoc(docId, "folder-456");
+      const doc = store.docs.find((d) => d.id === docId);
+      expect(doc?.folderId).toBe("folder-456");
+    });
+
+    it("throws when moving to a destination with duplicate doc title", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      await store.createDoc("Architecture", "folder-456");
+      const docId = await store.createDoc("Architecture", null);
+      await expect(store.moveDoc(docId, "folder-456")).rejects.toThrow("already exists");
+    });
+  });
 });
+

@@ -6,9 +6,47 @@ import type { Crumb } from "@/types/explorer";
 
 // Const props =
 defineProps<{ crumbs: Crumb[] }>();
-const emit = defineEmits<{ navigate: [id: string | null] }>();
+const emit = defineEmits<{
+  navigate: [id: string | null];
+  moveItem: [kind: "folder" | "doc" | "note" | "todo", id: string, targetFolderId: string | null];
+}>();
+
+const dragOverCrumbId = ref<string | null | undefined>(undefined);
+
+function handleDragOver(crumbId: string | null, event: DragEvent) {
+  // Prevent dropping onto the vault crumb (use "Move to Secure Vault" context menu instead)
+  if (crumbId === "vault") { return; }
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+  dragOverCrumbId.value = crumbId;
+}
+
+function handleDragLeave(crumbId: string | null) {
+  if (dragOverCrumbId.value === crumbId) {
+    dragOverCrumbId.value = undefined;
+  }
+}
+
+function handleDrop(targetFolderId: string | null, event: DragEvent) {
+  dragOverCrumbId.value = undefined;
+  // Prevent dropping onto the vault folder (use "Move to Secure Vault" context menu instead)
+  if (targetFolderId === "vault") { return; }
+  event.preventDefault();
+  const raw = event.dataTransfer?.getData("application/json");
+  if (!raw) { return; }
+  try {
+    const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
+    if (data.id === "vault") { return; }
+    emit("moveItem", data.kind, data.id, targetFolderId);
+  } catch {
+    // ignore
+  }
+}
 
 const isPopoverOpen = ref(false);
+
 const popoverRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
 const popoverStyle = ref({ left: "0px", top: "0px" });
@@ -80,6 +118,10 @@ onUnmounted(() => {
   >
     <button
       class="flex items-center gap-1 px-2 py-1 rounded-md text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors shrink-0"
+      :class="dragOverCrumbId === null ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
+      @dragover="handleDragOver(null, $event)"
+      @dragleave="handleDragLeave(null)"
+      @drop="handleDrop(null, $event)"
       @click.stop="emit('navigate', null)"
     >
       <HomeIcon class="w-4 h-4" />
@@ -122,17 +164,22 @@ onUnmounted(() => {
         <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
         <button
           class="px-2 py-1 rounded-md truncate max-w-32 md:max-w-40 shrink-0 transition-colors"
-          :class="
+          :class="[
             index === crumbs.length - 1
               ? 'bg-rose-surface-alt text-rose-text font-medium'
-              : 'text-rose-text-muted hover:bg-rose-surface hover:text-rose-text'
-          "
+              : 'text-rose-text-muted hover:bg-rose-surface hover:text-rose-text',
+            dragOverCrumbId === crumb.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''
+          ]"
+          @dragover="handleDragOver(crumb.id, $event)"
+          @dragleave="handleDragLeave(crumb.id)"
+          @drop="handleDrop(crumb.id, $event)"
           @click="emit('navigate', crumb.id)"
         >
           {{ crumb.name }}
         </button>
       </div>
     </template>
+
   </nav>
 
   <!-- Popover teleported to body so it's never clipped by the nav's overflow-x-auto -->

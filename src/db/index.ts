@@ -127,4 +127,41 @@ db.version(8)
       });
   });
 
+db.version(9)
+  .stores({
+    activity: "id, timestamp, entityId",
+    docs: "id, folderId, isVaulted",
+    folders: "id, parentId, type, isVaulted",
+    notes: "id, folderId, isVaulted",
+    settings: "id",
+    todoLists: "id, folderId, isVaulted",
+    todos: "id, listId, done, isVaulted",
+  })
+  .upgrade(async (tx) => {
+    const addVaultFields = (item: { isVaulted?: boolean; iv?: string | null }) => {
+      item.isVaulted = false;
+      item.iv = null;
+    };
+    await tx.table("folders").toCollection().modify(addVaultFields);
+    await tx.table("docs").toCollection().modify(addVaultFields);
+    await tx.table("notes").toCollection().modify(addVaultFields);
+    await tx.table("todoLists").toCollection().modify(addVaultFields);
+    await tx.table("todos").toCollection().modify(addVaultFields);
+
+    // Create the persistent vault folder if it doesn't exist
+    const vaultExists = await tx.table("folders").get("vault");
+    if (!vaultExists) {
+      await tx.table("folders").add({
+        id: "vault",
+        name: "Secure Vault",
+        parentId: null,
+        type: "mixed",
+        isVaulted: true,
+        iv: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    }
+  });
+
 export default db;
