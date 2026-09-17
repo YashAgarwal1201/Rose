@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts";
 import { mount } from "@vue/test-utils";
 import { defineComponent } from "vue";
@@ -26,12 +26,12 @@ describe("useKeyboardShortcuts", () => {
     const event = new KeyboardEvent("keydown", { key: "s", ctrlKey: true });
     window.dispatchEvent(event);
 
-    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledOnce();
 
     wrapper.unmount();
     // After unmount, it should not trigger
     window.dispatchEvent(event);
-    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledOnce();
   });
 
   it("does not trigger if modifiers do not match", () => {
@@ -53,7 +53,7 @@ describe("useKeyboardShortcuts", () => {
     expect(handler).not.toHaveBeenCalled();
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "a", shiftKey: true }));
-    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledOnce();
 
     wrapper.unmount();
   });
@@ -84,7 +84,7 @@ describe("useKeyboardShortcuts", () => {
     // Blur input, should now be called
     input.blur();
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }));
-    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledOnce();
 
     input.remove();
     wrapper.unmount();
@@ -107,8 +107,8 @@ describe("useKeyboardShortcuts", () => {
     vi.spyOn(event, "preventDefault");
     window.dispatchEvent(event);
 
-    expect(handler).toHaveBeenCalled();
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith();
+    expect(event.preventDefault).toHaveBeenCalledWith();
 
     wrapper.unmount();
   });
@@ -130,7 +130,7 @@ describe("useKeyboardShortcuts", () => {
     vi.spyOn(event, "preventDefault");
     window.dispatchEvent(event);
 
-    expect(handler).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith();
     expect(event.preventDefault).not.toHaveBeenCalled();
 
     wrapper.unmount();

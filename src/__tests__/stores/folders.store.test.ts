@@ -287,9 +287,9 @@ describe("foldersStore", () => {
       await store.loadFolders();
 
       const vaultInDb = await db.folders.get("vault");
-      expect(vaultInDb).toBeTruthy();
+      expect(vaultInDb).toBe(true);
       expect(vaultInDb?.parentId).toBeNull();
-      expect(vaultInDb?.isVaulted).toBe(true);
+      expect(vaultInDb?.isVaulted).toBeTruthy();
     });
 
     it("auto-repairs vault parentId and isVaulted if corrupted in DB", async () => {
@@ -311,7 +311,7 @@ describe("foldersStore", () => {
 
       const vaultInDb = await db.folders.get("vault");
       expect(vaultInDb?.parentId).toBeNull();
-      expect(vaultInDb?.isVaulted).toBe(true);
+      expect(vaultInDb?.isVaulted).toBeTruthy();
     });
   });
 });

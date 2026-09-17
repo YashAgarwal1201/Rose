@@ -41,7 +41,7 @@ let activeLoadToken = 0;
 
 const filterMode = ref<"all" | "doc" | "note" | "todo">("all");
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;

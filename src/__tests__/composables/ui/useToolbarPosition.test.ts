@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useToolbarPosition } from "@/composables/ui/useToolbarPosition";
 import { mount } from "@vue/test-utils";
 import { defineComponent, nextTick } from "vue";
@@ -34,7 +34,7 @@ describe("useToolbarPosition", () => {
     const wrapper = mount(TestComponent);
     expect(wrapper.vm.savedPosition).toBe("top");
     expect(wrapper.vm.effectivePosition).toBe("top");
-    expect(wrapper.vm.isMobile).toBeFalsy();
+    expect(wrapper.vm.isMobile).toBe(false);
     
     wrapper.unmount();
   });
@@ -53,7 +53,7 @@ describe("useToolbarPosition", () => {
     const wrapper = mount(TestComponent);
     
     // Check initial state
-    expect(wrapper.vm.isMobile).toBeTruthy();
+    expect(wrapper.vm.isMobile).toBe(true);
     expect(wrapper.vm.effectivePosition).toBe("bottom");
     expect(wrapper.vm.savedPosition).toBe("top");
     
@@ -70,7 +70,7 @@ describe("useToolbarPosition", () => {
     window.dispatchEvent(new Event("resize"));
     await nextTick();
     
-    expect(wrapper.vm.isMobile).toBeFalsy();
+    expect(wrapper.vm.isMobile).toBe(false);
     expect(wrapper.vm.effectivePosition).toBe("left"); // Now reflects saved
     
     wrapper.unmount();

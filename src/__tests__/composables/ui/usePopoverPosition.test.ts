@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { usePopoverPosition, type PopoverPlacement } from "@/composables/ui/usePopoverPosition";
-import { ref, defineComponent, type Ref } from "vue";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type PopoverPlacement, usePopoverPosition } from "@/composables/ui/usePopoverPosition";
+import { defineComponent, ref, type Ref } from "vue";
 import { mount } from "@vue/test-utils";
 
 describe("usePopoverPosition", () => {

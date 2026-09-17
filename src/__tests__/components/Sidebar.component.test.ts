@@ -71,7 +71,7 @@ describe("Navbar.vue", () => {
       const wrapper = await mountNavbar();
       const menuBtn = wrapper.find('button[aria-label="Menu"]');
       await menuBtn.trigger("click");
-      expect(wrapper.emitted("toggleMenu")).toBeTruthy();
+      expect(wrapper.emitted("toggleMenu")).toBe(true);
     });
   });
 

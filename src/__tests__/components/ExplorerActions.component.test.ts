@@ -1,7 +1,24 @@
 // src/__tests__/components/ExplorerActions.component.test.ts
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ExplorerActions from "@/components/explorer/ExplorerActions.vue";
+
+const { mockActivate, mockDeactivate, mockUseFocusTrap } = vi.hoisted(() => {
+  const activate = vi.fn();
+  const deactivate = vi.fn();
+  return {
+    mockActivate: activate,
+    mockDeactivate: deactivate,
+    mockUseFocusTrap: vi.fn(() => ({
+      activate,
+      deactivate,
+    })),
+  };
+});
+
+vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
+  useFocusTrap: mockUseFocusTrap,
+}));
 
 function mountActions(fileLabel = "note") {
   return mount(ExplorerActions, {
@@ -11,7 +28,9 @@ function mountActions(fileLabel = "note") {
 
 describe("ExplorerActions", () => {
   beforeEach(() => {
-    // no shared state
+    mockActivate.mockClear();
+    mockDeactivate.mockClear();
+    mockUseFocusTrap.mockClear();
   });
 
   // ─────────────────────────────────────────────
@@ -23,7 +42,7 @@ describe("ExplorerActions", () => {
       const wrapper = mountActions();
       const buttons = wrapper.findAll("button");
       const folderBtn = buttons.find((b) => b.text().includes("New folder"));
-      expect(folderBtn?.exists()).toBeTruthy();
+      expect(folderBtn?.exists()).toBe(true);
     });
 
     it("renders the desktop 'New {fileLabel}' button with correct label", () => {
@@ -31,14 +50,14 @@ describe("ExplorerActions", () => {
       const wrapper = mountActions("document");
       const buttons = wrapper.findAll("button");
       const fileBtn = buttons.find((b) => b.text().includes("New document"));
-      expect(fileBtn?.exists()).toBeTruthy();
+      expect(fileBtn?.exists()).toBe(true);
     });
 
     it("renders the mobile FAB toggle button", () => {
       expect.hasAssertions();
       const wrapper = mountActions();
       const fabBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(fabBtn.exists()).toBeTruthy();
+      expect(fabBtn.exists()).toBe(true);
     });
   });
 
@@ -69,14 +88,22 @@ describe("ExplorerActions", () => {
   // FAB toggle
   // ─────────────────────────────────────────────
   describe("FAB toggle", () => {
-    it("opens the speed-dial on FAB click", async () => {
+    it("opens the speed-dial on FAB click and activates focus trap with correct options", async () => {
       expect.hasAssertions();
       const wrapper = mountActions();
       const fabBtn = wrapper.find('button[aria-label="Open action menu"]');
       await fabBtn.trigger("click");
       // After opening, the button should show "Close action menu"
       const closeBtn = wrapper.find('button[aria-label="Close action menu"]');
-      expect(closeBtn.exists()).toBeTruthy();
+      expect(closeBtn.exists()).toBe(true);
+
+      expect(mockUseFocusTrap).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ returnFocusOnDeactivate: false })
+      );
+      
+      await wrapper.vm.$nextTick();
+      expect(mockActivate).toHaveBeenCalled();
     });
 
     it("closes the speed-dial on second FAB click", async () => {
@@ -87,7 +114,7 @@ describe("ExplorerActions", () => {
       const closeBtn = wrapper.find('button[aria-label="Close action menu"]');
       await closeBtn.trigger("click");
       const openBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(openBtn.exists()).toBeTruthy();
+      expect(openBtn.exists()).toBe(true);
     });
 
     it("shows a backdrop when FAB is open", async () => {
@@ -96,7 +123,7 @@ describe("ExplorerActions", () => {
       const fabBtn = wrapper.find('button[aria-label="Open action menu"]');
       await fabBtn.trigger("click");
       const backdrop = wrapper.find('div[aria-hidden="true"]');
-      expect(backdrop.exists()).toBeTruthy();
+      expect(backdrop.exists()).toBe(true);
     });
 
     it("emits createFile from the mobile speed-dial button", async () => {
@@ -134,7 +161,7 @@ describe("ExplorerActions", () => {
       await mobileFileBtn.trigger("click");
       // FAB should be closed now — should show "Open" again
       const openBtn = wrapper.find('button[aria-label="Open action menu"]');
-      expect(openBtn.exists()).toBeTruthy();
+      expect(openBtn.exists()).toBe(true);
     });
   });
 });

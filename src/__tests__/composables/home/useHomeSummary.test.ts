@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useHomeSummary } from "@/composables/home/useHomeSummary";
 import db from "@/db";
 
@@ -16,12 +16,12 @@ describe("useHomeSummary", () => {
     vi.spyOn(db.notes, "toArray").mockResolvedValue([]);
 
     const summary = useHomeSummary();
-    expect(summary.isLoaded.value).toBeFalsy();
+    expect(summary.isLoaded.value).toBe(false);
 
     await summary.refresh();
 
-    expect(summary.isLoaded.value).toBeTruthy();
-    expect(summary.isEmpty.value).toBeTruthy();
+    expect(summary.isLoaded.value).toBe(true);
+    expect(summary.isEmpty.value).toBe(true);
     expect(summary.docCount.value).toBe(0);
     expect(summary.recentItems.value).toHaveLength(0);
     expect(summary.topFolders.value).toHaveLength(0);
@@ -48,7 +48,7 @@ describe("useHomeSummary", () => {
     const summary = useHomeSummary();
     await summary.refresh();
 
-    expect(summary.isEmpty.value).toBeFalsy();
+    expect(summary.isEmpty.value).toBe(false);
     expect(summary.openTodoCount.value).toBe(1); // One false
     
     // Top folders sorted by updatedAt desc: f1(100), f2(50)

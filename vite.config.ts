@@ -70,9 +70,9 @@ export default defineConfig(({ command }) => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('@tiptap')) return 'vendor-editor';
-              if (id.includes('fabric') || id.includes('perfect-freehand')) return 'vendor-canvas';
-              if (id.includes('vue') || id.includes('pinia')) return 'vendor-vue';
+              if (id.includes('@tiptap')) {return 'vendor-editor';}
+              if (id.includes('fabric') || id.includes('perfect-freehand')) {return 'vendor-canvas';}
+              if (id.includes('vue') || id.includes('pinia')) {return 'vendor-vue';}
               return 'vendor-utils';
             }
           }

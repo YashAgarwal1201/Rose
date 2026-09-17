@@ -17,7 +17,7 @@ describe("useInput", () => {
       
       requestInput("Enter your name:");
       
-      expect(isOpen.value).toBeTruthy();
+      expect(isOpen.value).toBe(true);
       expect(options.value.message).toBe("Enter your name:");
       expect(inputValue.value).toBe("");
     });
@@ -35,7 +35,7 @@ describe("useInput", () => {
         confirmLabel: "Save",
       });
       
-      expect(isOpen.value).toBeTruthy();
+      expect(isOpen.value).toBe(true);
       expect(options.value.title).toBe("Rename");
       expect(options.value.message).toBe("Enter new name:");
       expect(inputValue.value).toBe("OldName");
@@ -57,7 +57,7 @@ describe("useInput", () => {
       
       const result = await promise;
       expect(result).toBe("John Doe");
-      expect(isOpen.value).toBeFalsy();
+      expect(isOpen.value).toBe(false);
     });
   });
 
@@ -72,7 +72,7 @@ describe("useInput", () => {
       
       const result = await promise;
       expect(result).toBeNull();
-      expect(isOpen.value).toBeFalsy();
+      expect(isOpen.value).toBe(false);
     });
   });
 });

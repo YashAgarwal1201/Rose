@@ -11,7 +11,7 @@ import { nextTick, ref } from "vue";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock('vue-router', () => ({
+vi.mock(import('vue-router'), () => ({
   useRouter: () => ({
     push: pushMock,
     replace: replaceMock,
@@ -24,12 +24,12 @@ vi.mock('vue-router', () => ({
 
 // Mock toast
 const showToastMock = vi.fn();
-vi.mock('@/composables/ui/useToast.ts', () => ({
+vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: showToastMock }),
 } as any));
 
 // Mock toolbar position
-vi.mock('../../composables/useToolbarPosition', () => ({
+vi.mock(import('../../composables/useToolbarPosition'), () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -39,7 +39,7 @@ vi.mock('../../composables/useToolbarPosition', () => ({
 } as any));
 
 // Mock HandwritingCanvas to avoid rendering fabric
-vi.mock('../../components/notes/HandwritingCanvas.vue', () => ({
+vi.mock(import('../../components/notes/HandwritingCanvas.vue'), () => ({
   default: {
     template: "<div data-testid='note-canvas'></div>",
     props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
@@ -115,7 +115,7 @@ describe("NoteView.vue", () => {
       });
       const wrapper = await mountNoteView(["Test Note"]);
       expect(wrapper.find("h1").text()).toBe("Test Note");
-      expect(wrapper.findComponent({ name: "NoteCanvas" }).exists()).toBeTruthy();
+      expect(wrapper.findComponent({ name: "NoteCanvas" }).exists()).toBe(true);
     });
   });
 
@@ -138,7 +138,7 @@ describe("NoteView.vue", () => {
       const wrapper = await mountNoteView(["Old Title"]);
       await wrapper.find("button .lucide-pencil").trigger("click");
       const input = wrapper.find("input[type='text']");
-      expect(input.exists()).toBeTruthy();
+      expect(input.exists()).toBe(true);
       expect((input.element as HTMLInputElement).value).toBe("Old Title");
     });
 

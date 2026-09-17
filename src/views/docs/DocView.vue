@@ -56,7 +56,7 @@ const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 const { requestInput } = useInput();
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 const currentDoc = ref<Doc | undefined>(undefined);
 const isVaultLocked = ref(false);
@@ -782,6 +782,7 @@ onBeforeUnmount(() => {
 
         <!-- Body: toolbar + editor, direction depends on position -->
         <ErrorBoundary>
+          <div class="flex flex-col flex-1 min-h-0">
           <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
             <!-- Toolbar: left or top -->
             <DocToolbar ref="toolbarRef" v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
@@ -791,11 +792,12 @@ onBeforeUnmount(() => {
               @export-as-markdown="exportAsMarkdown" @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
 
             <!-- Editor + table context bar -->
-            <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6"
-              :class="effectivePosition === 'bottom' ? 'pb-16' : 'pb-6'">
+            <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
+              :class="effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'">
               <!-- Table context toolbar — always horizontal, always above editor -->
               <div v-if="editor?.isActive('table')" ref="cellBgRootRef"
-                class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0">
+                class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0"
+                :style="{ maxWidth: 'clamp(320px, 72ch, 860px)', marginLeft: 'auto', marginRight: 'auto', width: '100%' }">
                 <div v-if="isCellBgPickerOpen" class="fixed inset-0 z-10" @click="
                   isCellBgPickerOpen = false;
                 cellBgAnchor.close();
@@ -889,6 +891,7 @@ onBeforeUnmount(() => {
               @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
               @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
           </div>
+          </div>
         </ErrorBoundary>
       </div>
     </template>
@@ -898,6 +901,10 @@ onBeforeUnmount(() => {
 <style>
 .rose-editor-content .ProseMirror {
   outline: none;
+  max-width: clamp(320px, 72ch, 860px);
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .rose-editor-content h1 {

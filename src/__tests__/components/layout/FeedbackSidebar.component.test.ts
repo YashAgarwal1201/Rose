@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import FeedbackSidebar from "@/components/layout/FeedbackSidebar.vue";
 
@@ -33,7 +33,7 @@ describe("FeedbackSidebar.vue", () => {
     await new Promise((r) => setTimeout(r, 700));
 
     // It should emit close after successful mock submit
-    expect(wrapper.emitted("close")).toBeTruthy();
+    expect(wrapper.emitted("close")).toBe(true);
   });
 
   it("does not render when isOpen is false", () => {
@@ -43,6 +43,6 @@ describe("FeedbackSidebar.vue", () => {
       global: { stubs: { Teleport: true } }
     });
 
-    expect(wrapper.find("h3").exists()).toBeFalsy();
+    expect(wrapper.find("h3").exists()).toBe(false);
   });
 });

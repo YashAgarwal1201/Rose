@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
 
@@ -24,7 +24,7 @@ describe("ContextMenu.vue", () => {
     await new Promise(r => setTimeout(r, 0));
 
     const menu = wrapper.find(".bg-rose-surface");
-    expect(menu.exists()).toBeTruthy();
+    expect(menu.exists()).toBe(true);
     expect(menu.html()).toContain("Action 1");
 
     expect(menu.attributes("style")).toContain("opacity: 1");
@@ -37,6 +37,6 @@ describe("ContextMenu.vue", () => {
       global: { stubs: { Teleport: true } }
     });
     
-    expect(wrapper.find(".bg-rose-surface").exists()).toBeFalsy();
+    expect(wrapper.find(".bg-rose-surface").exists()).toBe(false);
   });
 });

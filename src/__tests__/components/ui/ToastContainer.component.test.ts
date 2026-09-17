@@ -1,10 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import { useToast } from "@/composables/ui/useToast";
 import { ref } from "vue";
 
-vi.mock("@/composables/ui/useToast", () => ({
+vi.mock(import('@/composables/ui/useToast'), () => ({
   useToast: vi.fn()
 }));
 

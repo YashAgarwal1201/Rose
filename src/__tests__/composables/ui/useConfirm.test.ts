@@ -19,7 +19,7 @@ describe("useConfirm", () => {
       expect.hasAssertions();
       const { confirm, isOpen } = useConfirm();
       confirm("Are you sure?");
-      expect(isOpen.value).toBeTruthy();
+      expect(isOpen.value).toBe(true);
     });
 
     it("wraps the string in an options object with message", () => {
@@ -43,7 +43,7 @@ describe("useConfirm", () => {
         confirmLabel: "Delete",
         cancelLabel: "Keep",
       });
-      expect(isOpen.value).toBeTruthy();
+      expect(isOpen.value).toBe(true);
       expect(options.value.title).toBe("Delete folder");
       expect(options.value.message).toBe("This cannot be undone.");
       expect(options.value.confirmLabel).toBe("Delete");
@@ -61,7 +61,7 @@ describe("useConfirm", () => {
       const promise = confirm("Proceed?");
       handleConfirm();
       const result = await promise;
-      expect(result).toBeTruthy();
+      expect(result).toBe(true);
     });
 
     it("closes the dialog", () => {
@@ -69,7 +69,7 @@ describe("useConfirm", () => {
       const { confirm, handleConfirm, isOpen } = useConfirm();
       confirm("Proceed?");
       handleConfirm();
-      expect(isOpen.value).toBeFalsy();
+      expect(isOpen.value).toBe(false);
     });
   });
 
@@ -83,7 +83,7 @@ describe("useConfirm", () => {
       const promise = confirm("Proceed?");
       handleCancel();
       const result = await promise;
-      expect(result).toBeFalsy();
+      expect(result).toBe(false);
     });
 
     it("closes the dialog", () => {
@@ -91,7 +91,7 @@ describe("useConfirm", () => {
       const { confirm, handleCancel, isOpen } = useConfirm();
       confirm("Proceed?");
       handleCancel();
-      expect(isOpen.value).toBeFalsy();
+      expect(isOpen.value).toBe(false);
     });
   });
 });

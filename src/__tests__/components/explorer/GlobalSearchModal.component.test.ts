@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import GlobalSearchModal from "@/components/explorer/GlobalSearchModal.vue";
 import { createPinia } from "pinia";
@@ -7,10 +7,10 @@ import { useHomeSummary } from "@/composables/home/useHomeSummary";
 import { ref } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-vi.mock("@/composables/home/useHomeSummary", () => ({
+vi.mock(import('@/composables/home/useHomeSummary'), () => ({
   useHomeSummary: vi.fn()
 }));
-vi.mock("@vueuse/integrations/useFocusTrap", () => ({
+vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
 }));
 
@@ -58,7 +58,7 @@ describe("GlobalSearchModal.vue", () => {
     await wrapper.vm.$nextTick();
 
     const input = wrapper.find("input");
-    expect(input.exists()).toBeTruthy();
+    expect(input.exists()).toBe(true);
 
     await input.setValue("test");
     expect(searchMock).toHaveBeenCalledWith("test");
@@ -76,7 +76,7 @@ describe("GlobalSearchModal.vue", () => {
     
     vi.advanceTimersByTime(200);
     expect(routerPushSpy).toHaveBeenCalledWith({ name: "todos-list", params: { pathMatch: "folder/test-todo" } });
-    expect(uiStore.isSearchOpen).toBeFalsy();
+    expect(uiStore.isSearchOpen).toBe(false);
     vi.useRealTimers();
   });
 });

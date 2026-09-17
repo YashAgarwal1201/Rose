@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode";
 import { nextTick } from "vue";
 

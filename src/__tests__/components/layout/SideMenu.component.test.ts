@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import SideMenu from "@/components/layout/SideMenu.vue";
 import { createPinia } from "pinia";
@@ -33,7 +33,7 @@ describe("SideMenu.vue", () => {
     const themeStore = useThemeStore();
     vi.spyOn(themeStore, "setMode");
     const select = wrapper.find("select");
-    expect(select.exists()).toBeTruthy();
+    expect(select.exists()).toBe(true);
 
     await select.setValue("dark");
     expect(themeStore.setMode).toHaveBeenCalledWith("dark");
@@ -49,6 +49,6 @@ describe("SideMenu.vue", () => {
       }
     });
 
-    expect(wrapper.find("h3").exists()).toBeFalsy();
+    expect(wrapper.find("h3").exists()).toBe(false);
   });
 });

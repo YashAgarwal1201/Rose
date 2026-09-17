@@ -6,7 +6,7 @@ import db from "../../db";
 import { useNotesStore } from "../../stores/notes";
 
 // Mock the activity store so note creation/update doesn't fail
-vi.mock('../../stores/activity', () => ({
+vi.mock(import('../../stores/activity'), () => ({
   useActivityStore: () => ({
     record: vi.fn(),
   }),

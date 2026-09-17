@@ -6,7 +6,7 @@ import type { Doc } from "@/db/types";
 import { useActivityStore } from "./activity";
 import { useFoldersStore } from "./folders";
 import { useVaultStore } from "./vault";
-import { encryptJSONField, decryptJSONField } from "@/utils/crypto";
+import { decryptJSONField, encryptJSONField } from "@/utils/crypto";
 
 export const useDocsStore = defineStore("docs", () => {
   const docs = ref<Doc[]>([]);
@@ -52,10 +52,10 @@ export const useDocsStore = defineStore("docs", () => {
 
   async function getDoc(id: string): Promise<Doc | undefined> {
     const doc = await db.docs.get(id);
-    if (!doc) return;
+    if (!doc) {return;}
     if (doc.isVaulted && doc.contentJSON) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       await decryptJSONField(vault.derivedKey, doc, "contentJSON");
     }
     return doc;
@@ -75,7 +75,7 @@ export const useDocsStore = defineStore("docs", () => {
     const doc = await db.docs.get(id);
     if (doc?.isVaulted && "contentJSON" in sanitized && sanitized.contentJSON) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       await encryptJSONField(vault.derivedKey, sanitized as Partial<Doc> & { iv: string | null }, "contentJSON");
     }
     await db.docs.update(id, sanitized);
@@ -131,7 +131,7 @@ export const useDocsStore = defineStore("docs", () => {
     const dbDoc = await db.docs.get(id);
     if (dbDoc && dbDoc.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       
       if (newIsVaulted) {
         if (dbDoc.contentJSON) {

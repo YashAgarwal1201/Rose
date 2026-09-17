@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useBackButtonClose } from "@/composables/ui/useBackButtonClose";
 import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
-vi.mock("vue-router", () => ({
+vi.mock(import('vue-router'), () => ({
   useRouter: vi.fn(),
   useRoute: vi.fn(),
 }));
@@ -51,6 +51,6 @@ describe("useBackButtonClose", () => {
     
     await Promise.resolve();
     
-    expect(mockRouter.back).toHaveBeenCalled();
+    expect(mockRouter.back).toHaveBeenCalledWith();
   });
 });

@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
-import { defineComponent, onMounted, nextTick } from "vue";
+import { defineComponent, nextTick, onMounted } from "vue";
 
 describe("ErrorBoundary.vue", () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe("ErrorBoundary.vue", () => {
     });
 
     expect(wrapper.text()).toContain("Safe Content");
-    expect(wrapper.find(".bg-red-500\\/10").exists()).toBeFalsy();
+    expect(wrapper.find(String.raw`.bg-red-500\/10`).exists()).toBe(false);
   });
 
   it("catches error from child component and displays fallback UI", async () => {
@@ -64,6 +64,6 @@ describe("ErrorBoundary.vue", () => {
     await retryButton.trigger("click");
     // Since it immediately re-renders and re-throws, it might still show the error UI,
     // but we know the click handler fired.
-    expect(console.error).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith();
   });
 });

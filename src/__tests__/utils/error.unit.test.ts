@@ -28,14 +28,14 @@ describe("error utility", () => {
 
   describe("isVaultLockedError", () => {
     it("returns true when error message is 'Vault is locked'", () => {
-      expect(isVaultLockedError(new Error("Vault is locked"))).toBe(true);
-      expect(isVaultLockedError("Vault is locked")).toBe(true);
-      expect(isVaultLockedError({ message: "Vault is locked" })).toBe(true);
+      expect(isVaultLockedError(new Error("Vault is locked"))).toBeTruthy();
+      expect(isVaultLockedError("Vault is locked")).toBeTruthy();
+      expect(isVaultLockedError({ message: "Vault is locked" })).toBeTruthy();
     });
 
     it("returns false for other error messages", () => {
-      expect(isVaultLockedError(new Error("Other error"))).toBe(false);
-      expect(isVaultLockedError(null)).toBe(false);
+      expect(isVaultLockedError(new Error("Other error"))).toBeFalsy();
+      expect(isVaultLockedError(null)).toBeFalsy();
     });
   });
 
