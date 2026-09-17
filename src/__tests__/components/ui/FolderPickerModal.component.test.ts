@@ -54,8 +54,8 @@ describe("FolderPickerModal.vue", () => {
     const moveBtn = wrapper.findAll("button").find((b) => b.text().includes("Move Here"));
     await moveBtn?.trigger("click");
 
-    expect(wrapper.emitted("selectTarget")).toBeTruthy();
-    expect(wrapper.emitted("selectTarget")?.[0]).toEqual(["folder-1"]);
+    expect(wrapper.emitted("selectTarget")).toBe(true);
+    expect(wrapper.emitted("selectTarget")?.[0]).toStrictEqual(["folder-1"]);
   });
 
   it("emits close when cancel is clicked", async () => {
@@ -74,6 +74,6 @@ describe("FolderPickerModal.vue", () => {
     const cancelBtn = wrapper.findAll("button").find((b) => b.text().includes("Cancel"));
     await cancelBtn?.trigger("click");
 
-    expect(wrapper.emitted("close")).toBeTruthy();
+    expect(wrapper.emitted("close")).toBe(true);
   });
 });

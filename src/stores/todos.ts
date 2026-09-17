@@ -6,7 +6,7 @@ import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
 import { useFoldersStore } from "./folders";
 import { useVaultStore } from "./vault";
-import { encryptField, decryptField } from "@/utils/crypto";
+import { decryptField, encryptField } from "@/utils/crypto";
 
 export const useTodosStore = defineStore("todos", () => {
   const todoLists = ref<TodoList[]>([]);
@@ -128,7 +128,7 @@ export const useTodosStore = defineStore("todos", () => {
     const first = result[0];
     if (first && first.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       await Promise.all(result.map(t => decryptField(vault.derivedKey!, t, "title")));
     }
     if (currentListId.value === listId) {
@@ -156,7 +156,7 @@ export const useTodosStore = defineStore("todos", () => {
 
     if (isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       await encryptField(vault.derivedKey, todo, "title");
     }
 
@@ -188,7 +188,7 @@ export const useTodosStore = defineStore("todos", () => {
     const todoRecord = await db.todos.get(id);
     if (todoRecord?.isVaulted && sanitized.title) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
       await encryptField(vault.derivedKey, sanitized as Partial<Todo> & { iv: string | null }, "title");
     }
     await db.todos.update(id, sanitized);
@@ -240,7 +240,7 @@ export const useTodosStore = defineStore("todos", () => {
     const dbList = await db.todoLists.get(id);
     if (dbList && dbList.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) throw new Error("Vault is locked");
+      if (!vault.derivedKey) {throw new Error("Vault is locked");}
 
       const childTodos = await db.todos.where("listId").equals(id).toArray();
       for (const todo of childTodos) {

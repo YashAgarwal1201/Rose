@@ -50,7 +50,7 @@ describe("Navbar.vue", () => {
     expect(menuButton.text()).toContain("Menu");
 
     await menuButton.trigger("click");
-    expect(wrapper.emitted("toggleMenu")).toBeTruthy();
+    expect(wrapper.emitted("toggleMenu")).toBe(true);
   });
 
   it("hides vault nav link when vault folder does not exist", async () => {

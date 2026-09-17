@@ -1,15 +1,15 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useHandwritingCanvas } from "@/composables/notes/useHandwritingCanvas";
 import { ref } from "vue";
 
 // Partially mock perfect-freehand since we don't need its real math to test the composable's logic
-vi.mock("perfect-freehand", () => ({
+vi.mock(import('perfect-freehand'), () => ({
   default: vi.fn(() => [[0, 0], [10, 10]])
 }));
 
 // Partially mock fabric
-vi.mock("fabric", () => {
-  return {
+vi.mock(import('fabric'), () => (
+  {
     Canvas: vi.fn().mockImplementation(() => {
       return {
         add: vi.fn(),
@@ -38,8 +38,8 @@ vi.mock("fabric", () => {
     Textbox: vi.fn(),
     FabricImage: { fromURL: vi.fn().mockResolvedValue({ scaleToWidth: vi.fn(), getBoundingRect: () => ({ top: 0, height: 100 }) }) },
     Pattern: vi.fn(),
-  };
-});
+  }
+));
 
 describe("useHandwritingCanvas", () => {
   beforeEach(() => {

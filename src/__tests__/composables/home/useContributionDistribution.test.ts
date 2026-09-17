@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useContributionDistribution } from "@/composables/home/useContributionDistribution";
 import { createPinia, setActivePinia } from "pinia";
 import { useActivityStore } from "@/stores/activity";
@@ -12,8 +12,8 @@ describe("useContributionDistribution", () => {
   it("initializes zeroed and correctly identifies empty state", () => {
     expect.hasAssertions();
     const { isLoaded, hasEnoughData, total, segments } = useContributionDistribution();
-    expect(isLoaded.value).toBeFalsy();
-    expect(hasEnoughData.value).toBeFalsy();
+    expect(isLoaded.value).toBe(false);
+    expect(hasEnoughData.value).toBe(false);
     expect(total.value).toBe(0);
     
     expect(segments.value[0]?.percentage).toBe(0);
@@ -36,9 +36,9 @@ describe("useContributionDistribution", () => {
     const dist = useContributionDistribution();
     await dist.refresh();
 
-    expect(dist.isLoaded.value).toBeTruthy();
+    expect(dist.isLoaded.value).toBe(true);
     expect(dist.total.value).toBe(4);
-    expect(dist.hasEnoughData.value).toBeTruthy();
+    expect(dist.hasEnoughData.value).toBe(true);
 
     const segments = dist.segments.value;
     

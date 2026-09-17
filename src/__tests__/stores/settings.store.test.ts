@@ -26,11 +26,11 @@ describe("settingsStore", () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      expect(store.isLoaded).toBeTruthy();
+      expect(store.isLoaded).toBe(true);
       expect(store.username).toBeNull();
-      expect(store.onboardingCompleted).toBeFalsy();
+      expect(store.onboardingCompleted).toBe(false);
       expect(store.onboardingStep).toBe(0);
-      expect(store.showActivityChart).toBeTruthy();
+      expect(store.showActivityChart).toBe(true);
     });
 
     it("persists default settings to DB on first run", async () => {
@@ -39,7 +39,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       const row = await db.settings.get(1);
       expect(row).toBeDefined();
-      expect(row?.onboardingCompleted).toBeFalsy();
+      expect(row?.onboardingCompleted).toBe(false);
     });
 
     it("loads existing settings on subsequent runs", async () => {
@@ -119,13 +119,13 @@ describe("settingsStore", () => {
       expect.hasAssertions();
       const store = useSettingsStore();
       await store.loadSettings();
-      expect(store.showActivityChart).toBeTruthy();
+      expect(store.showActivityChart).toBe(true);
       
       await store.toggleActivityChart();
-      expect(store.showActivityChart).toBeFalsy();
+      expect(store.showActivityChart).toBe(false);
       
       await store.toggleActivityChart();
-      expect(store.showActivityChart).toBeTruthy();
+      expect(store.showActivityChart).toBe(true);
     });
 
     it("persists to DB", async () => {
@@ -134,7 +134,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.toggleActivityChart();
       const row = await db.settings.get(1);
-      expect(row?.showActivityChart).toBeFalsy();
+      expect(row?.showActivityChart).toBe(false);
     });
   });
 
@@ -148,7 +148,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.setOnboardingStep(3);
       await store.completeOnboarding();
-      expect(store.onboardingCompleted).toBeTruthy();
+      expect(store.onboardingCompleted).toBe(true);
       expect(store.onboardingStep).toBe(0);
     });
   });
@@ -160,7 +160,7 @@ describe("settingsStore", () => {
       await store.loadSettings();
       await store.completeOnboarding();
       await store.resetOnboarding();
-      expect(store.onboardingCompleted).toBeFalsy();
+      expect(store.onboardingCompleted).toBe(false);
       expect(store.onboardingStep).toBe(0);
     });
 
@@ -171,7 +171,7 @@ describe("settingsStore", () => {
       await store.completeOnboarding();
       await store.resetOnboarding();
       const row = await db.settings.get(1);
-      expect(row?.onboardingCompleted).toBeFalsy();
+      expect(row?.onboardingCompleted).toBe(false);
     });
   });
 });

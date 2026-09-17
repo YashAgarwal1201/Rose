@@ -22,7 +22,7 @@ onClickOutside(desktopPopoverRef, () => {
   desktopPopoverOpen.value = false;
 });
 
-const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false });
+const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false, returnFocusOnDeactivate: false });
 watch(fabOpen, (isOpen) => {
   if (isOpen) {
     nextTick().then(() => activate());

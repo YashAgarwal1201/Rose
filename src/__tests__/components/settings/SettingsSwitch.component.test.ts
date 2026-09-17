@@ -21,7 +21,7 @@ describe("SettingsSwitch.vue", () => {
 
     // Click to toggle
     await button.trigger("click");
-    expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([true]);
+    expect(wrapper.emitted("update:modelValue")?.[0]).toStrictEqual([true]);
   });
 
   it("renders active state when true", () => {

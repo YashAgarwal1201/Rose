@@ -46,7 +46,7 @@ describe("db/index.ts", () => {
 
     // Read
     const fetched = await db.folders.get("folder-1");
-    expect(fetched).toEqual(newFolder);
+    expect(fetched).toStrictEqual(newFolder);
 
     // Update
     await db.folders.update("folder-1", { name: "Updated Folder" });

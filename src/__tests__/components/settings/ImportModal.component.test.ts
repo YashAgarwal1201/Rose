@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ImportModal from "@/components/settings/ImportModal.vue";
 import { createPinia } from "pinia";
 import * as importDataModule from "@/utils/importData";
 import { useSettingsStore } from "@/stores/settings";
 
-vi.mock("@/composables/ui/useToast", () => ({
+vi.mock(import('@/composables/ui/useToast'), () => ({
   useToast: () => ({ showToast: vi.fn() })
 }));
-vi.mock("@vueuse/integrations/useFocusTrap", () => ({
+vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
 }));
 

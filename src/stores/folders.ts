@@ -7,7 +7,7 @@ import { useTodosStore } from "./todos";
 import { useDocsStore } from "./docs";
 import { useActivityStore } from "./activity";
 import { useVaultStore } from "./vault";
-import { encryptJSONField, decryptJSONField, encryptField, decryptField } from "@/utils/crypto";
+import { decryptField, decryptJSONField, encryptField, encryptJSONField } from "@/utils/crypto";
 
 export const useFoldersStore = defineStore("folders", () => {
   const folders = ref<Folder[]>([]);
@@ -63,7 +63,7 @@ export const useFoldersStore = defineStore("folders", () => {
     // and doesn't contain the folder we are trying to upgrade.
     while (cursor) {
       const folder = await db.folders.get(cursor);
-      if (!folder) break;
+      if (!folder) {break;}
       
       if (folder.type !== requiredType && folder.type !== "mixed") {
         await db.folders.update(cursor, { type: "mixed", updatedAt: Date.now() });
@@ -246,7 +246,7 @@ export const useFoldersStore = defineStore("folders", () => {
 
   async function setFolderVaultedState(folderId: string, isVaulted: boolean) {
     const vaultStore = useVaultStore();
-    if (!vaultStore.derivedKey) throw new Error("Vault is locked");
+    if (!vaultStore.derivedKey) {throw new Error("Vault is locked");}
 
     const allFoldersToUpdate = new Set<string>();
     const queue = [folderId];
@@ -259,7 +259,7 @@ export const useFoldersStore = defineStore("folders", () => {
       }
     }
 
-    const folderIds = Array.from(allFoldersToUpdate);
+    const folderIds = [...allFoldersToUpdate];
     if (folderIds.length > 0) {
       await db.folders.where("id").anyOf(folderIds).modify({ isVaulted });
     }
@@ -269,7 +269,7 @@ export const useFoldersStore = defineStore("folders", () => {
     for (const doc of docs) {
       doc.isVaulted = isVaulted;
       if (isVaulted) {
-        if (doc.contentJSON) await encryptJSONField(vaultStore.derivedKey, doc, "contentJSON");
+        if (doc.contentJSON) {await encryptJSONField(vaultStore.derivedKey, doc, "contentJSON");}
       } else {
         if (doc.contentJSON) {
           await decryptJSONField(vaultStore.derivedKey, doc, "contentJSON");
@@ -277,29 +277,29 @@ export const useFoldersStore = defineStore("folders", () => {
         }
       }
     }
-    if (docs.length > 0) await db.docs.bulkPut(docs);
+    if (docs.length > 0) {await db.docs.bulkPut(docs);}
 
     // Notes
     const notes = await db.notes.where("folderId").anyOf([folderId, ...folderIds]).toArray();
     for (const note of notes) {
       note.isVaulted = isVaulted;
       if (isVaulted) {
-        if (note.canvasJSON) await encryptJSONField(vaultStore.derivedKey, note, "canvasJSON");
-        if (note.thumbnail) await encryptField(vaultStore.derivedKey, note, "thumbnail");
+        if (note.canvasJSON) {await encryptJSONField(vaultStore.derivedKey, note, "canvasJSON");}
+        if (note.thumbnail) {await encryptField(vaultStore.derivedKey, note, "thumbnail");}
       } else {
-        if (note.canvasJSON) await decryptJSONField(vaultStore.derivedKey, note, "canvasJSON");
-        if (note.thumbnail) await decryptField(vaultStore.derivedKey, note, "thumbnail");
+        if (note.canvasJSON) {await decryptJSONField(vaultStore.derivedKey, note, "canvasJSON");}
+        if (note.thumbnail) {await decryptField(vaultStore.derivedKey, note, "thumbnail");}
         note.iv = null;
       }
     }
-    if (notes.length > 0) await db.notes.bulkPut(notes);
+    if (notes.length > 0) {await db.notes.bulkPut(notes);}
 
     // TodoLists & Todos
     const lists = await db.todoLists.where("folderId").anyOf([folderId, ...folderIds]).toArray();
     for (const list of lists) {
       list.isVaulted = isVaulted;
     }
-    if (lists.length > 0) await db.todoLists.bulkPut(lists);
+    if (lists.length > 0) {await db.todoLists.bulkPut(lists);}
 
     const listIds = lists.map(l => l.id);
     if (listIds.length > 0) {
@@ -313,7 +313,7 @@ export const useFoldersStore = defineStore("folders", () => {
           todo.iv = null;
         }
       }
-      if (todosList.length > 0) await db.todos.bulkPut(todosList);
+      if (todosList.length > 0) {await db.todos.bulkPut(todosList);}
     }
   }
 

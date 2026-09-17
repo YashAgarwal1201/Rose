@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useNoteExport } from "@/composables/notes/useNoteExport";
 import { ref } from "vue";
 import type { Canvas } from "fabric";
@@ -28,7 +28,7 @@ describe("useNoteExport", () => {
     
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") return { click: mockClick } as any;
+      if (tagName === "a") {return { click: mockClick } as any;}
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 
@@ -36,8 +36,8 @@ describe("useNoteExport", () => {
     exportAsPng();
 
     expect(mockToDataURL).toHaveBeenCalledWith({ format: "png", multiplier: 1 });
-    expect(mockClick).toHaveBeenCalled();
-    expect(isOpen.value).toBeFalsy();
+    expect(mockClick).toHaveBeenCalledWith();
+    expect(isOpen.value).toBe(false);
   });
 
   it("exports as JPEG", () => {
@@ -49,7 +49,7 @@ describe("useNoteExport", () => {
     
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") return { click: mockClick } as any;
+      if (tagName === "a") {return { click: mockClick } as any;}
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 
@@ -57,8 +57,8 @@ describe("useNoteExport", () => {
     exportAsJpeg();
 
     expect(mockToDataURL).toHaveBeenCalledWith({ format: "jpeg", quality: 0.9, multiplier: 1 });
-    expect(mockClick).toHaveBeenCalled();
-    expect(isOpen.value).toBeFalsy();
+    expect(mockClick).toHaveBeenCalledWith();
+    expect(isOpen.value).toBe(false);
   });
 
   it("exports as SVG", () => {
@@ -70,18 +70,18 @@ describe("useNoteExport", () => {
     
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") return { click: mockClick } as any;
+      if (tagName === "a") {return { click: mockClick } as any;}
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 
     const { exportAsSvg } = useNoteExport(canvas as any, title, isOpen);
     exportAsSvg();
 
-    expect(mockToSVG).toHaveBeenCalled();
-    expect(mockCreateObjectURL).toHaveBeenCalled();
-    expect(mockClick).toHaveBeenCalled();
+    expect(mockToSVG).toHaveBeenCalledWith();
+    expect(mockCreateObjectURL).toHaveBeenCalledWith();
+    expect(mockClick).toHaveBeenCalledWith();
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
-    expect(isOpen.value).toBeFalsy();
+    expect(isOpen.value).toBe(false);
   });
 
   it("does nothing if canvas is not initialized", () => {
@@ -92,6 +92,6 @@ describe("useNoteExport", () => {
 
     const { exportAsPng } = useNoteExport(canvas as any, title, isOpen);
     exportAsPng();
-    expect(isOpen.value).toBeTruthy(); // still true
+    expect(isOpen.value).toBe(true); // still true
   });
 });

@@ -58,7 +58,7 @@ const docsStore = useDocsStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 const MAX_TABLE_ROWS = 20;
 const MAX_TABLE_COLS = 10;

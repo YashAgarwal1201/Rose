@@ -30,7 +30,7 @@ const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 const currentNote = ref<Note | undefined>(undefined);
 const isVaultLocked = ref(false);
 const isRenaming = ref(false);

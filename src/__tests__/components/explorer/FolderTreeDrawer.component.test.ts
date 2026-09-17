@@ -16,13 +16,13 @@ describe("FolderTreeDrawer.vue", () => {
     });
 
     const title = wrapper.find("h3");
-    expect(title.exists()).toBeTruthy();
+    expect(title.exists()).toBe(true);
     expect(title.text()).toBe("Folders");
     expect(wrapper.html()).toContain("test content");
 
     const closeButton = wrapper.find("button");
     await closeButton.trigger("click");
-    expect(wrapper.emitted("close")).toBeTruthy();
+    expect(wrapper.emitted("close")).toBe(true);
   });
 
   it("does not render when isOpen is false", () => {
@@ -32,6 +32,6 @@ describe("FolderTreeDrawer.vue", () => {
       global: { stubs: { XIcon: true } }
     });
 
-    expect(wrapper.find("h3").exists()).toBeFalsy();
+    expect(wrapper.find("h3").exists()).toBe(false);
   });
 });

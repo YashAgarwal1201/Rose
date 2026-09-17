@@ -85,6 +85,9 @@ export const vLongPress: ObjectDirective<HTMLElement, (e: PointerEvent | MouseEv
           // Prevent the browser's native context menu from popping up after our long press
           el.addEventListener('contextmenu', preventDefaultOnce, { capture: true, once: true });
 
+          // Cancel any pending drag-and-drop operations (like dnd-kit) now that context menu is opening
+          el.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
+
           handler(e);
         }, 500);
       },

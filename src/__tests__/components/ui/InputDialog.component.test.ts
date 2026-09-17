@@ -1,17 +1,17 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import InputDialog from "@/components/ui/InputDialog.vue";
 import { useInput } from "@/composables/ui/useInput";
 import { nextTick, ref } from "vue";
 import { createPinia } from "pinia";
 
-vi.mock("@/composables/ui/useInput", () => ({
+vi.mock(import('@/composables/ui/useInput'), () => ({
   useInput: vi.fn()
 }));
-vi.mock("@/composables/ui/useBackButtonClose", () => ({
+vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
   useBackButtonClose: vi.fn()
 }));
-vi.mock("@vueuse/integrations/useFocusTrap", () => ({
+vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
 }));
 
@@ -49,7 +49,7 @@ describe("InputDialog.vue", () => {
     expect(wrapper.find("h3").text()).toBe("Test Title");
     
     const input = wrapper.find("input");
-    expect(input.exists()).toBeTruthy();
+    expect(input.exists()).toBe(true);
     expect(input.element.value).toBe("test-val");
     expect(input.attributes("placeholder")).toBe("placeholder...");
 
@@ -58,9 +58,9 @@ describe("InputDialog.vue", () => {
 
     const buttons = wrapper.findAll("button");
     await buttons[0]?.trigger("click");
-    expect(handleCancel).toHaveBeenCalled();
+    expect(handleCancel).toHaveBeenCalledWith();
 
     await buttons[1]?.trigger("click");
-    expect(handleConfirm).toHaveBeenCalled();
+    expect(handleConfirm).toHaveBeenCalledWith();
   });
 });

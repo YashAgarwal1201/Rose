@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useDocExport } from "@/composables/docs/useDocExport";
 import { ref } from "vue";
 import type { Editor } from "@tiptap/core";
@@ -43,10 +43,10 @@ describe("useDocExport", () => {
     const { exportAsHtml } = useDocExport(editor as any, title, isOpen);
     exportAsHtml();
 
-    expect(mockCreateObjectURL).toHaveBeenCalled();
-    expect(mockClick).toHaveBeenCalled();
+    expect(mockCreateObjectURL).toHaveBeenCalledWith();
+    expect(mockClick).toHaveBeenCalledWith();
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
-    expect(isOpen.value).toBeFalsy();
+    expect(isOpen.value).toBe(false);
   });
 
   it("exports as PDF and triggers window open", () => {
@@ -58,13 +58,13 @@ describe("useDocExport", () => {
     const { exportAsPdf } = useDocExport(editor as any, title, isOpen);
     exportAsPdf();
 
-    expect(mockCreateObjectURL).toHaveBeenCalled();
+    expect(mockCreateObjectURL).toHaveBeenCalledWith();
     expect(mockWindowOpen).toHaveBeenCalledWith("blob:fake-url", "_blank");
     
     // Revoke happens on timeout
-    vi.advanceTimersByTime(11000);
+    vi.advanceTimersByTime(11_000);
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
-    expect(isOpen.value).toBeFalsy();
+    expect(isOpen.value).toBe(false);
   });
 
   it("does nothing if editor or title is missing", () => {
@@ -77,6 +77,6 @@ describe("useDocExport", () => {
     exportAsText();
     
     expect(mockCreateObjectURL).not.toHaveBeenCalled();
-    expect(isOpen.value).toBeTruthy();
+    expect(isOpen.value).toBe(true);
   });
 });

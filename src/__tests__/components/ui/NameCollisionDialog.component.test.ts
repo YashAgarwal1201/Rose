@@ -39,7 +39,7 @@ describe("NameCollisionDialog.vue", () => {
     const confirmBtn = wrapper.findAll("button").find((b) => b.text().includes("Move & Rename"));
     await confirmBtn?.trigger("click");
 
-    expect(wrapper.emitted("confirm")).toBeTruthy();
-    expect(wrapper.emitted("confirm")?.[0]).toEqual(["Project Plan (1)"]);
+    expect(wrapper.emitted("confirm")).toBe(true);
+    expect(wrapper.emitted("confirm")?.[0]).toStrictEqual(["Project Plan (1)"]);
   });
 });

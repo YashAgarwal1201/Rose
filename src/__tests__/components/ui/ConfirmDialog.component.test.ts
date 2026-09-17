@@ -1,19 +1,19 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
 import { useConfirm } from "@/composables/ui/useConfirm";
 import { nextTick, ref } from "vue";
 import { createPinia } from "pinia";
 
-vi.mock("@/composables/ui/useConfirm", () => {
-  return {
+vi.mock(import('@/composables/ui/useConfirm'), () => (
+  {
     useConfirm: vi.fn()
-  };
-});
-vi.mock("@/composables/ui/useBackButtonClose", () => ({
+  }
+));
+vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
   useBackButtonClose: vi.fn()
 }));
-vi.mock("@vueuse/integrations/useFocusTrap", () => ({
+vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
 }));
 
@@ -55,10 +55,10 @@ describe("ConfirmDialog.vue", () => {
     expect(buttons[1]?.text()).toBe("Yes");
 
     await buttons[0]?.trigger("click");
-    expect(handleCancel).toHaveBeenCalled();
+    expect(handleCancel).toHaveBeenCalledWith();
 
     await buttons[1]?.trigger("click");
-    expect(handleConfirm).toHaveBeenCalled();
+    expect(handleConfirm).toHaveBeenCalledWith();
   });
 
   it("does not render when isOpen is false", async () => {
@@ -78,6 +78,6 @@ describe("ConfirmDialog.vue", () => {
       }
     });
 
-    expect(wrapper.find("h3").exists()).toBeFalsy();
+    expect(wrapper.find("h3").exists()).toBe(false);
   });
 });

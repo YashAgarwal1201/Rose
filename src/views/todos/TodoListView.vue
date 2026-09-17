@@ -42,7 +42,7 @@ const foldersStore = useFoldersStore();
 const { confirm } = useConfirm();
 const { showToast } = useToast();
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : []));
+const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 const currentList = ref<TodoList | undefined>(undefined);
 const isVaultLocked = ref(false);

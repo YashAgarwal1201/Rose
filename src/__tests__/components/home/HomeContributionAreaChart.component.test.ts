@@ -16,7 +16,7 @@ describe("HomeContributionAreaChart.vue", () => {
     });
 
     const svg = wrapper.find("svg");
-    expect(svg.exists()).toBeTruthy();
+    expect(svg.exists()).toBe(true);
 
     const texts = wrapper.findAll("text");
     const textContents = texts.map(t => t.text());

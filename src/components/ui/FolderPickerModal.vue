@@ -138,7 +138,7 @@ function hasChildren(folderId: string): boolean {
 }
 
 function handleSelect(folderId: string | null, disabled: boolean) {
-  if (disabled) return;
+  if (disabled) {return;}
   selectedTargetId.value = folderId;
 }
 

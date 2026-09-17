@@ -23,6 +23,11 @@ import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import EmptyIllustration from "@/assets/illustrations/not-found2.svg";
+import { useMediaQuery } from '@vueuse/core';
+import { DragDropProvider } from '@dnd-kit/vue';
+import type { DragEndEvent } from '@dnd-kit/dom';
+import ExplorerDnDNode from './ExplorerDnDNode.vue';
+import ExplorerDragOverlay from './ExplorerDragOverlay.vue';
 
 export type ItemKind = "folder" | "doc" | "note" | "todo";
 
@@ -62,6 +67,7 @@ const emit = defineEmits<{
 
 const { confirm } = useConfirm();
 const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
+const isMobile = useMediaQuery('(hover: none) and (pointer: coarse)');
 
 const creatingType = ref<ItemKind | null>(null);
 const newName = ref("");
@@ -253,7 +259,7 @@ function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent |
   contextMenu.open(item, event);
 }
 
-const mockEvent = { stopPropagation: () => { } } as Event;
+const mockEvent = { stopPropagation: () => {} } as Event;
 
 function handleMenuRename() {
   const item = contextMenu.activeItem.value;
@@ -290,59 +296,30 @@ function handleMenuRemoveFromVault() {
   emit("moveItem", item.kind, item.id, null);
 }
 
-const dragOverFolderId = ref<string | null>(null);
-
-function handleDragStart(item: DisplayItem, event: DragEvent) {
-  if (item.isNew || isRenaming(item) || item.id === 'vault') { return; }
-  if (!event.dataTransfer) { return; }
-  event.dataTransfer.setData(
-    "application/json",
-    JSON.stringify({
-      id: item.id,
-      kind: item.kind,
-      name: item.name,
-      parentId: item.parentId ?? null,
-    }),
-  );
-  event.dataTransfer.effectAllowed = "move";
-}
-
-function handleDragOver(targetItem: DisplayItem, event: DragEvent) {
-  if (targetItem.kind !== "folder" || targetItem.isNew || targetItem.id === "vault") { return; }
-  event.preventDefault();
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = "move";
-  }
-  dragOverFolderId.value = targetItem.id;
-}
-
-function handleDragLeave(targetItem: DisplayItem) {
-  if (dragOverFolderId.value === targetItem.id) {
-    dragOverFolderId.value = null;
-  }
-}
-
-function handleDrop(targetFolder: DisplayItem, event: DragEvent) {
-  dragOverFolderId.value = null;
-  if (targetFolder.kind !== "folder" || targetFolder.isNew || targetFolder.id === "vault") { return; }
-  event.preventDefault();
-  const raw = event.dataTransfer?.getData("application/json");
-  if (!raw) { return; }
-  try {
-    const data = JSON.parse(raw) as { id: string; kind: ItemKind; name: string; parentId: string | null };
-    if (data.id === "vault") { return; }
-    if (data.id === targetFolder.id && data.kind === "folder") { return; }
-    emit("moveItem", data.kind, data.id, targetFolder.id);
-  } catch {
-    // ignore
-  }
+function handleDragEnd(event: DragEndEvent) {
+  if (event.canceled) {return;}
+  const source = event.operation?.source;
+  const target = event.operation?.target;
+  
+  if (!source || !target) {return;}
+  
+  const sourceData = source.data;
+  const targetData = target.data;
+  
+  if (!sourceData || !targetData) {return;}
+  if (sourceData.id === 'vault' || targetData.id === 'vault') {return;}
+  if (sourceData.id === targetData.id && sourceData.kind === "folder") {return;}
+  if (targetData.kind !== "folder") {return;}
+  
+  emit("moveItem", sourceData.kind, sourceData.id, targetData.id);
 }
 
 defineExpose({ startCreate });
 </script>
 <template>
-  <div>
-    <!-- Toolbar -->
+  <DragDropProvider @drag-end="handleDragEnd">
+    <div>
+      <!-- Toolbar -->
     <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
       <div class="flex items-center gap-1">
         <button
@@ -389,17 +366,20 @@ defineExpose({ startCreate });
     <!-- Grid view -->
     <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
       role="list">
-      <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
-        :draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault'" @dragstart="handleDragStart(item, $event)"
-        @dragover="handleDragOver(item, $event)" @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
+      <ExplorerDnDNode v-for="item in displayItems" :key="item.kind + '-' + item.id"
+        :id="item.id"
+        :data="{ id: item.id, kind: item.kind, name: item.name, parentId: item.parentId ?? null }"
+        :is-draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault' && !isMobile"
+        :is-droppable="item.kind === 'folder' && !item.isNew && item.id !== 'vault'"
+        drop-target-class="ring-2 ring-rose-primary bg-rose-primary/10!"
         class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
         :class="[
-          dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
+          !isMobile ? 'touch-none' : '',
           item.id === 'vault' ? 'bg-rose-primary/5 justify-center' : 'border border-transparent'
         ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
-        <button v-if="!item.isNew && !isRenaming(item)" type="button"
-          class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
-          :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
+        <div v-if="!item.isNew && !isRenaming(item)" tabindex="0"
+          class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
+          :aria-label="'Open ' + item.name" @click="handleOpen(item)" @keyup.enter="handleOpen(item)"></div>
 
         <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
           :src="item.thumbnail"
@@ -426,7 +406,7 @@ defineExpose({ startCreate });
             <MoreVerticalIcon class="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </ExplorerDnDNode>
     </div>
 
     <!-- List view -->
@@ -442,18 +422,20 @@ defineExpose({ startCreate });
       </div>
 
       <div role="list" class="flex flex-col">
-        <div v-for="item in displayItems" :key="item.kind + '-' + item.id"
-          :draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault'"
-          @dragstart="handleDragStart(item, $event)" @dragover="handleDragOver(item, $event)"
-          @dragleave="handleDragLeave(item)" @drop="handleDrop(item, $event)"
+        <ExplorerDnDNode v-for="item in displayItems" :key="item.kind + '-' + item.id"
+          :id="item.id"
+          :data="{ id: item.id, kind: item.kind, name: item.name, parentId: item.parentId ?? null }"
+          :is-draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault' && !isMobile"
+          :is-droppable="item.kind === 'folder' && !item.isNew && item.id !== 'vault'"
+          drop-target-class="ring-2 ring-rose-primary bg-rose-primary/10!"
           class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
           :class="[
-            dragOverFolderId === item.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
+            !isMobile ? 'touch-none' : '',
             item.id === 'vault' ? 'bg-rose-primary/5' : 'border border-transparent'
           ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
-          <button v-if="!item.isNew && !isRenaming(item)" type="button"
-            class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
-            :aria-label="'Open ' + item.name" @click="handleOpen(item)"></button>
+          <div v-if="!item.isNew && !isRenaming(item)" tabindex="0"
+            class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
+            :aria-label="'Open ' + item.name" @click="handleOpen(item)" @keyup.enter="handleOpen(item)"></div>
 
           <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
             :src="item.thumbnail" class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
@@ -506,7 +488,7 @@ defineExpose({ startCreate });
             <span class="w-32 shrink-0 hidden lg:block"></span>
             <div class="w-14 shrink-0"></div>
           </template>
-        </div>
+        </ExplorerDnDNode>
       </div>
     </div>
   </div>
@@ -539,4 +521,6 @@ defineExpose({ startCreate });
       <TrashIcon class="w-4 h-4" /> Delete
     </button>
   </ContextMenu>
+  <ExplorerDragOverlay />
+  </DragDropProvider>
 </template>

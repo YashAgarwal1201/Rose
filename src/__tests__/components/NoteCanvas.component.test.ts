@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import { ref } from "vue";
 
 // Mock the debounce utility to run immediately or expose flush
-vi.mock('../../utils/debounce', () => ({
+vi.mock(import('../../utils/debounce'), () => ({
   debounce: (fn: (...args: unknown[]) => unknown) => {
     const debounced = (...args: unknown[]) => fn(...args);
     debounced.flush = vi.fn(() => fn());
@@ -13,7 +13,7 @@ vi.mock('../../utils/debounce', () => ({
 }));
 
 // Mock the toolbar
-vi.mock('../../components/NoteToolbar.vue', () => ({
+vi.mock(import('../../components/NoteToolbar.vue'), () => ({
   default: { template: "<div data-testid='note-toolbar'></div>" },
 } as any));
 
@@ -35,7 +35,7 @@ const mockFabricCanvas = {
   off: vi.fn(),
 };
 
-vi.mock('@/composables/notes/useHandwritingCanvas.ts', () => ({
+vi.mock(import('@/composables/notes/useHandwritingCanvas.ts'), () => ({
   useHandwritingCanvas: () => (
     {
       init: mockInit,

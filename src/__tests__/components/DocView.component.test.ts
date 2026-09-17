@@ -54,7 +54,7 @@ function makeFakeEditor() {
 
 let fakeEditor: ReturnType<typeof makeFakeEditor>;
 
-vi.mock("@tiptap/vue-3", () => ({
+vi.mock(import('@tiptap/vue-3'), () => ({
   useEditor: () => ref(fakeEditor),
   EditorContent: { template: "<div data-testid='editor-content' />" },
 } as any));
@@ -66,37 +66,37 @@ function extensionStub(name: string): Record<string, unknown> {
   ext.extend = vi.fn(() => extensionStub(name));
   return ext;
 }
-vi.mock("@tiptap/starter-kit", () => ({ default: extensionStub("starterKit") } as any));
-vi.mock("@tiptap/extension-task-list", () => ({ default: extensionStub("taskList") } as any));
-vi.mock("@tiptap/extension-task-item", () => ({ default: extensionStub("taskItem") } as any));
-vi.mock("@tiptap/extension-link", () => ({ default: extensionStub("link") } as any));
-vi.mock("@tiptap/extension-image", () => ({ default: extensionStub("image") } as any));
-vi.mock("@tiptap/extension-placeholder", () => ({ default: extensionStub("placeholder") } as any));
-vi.mock("@tiptap/extension-text-align", () => ({ default: extensionStub("textAlign") } as any));
-vi.mock("@tiptap/extension-text-style", () => ({
+vi.mock(import('@tiptap/starter-kit'), () => ({ default: extensionStub("starterKit") } as any));
+vi.mock(import('@tiptap/extension-task-list'), () => ({ default: extensionStub("taskList") } as any));
+vi.mock(import('@tiptap/extension-task-item'), () => ({ default: extensionStub("taskItem") } as any));
+vi.mock(import('@tiptap/extension-link'), () => ({ default: extensionStub("link") } as any));
+vi.mock(import('@tiptap/extension-image'), () => ({ default: extensionStub("image") } as any));
+vi.mock(import('@tiptap/extension-placeholder'), () => ({ default: extensionStub("placeholder") } as any));
+vi.mock(import('@tiptap/extension-text-align'), () => ({ default: extensionStub("textAlign") } as any));
+vi.mock(import('@tiptap/extension-text-style'), () => ({
   TextStyle: extensionStub("textStyle"),
   Color: extensionStub("color"),
 } as any));
-vi.mock("@tiptap/extension-highlight", () => ({ Highlight: extensionStub("highlight") } as any));
-vi.mock("@tiptap/extension-underline", () => ({ default: extensionStub("underline") } as any));
-vi.mock("@tiptap/extension-subscript", () => ({ default: extensionStub("subscript") } as any));
-vi.mock("@tiptap/extension-superscript", () => ({ default: extensionStub("superscript") } as any));
-vi.mock("@tiptap/extension-table", () => ({
+vi.mock(import('@tiptap/extension-highlight'), () => ({ Highlight: extensionStub("highlight") } as any));
+vi.mock(import('@tiptap/extension-underline'), () => ({ default: extensionStub("underline") } as any));
+vi.mock(import('@tiptap/extension-subscript'), () => ({ default: extensionStub("subscript") } as any));
+vi.mock(import('@tiptap/extension-superscript'), () => ({ default: extensionStub("superscript") } as any));
+vi.mock(import('@tiptap/extension-table'), () => ({
   Table: extensionStub("table"),
   TableCell: extensionStub("tableCell"),
   TableHeader: extensionStub("tableHeader"),
   TableRow: extensionStub("tableRow"),
 } as any));
-vi.mock("@tiptap/pm/tables", () => ({
+vi.mock(import('@tiptap/pm/tables'), () => ({
   TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
 } as any));
-vi.mock("@tiptap/markdown", () => ({ Markdown: extensionStub("markdown") } as any));
+vi.mock(import('@tiptap/markdown'), () => ({ Markdown: extensionStub("markdown") } as any));
 
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-vi.mock("@/composables/ui/useToast.ts", () => ({
+vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
 } as any));
-vi.mock("@/composables/docs/useDocExport.ts", () => ({
+vi.mock(import('@/composables/docs/useDocExport.ts'), () => ({
   useDocExport: () => ({
     exportAsHtml: vi.fn(),
     exportAsMarkdown: vi.fn(),
@@ -104,7 +104,7 @@ vi.mock("@/composables/docs/useDocExport.ts", () => ({
     exportAsPdf: vi.fn(),
   }),
 } as any));
-vi.mock("@/composables/ui/useToolbarPosition.ts", () => ({
+vi.mock(import('@/composables/ui/useToolbarPosition.ts'), () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -113,7 +113,7 @@ vi.mock("@/composables/ui/useToolbarPosition.ts", () => ({
     setPosition: vi.fn(),
   }),
 } as any));
-vi.mock("@/composables/ui/usePopoverPosition.ts", () => ({
+vi.mock(import('@/composables/ui/usePopoverPosition.ts'), () => ({
   usePopoverPosition: () => ({
     style: ref({}),
     open: vi.fn(),
@@ -121,7 +121,7 @@ vi.mock("@/composables/ui/usePopoverPosition.ts", () => ({
   }),
 } as any));
 // debounce runs immediately in tests instead of waiting AUTOSAVE_DELAY_MS
-vi.mock("../../utils/debounce", () => ({
+vi.mock(import('../../utils/debounce'), () => ({
   debounce:
     (fn: (...args: unknown[]) => unknown) => {
       const debounced = (...args: unknown[]) => fn(...args);
@@ -129,7 +129,7 @@ vi.mock("../../utils/debounce", () => ({
       return debounced;
     },
 } as any));
-vi.mock("@/components/docs/DocToolbar.vue", () => ({
+vi.mock(import('@/components/docs/DocToolbar.vue'), () => ({
   default: { template: "<div data-testid='doc-toolbar' />" },
 } as any));
 
@@ -293,7 +293,7 @@ describe("DocView", () => {
       });
       const { wrapper } = await mountDocView(["Editor Doc"]);
       console.log("Wrapper HTML:", wrapper.html());
-      expect(wrapper.find("[data-testid='editor-content']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='editor-content']").exists()).toBe(true);
     });
   });
 
@@ -349,7 +349,7 @@ describe("DocView", () => {
       const pencilBtn = wrapper.findAll("button")[1];
       await pencilBtn!.trigger("click");
       const input = wrapper.find("input[type='text']");
-      expect(input.exists()).toBeTruthy();
+      expect(input.exists()).toBe(true);
       expect((input.element as HTMLInputElement).value).toBe("Rename Me");
     });
 
@@ -373,7 +373,7 @@ describe("DocView", () => {
       await input.setValue("New Title");
       await input.trigger("keyup.enter");
       await vi.waitFor(() => {
-        expect(wrapper.find("input[type='text']").exists()).toBe(false);
+        expect(wrapper.find("input[type='text']").exists()).toBeFalsy();
       });
       expect((await db.docs.get("doc-7"))?.title).toBe("New Title");
     });
@@ -399,7 +399,7 @@ describe("DocView", () => {
       await input.trigger("keyup.escape");
       await flushPromises();
       expect((await db.docs.get("doc-8"))?.title).toBe("Untouched Title");
-      expect(wrapper.find("input[type='text']").exists()).toBeFalsy();
+      expect(wrapper.find("input[type='text']").exists()).toBe(false);
     });
   });
 
@@ -436,7 +436,7 @@ describe("DocView", () => {
         iv: null,
       });
       const { wrapper } = await mountDocView(["Toolbar Doc"]);
-      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBeTruthy();
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
     });
   });
 
