@@ -66,4 +66,56 @@ describe("useHomeSummary", () => {
     expect(searchRes).toHaveLength(1);
     expect(searchRes[0]!.title).toBe("Doc 1");
   });
+
+  it("aggregates, filters, and sorts dueSoonTodos", async () => {
+    expect.hasAssertions();
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    vi.spyOn(db.folders, "toArray").mockResolvedValue([
+      { id: "f1", name: "Work", type: "todo", parentId: null, createdAt: 1, updatedAt: 100 },
+    ]);
+    vi.spyOn(db.todoLists, "toArray").mockResolvedValue([
+      { id: "tl1", name: "Tasks", folderId: "f1", createdAt: 1, updatedAt: 200, lastOpenedAt: 1000, isVaulted: false },
+      { id: "tl-vault", name: "Secret Tasks", folderId: null, createdAt: 1, updatedAt: 200, lastOpenedAt: 1000, isVaulted: true },
+    ]);
+    vi.spyOn(db.todos, "toArray").mockResolvedValue([
+      // Overdue (yesterday) -> should be first
+      { id: "t-overdue", title: "Overdue Task", listId: "tl1", done: false, priority: "high", dueDate: now - oneDay, isVaulted: false, createdAt: 1 },
+      // Today -> should be second
+      { id: "t-today", title: "Today Task", listId: "tl1", done: false, priority: "medium", dueDate: now, isVaulted: false, createdAt: 1 },
+      // Tomorrow -> should be third
+      { id: "t-tomorrow", title: "Tomorrow Task", listId: "tl1", done: false, priority: "low", dueDate: now + oneDay, isVaulted: false, createdAt: 1 },
+      // In 2 days -> should be fourth
+      { id: "t-day2", title: "Day 2 Task", listId: "tl1", done: false, priority: null, dueDate: now + 2 * oneDay, isVaulted: false, createdAt: 1 },
+      // Completed -> excluded
+      { id: "t-done", title: "Done Task", listId: "tl1", done: true, priority: "high", dueDate: now, isVaulted: false, createdAt: 1 },
+      // No due date -> excluded
+      { id: "t-nodate", title: "No Date Task", listId: "tl1", done: false, priority: "high", dueDate: null, isVaulted: false, createdAt: 1 },
+      // Far future (in 10 days) -> excluded
+      { id: "t-future", title: "Future Task", listId: "tl1", done: false, priority: null, dueDate: now + 10 * oneDay, isVaulted: false, createdAt: 1 },
+      // Vaulted todo -> excluded
+      { id: "t-vaulted", title: "Vaulted Task", listId: "tl1", done: false, priority: "high", dueDate: now, isVaulted: true, createdAt: 1 },
+      // Todo in vaulted list -> excluded
+      { id: "t-in-vault-list", title: "Secret List Task", listId: "tl-vault", done: false, priority: "high", dueDate: now, isVaulted: false, createdAt: 1 },
+    ]);
+    vi.spyOn(db.docs, "toArray").mockResolvedValue([]);
+    vi.spyOn(db.notes, "toArray").mockResolvedValue([]);
+
+    const summary = useHomeSummary();
+    await summary.refresh();
+
+    expect(summary.dueSoonTodos.value).toHaveLength(4);
+    expect(summary.totalDueSoonCount.value).toBe(4);
+
+    // Sorted by ascending dueDate (overdue first, then today, tomorrow, etc.)
+    expect(summary.dueSoonTodos.value[0]!.title).toBe("Overdue Task");
+    expect(summary.dueSoonTodos.value[0]!.priority).toBe("high");
+    expect(summary.dueSoonTodos.value[0]!.listName).toBe("Tasks");
+    expect(summary.dueSoonTodos.value[0]!.listPath).toEqual(["Work", "Tasks"]);
+
+    expect(summary.dueSoonTodos.value[1]!.title).toBe("Today Task");
+    expect(summary.dueSoonTodos.value[2]!.title).toBe("Tomorrow Task");
+    expect(summary.dueSoonTodos.value[3]!.title).toBe("Day 2 Task");
+  });
 });
