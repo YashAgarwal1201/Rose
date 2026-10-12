@@ -14,17 +14,17 @@ vi.mock(import('../../stores/folders'), () => ({
     createFolder: vi.fn(),
     deleteFolder: vi.fn(),
   }),
-}));
+} as any));
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
 vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
-}));
+} as any));
 
 vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 
 function mountTree(activeFolderId: string | null = null) {
   return mount(FolderTree, {

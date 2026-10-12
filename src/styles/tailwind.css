@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
-:root {
+:root, :host {
   /* Rose palette — light mode */
-  --rose-primary: #b3405a; /* deep rose — primary actions/accents */
+  --rose-primary: #b3405a;
   --rose-primary-hover: #96324a;
-  --rose-secondary: #e8b4bc; /* soft petal pink — secondary accents */
-  --rose-bg: #fdf7f8; /* app background */
-  --rose-surface: #ffffff; /* card/panel background */
-  --rose-surface-alt: #f6ecee; /* subtle alt surface, e.g. hover rows */
+  --rose-secondary: #e8b4bc;
+  --rose-bg: #fdf7f8;
+  --rose-surface: #ffffff;
+  --rose-surface-alt: #f6ecee;
   --rose-border: #e6d3d7;
   --rose-text: #2b1a1e;
   --rose-text-muted: #7a6367;
@@ -18,7 +18,7 @@
   --rose-green-muted: #9BB89E;
 }
 
-.dark {
+.dark, :host(.dark) {
   /* Rose palette — dark mode */
   --rose-primary: #e8748d;
   --rose-primary-hover: #ef8fa3;

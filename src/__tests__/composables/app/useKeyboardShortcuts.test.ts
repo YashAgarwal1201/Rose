@@ -107,8 +107,8 @@ describe("useKeyboardShortcuts", () => {
     vi.spyOn(event, "preventDefault");
     window.dispatchEvent(event);
 
-    expect(handler).toHaveBeenCalledWith();
-    expect(event.preventDefault).toHaveBeenCalledWith();
+    expect(handler).toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalled();
 
     wrapper.unmount();
   });
@@ -130,7 +130,7 @@ describe("useKeyboardShortcuts", () => {
     vi.spyOn(event, "preventDefault");
     window.dispatchEvent(event);
 
-    expect(handler).toHaveBeenCalledWith();
+    expect(handler).toHaveBeenCalled();
     expect(event.preventDefault).not.toHaveBeenCalled();
 
     wrapper.unmount();

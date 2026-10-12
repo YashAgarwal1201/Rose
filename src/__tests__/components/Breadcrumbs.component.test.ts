@@ -77,7 +77,7 @@ describe("Breadcrumbs", () => {
       const wrapper = mountBreadcrumbs([{ id: "f1", name: "Folder" }]);
       const homeBtn = wrapper.findAll("button").find((b) => !b.text().includes("Folder"))!;
       await homeBtn.trigger("click");
-      expect(wrapper.emitted("navigate")).toBe(true);
+      expect(wrapper.emitted("navigate")).toBeTruthy();
       expect(wrapper.emitted("navigate")![0]).toStrictEqual([null]);
     });
 
@@ -92,7 +92,7 @@ describe("Breadcrumbs", () => {
       const crumbButtons = wrapper.findAll("button").filter((b) => b.text().includes("Alpha"));
       if (crumbButtons.length > 0) {
         await crumbButtons[0]!.trigger("click");
-        expect(wrapper.emitted("navigate")).toBe(true);
+        expect(wrapper.emitted("navigate")).toBeTruthy();
         expect(wrapper.emitted("navigate")![0]).toStrictEqual(["f1"]);
       }
     });

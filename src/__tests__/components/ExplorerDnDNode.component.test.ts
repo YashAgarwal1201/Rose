@@ -16,7 +16,7 @@ vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
     ...actual,
     useDraggable: vi.fn(() => ({ isDragging: vue.ref(state.isDragging) })),
     useDroppable: vi.fn(() => ({ isDropTarget: vue.ref(state.isDropTarget) })),
-  };
+  } as any;
 });
 
 function mountNode(props = {}) {

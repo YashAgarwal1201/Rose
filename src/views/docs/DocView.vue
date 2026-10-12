@@ -11,6 +11,7 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   ArrowLeftIcon,
+  BookOpenIcon,
   PanelBottomIcon,
   PanelLeftIcon,
   PanelRightIcon,
@@ -85,6 +86,12 @@ const cellBgAnchor = usePopoverPosition(
 const { effectivePosition, savedPosition, isVertical, isMobile, setPosition } =
   useToolbarPosition();
 
+const isReadMode = ref(isMobile.value);
+
+watch(isReadMode, (readOnly) => {
+  editor.value?.setEditable(!readOnly);
+});
+
 let activeLoadToken = 0;
 
 const BorderedTable = Table.extend({
@@ -148,12 +155,36 @@ const saveContent = debounce(async (id: string, contentJSON: Record<string, unkn
 }, AUTOSAVE_DELAY_MS);
 
 const editor = useEditor({
+  editable: !isReadMode.value,
   content: "",
   extensions: [
     // StarterKit.configure({ link: false }),
     StarterKit.configure({ link: false, underline: false }),
     TaskList,
-    TaskItem.configure({ nested: true }),
+    TaskItem.configure({
+      nested: true,
+      onReadOnlyChecked(node, checked) {
+        if (!editor.value || !currentDoc.value) {
+          return false;
+        }
+        let foundPos: number | null = null;
+        editor.value.state.doc.descendants((n, pos) => {
+          if (n === node) {
+            foundPos = pos;
+            return false;
+          }
+          return true;
+        });
+        if (foundPos !== null) {
+          const { tr } = editor.value.state;
+          tr.setNodeMarkup(foundPos, undefined, { ...node.attrs, checked });
+          editor.value.view.dispatch(tr);
+          saveContent(currentDoc.value.id, editor.value.getJSON());
+          return true;
+        }
+        return false;
+      },
+    }),
     Link.configure({ openOnClick: false }),
     Image,
     Placeholder.configure({ placeholder: "Start writing…" }),
@@ -174,7 +205,7 @@ const editor = useEditor({
     handleClick(view, pos, event) {
       const target = event.target as HTMLElement;
       const link = target.closest("a");
-      if (link && (event.metaKey || event.ctrlKey)) {
+      if (link && (isReadMode.value || event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         window.open(link.getAttribute("href") ?? "", "_blank", "noopener,noreferrer");
         return true;
@@ -650,6 +681,7 @@ useKeyboardShortcuts([
     key: "b",
     ctrl: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleBold().run();
@@ -660,6 +692,7 @@ useKeyboardShortcuts([
     key: "i",
     ctrl: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleItalic().run();
@@ -670,6 +703,7 @@ useKeyboardShortcuts([
     key: "u",
     ctrl: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleUnderline().run();
@@ -681,6 +715,7 @@ useKeyboardShortcuts([
     ctrl: true,
     alt: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       editor.value?.chain().focus().toggleStrike().run();
@@ -691,6 +726,7 @@ useKeyboardShortcuts([
     key: "k",
     ctrl: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
       setLink();
@@ -702,6 +738,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
+      if (isReadMode.value) { return false; }
       toolbarRef.value?.toggleExportMenu();
     },
   },
@@ -714,6 +751,9 @@ function handleVisibilityChange() {
 }
 
 onMounted(() => {
+  if (isMobile.value) {
+    isReadMode.value = true;
+  }
   loadDoc();
   window.addEventListener("pagehide", flushPendingSave);
   document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -723,6 +763,7 @@ watch(
   () => pathMatch,
   () => {
     flushPendingSave(); // commit any pending write for the doc we're leaving
+    isReadMode.value = isMobile.value;
     loadDoc();
   },
 );
@@ -754,6 +795,7 @@ onBeforeUnmount(() => {
             <template v-else>
               <h1 class="text-xl font-bold text-rose-text truncate">{{ currentDoc?.title }}</h1>
               <button
+                v-if="!isReadMode"
                 class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
                 @click="startRenameTitle">
                 <PencilIcon class="w-4 h-4" />
@@ -765,8 +807,25 @@ onBeforeUnmount(() => {
             Saved {{ formatRelativeTime(currentDoc.updatedAt) }}
           </span>
 
+          <!-- Mode toggle button (Read / Edit) -->
+          <button
+            type="button"
+            data-testid="mode-toggle-btn"
+            :title="isReadMode ? 'Switch to edit mode' : 'Switch to read mode'"
+            :aria-label="isReadMode ? 'Switch to edit mode' : 'Switch to read mode'"
+            class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors shrink-0 ml-2"
+            :class="isReadMode
+              ? 'bg-rose-surface-alt border-rose-border text-rose-text hover:bg-rose-surface'
+              : 'border-transparent text-rose-text-muted hover:text-rose-text hover:bg-rose-surface-alt'"
+            @click="isReadMode = !isReadMode"
+          >
+            <BookOpenIcon v-if="isReadMode" class="w-4 h-4 text-rose-primary" />
+            <PencilIcon v-else class="w-4 h-4" />
+            <span class="hidden sm:inline">{{ isReadMode ? "Read mode" : "Edit mode" }}</span>
+          </button>
+
           <!-- Toolbar position toggle (desktop only) -->
-          <div v-if="!isMobile" class="flex items-center gap-0.5 ml-2 shrink-0">
+          <div v-if="!isMobile && !isReadMode" class="flex items-center gap-0.5 ml-2 shrink-0">
             <button v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]" :key="pos"
               :title="`Toolbar ${pos}`" class="p-1 rounded transition-colors" :class="savedPosition === pos
                 ? 'text-rose-primary'
@@ -785,7 +844,7 @@ onBeforeUnmount(() => {
           <div class="flex flex-col flex-1 min-h-0">
           <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
             <!-- Toolbar: left or top -->
-            <DocToolbar ref="toolbarRef" v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
+            <DocToolbar ref="toolbarRef" v-if="!isReadMode && editor && (effectivePosition === 'top' || effectivePosition === 'left')"
               :editor="editor" :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS"
               :position="effectivePosition" @trigger-image-pick="triggerImagePick" @set-link="setLink"
               @insert-table="insertTable" @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml"
@@ -793,9 +852,9 @@ onBeforeUnmount(() => {
 
             <!-- Editor + table context bar -->
             <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
-              :class="effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'">
+              :class="!isReadMode && effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'">
               <!-- Table context toolbar — always horizontal, always above editor -->
-              <div v-if="editor?.isActive('table')" ref="cellBgRootRef"
+              <div v-if="!isReadMode && editor?.isActive('table')" ref="cellBgRootRef"
                 class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0"
                 :style="{ maxWidth: 'clamp(320px, 72ch, 860px)', marginLeft: 'auto', marginRight: 'auto', width: '100%' }">
                 <div v-if="isCellBgPickerOpen" class="fixed inset-0 z-10" @click="
@@ -874,18 +933,18 @@ onBeforeUnmount(() => {
               <input ref="csvFileInputRef" type="file" accept=".csv,text/csv" class="hidden"
                 @change="handleCsvSelect" />
 
-              <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" />
+              <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" :class="{ 'read-mode': isReadMode }" />
             </div>
 
             <!-- Toolbar: right position -->
-            <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'right'" :editor="editor"
+            <DocToolbar ref="toolbarRef" v-if="!isReadMode && editor && effectivePosition === 'right'" :editor="editor"
               :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
               @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
               @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
               @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
 
             <!-- Toolbar: bottom position (fixed, rendered outside flow but still here for v-if) -->
-            <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'bottom'" :editor="editor"
+            <DocToolbar ref="toolbarRef" v-if="!isReadMode && editor && effectivePosition === 'bottom'" :editor="editor"
               :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
               @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
               @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
@@ -899,6 +958,19 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
+.rose-editor-content.read-mode .ProseMirror {
+  cursor: default;
+  user-select: text;
+}
+
+.rose-editor-content.read-mode .ProseMirror:focus {
+  outline: none;
+}
+
+.rose-editor-content.read-mode p.is-editor-empty:first-child::before {
+  display: none;
+}
+
 .rose-editor-content .ProseMirror {
   outline: none;
   max-width: clamp(320px, 72ch, 860px);

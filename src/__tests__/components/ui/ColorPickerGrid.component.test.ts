@@ -19,8 +19,8 @@ describe("ColorPickerGrid.vue", () => {
     
     // Click the second color button
     await buttons[1]?.trigger("click");
-    expect(wrapper.emitted("update:modelValue")).toBe(true);
-    expect(wrapper.emitted("close")).toBe(true);
+    expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+    expect(wrapper.emitted("close")).toBeTruthy();
   });
 
   it("emits default color on reset", async () => {

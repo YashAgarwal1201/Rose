@@ -287,7 +287,7 @@ describe("foldersStore", () => {
       await store.loadFolders();
 
       const vaultInDb = await db.folders.get("vault");
-      expect(vaultInDb).toBe(true);
+      expect(vaultInDb).toBeDefined();
       expect(vaultInDb?.parentId).toBeNull();
       expect(vaultInDb?.isVaulted).toBeTruthy();
     });

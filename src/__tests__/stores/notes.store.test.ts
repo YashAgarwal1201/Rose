@@ -10,7 +10,7 @@ vi.mock(import('../../stores/activity'), () => ({
   useActivityStore: () => ({
     record: vi.fn(),
   }),
-}));
+} as any));
 
 async function freshDb(): Promise<void> {
   db.close();

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formatRelativeTime } from "../../utils/formatRelativeTime";
 import {
   MS_PER_DAY,
@@ -18,6 +18,14 @@ function future(ms: number): number {
 }
 
 describe("formatRelativeTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1700000000000);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   describe("just now", () => {
     it("returns 'just now' for 0ms difference", () => {
       expect.hasAssertions();

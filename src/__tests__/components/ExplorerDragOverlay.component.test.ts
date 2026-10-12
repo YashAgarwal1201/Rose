@@ -23,7 +23,7 @@ vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
     DragOverlay: {
       template: '<div><slot v-if="$attrs.active !== false" /></div>'
     }
-  };
+  } as any;
 });
 
 function mountOverlay(props = {}) {

@@ -38,7 +38,7 @@ export interface ImportResult {
   summary: ImportSummary;
 }
 
-const SUPPORTED_VERSIONS = [7];
+const SUPPORTED_VERSIONS = [7, 8, 9];
 
 /**
  * Parses and validates a File object as a Rose export payload.
@@ -163,24 +163,48 @@ export async function importData(
       const needsFolders =
         options.notes || options.docs || options.todos;
 
+      const isLegacyVault = rawPayload.version < 9;
+      const isLegacyPattern = rawPayload.version < 8;
+
       if (needsFolders && data.folders?.length) {
-        await db.folders.bulkPut(data.folders as Folder[]);
+        const folders = isLegacyVault
+          ? data.folders.map((f) => ({ ...f, isVaulted: f.isVaulted ?? false, iv: f.iv ?? null }))
+          : data.folders;
+        await db.folders.bulkPut(folders as Folder[]);
       }
 
       if (options.notes && data.notes?.length) {
-        await db.notes.bulkPut(data.notes as Note[]);
+        let notes = data.notes;
+        if (isLegacyPattern || isLegacyVault) {
+          notes = notes.map((n) => ({
+            ...n,
+            backgroundPattern: n.backgroundPattern ?? "solid",
+            isVaulted: n.isVaulted ?? false,
+            iv: n.iv ?? null,
+          }));
+        }
+        await db.notes.bulkPut(notes as Note[]);
       }
 
       if (options.docs && data.docs?.length) {
-        await db.docs.bulkPut(data.docs as Doc[]);
+        const docs = isLegacyVault
+          ? data.docs.map((d) => ({ ...d, isVaulted: d.isVaulted ?? false, iv: d.iv ?? null }))
+          : data.docs;
+        await db.docs.bulkPut(docs as Doc[]);
       }
 
       if (options.todos) {
         if (data.todoLists?.length) {
-          await db.todoLists.bulkPut(data.todoLists as TodoList[]);
+          const lists = isLegacyVault
+            ? data.todoLists.map((l) => ({ ...l, isVaulted: l.isVaulted ?? false, iv: l.iv ?? null }))
+            : data.todoLists;
+          await db.todoLists.bulkPut(lists as TodoList[]);
         }
         if (data.todos?.length) {
-          await db.todos.bulkPut(data.todos as Todo[]);
+          const todos = isLegacyVault
+            ? data.todos.map((t) => ({ ...t, isVaulted: t.isVaulted ?? false, iv: t.iv ?? null }))
+            : data.todos;
+          await db.todos.bulkPut(todos as Todo[]);
         }
       }
 

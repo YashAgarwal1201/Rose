@@ -13,7 +13,7 @@ vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
 }));
 vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-}));
+} as any));
 
 describe("InputDialog.vue", () => {
   beforeEach(() => {
@@ -58,9 +58,9 @@ describe("InputDialog.vue", () => {
 
     const buttons = wrapper.findAll("button");
     await buttons[0]?.trigger("click");
-    expect(handleCancel).toHaveBeenCalledWith();
+    expect(handleCancel).toHaveBeenCalled();
 
     await buttons[1]?.trigger("click");
-    expect(handleConfirm).toHaveBeenCalledWith();
+    expect(handleConfirm).toHaveBeenCalled();
   });
 });

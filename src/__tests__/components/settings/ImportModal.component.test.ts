@@ -7,10 +7,10 @@ import { useSettingsStore } from "@/stores/settings";
 
 vi.mock(import('@/composables/ui/useToast'), () => ({
   useToast: () => ({ showToast: vi.fn() })
-}));
+} as any));
 vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-}));
+} as any));
 
 describe("ImportModal.vue", () => {
   beforeEach(() => {

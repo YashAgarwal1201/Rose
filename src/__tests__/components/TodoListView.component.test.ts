@@ -19,7 +19,7 @@ vi.mock(import('vue-router'), () => ({
       params: { pathMatch: ["My List"] },
     }),
   }),
-}));
+} as any));
 
 // Mock toast & confirm
 const showToastMock = vi.fn();

@@ -5,6 +5,8 @@ import { resolve } from "node:path";
 import { defineConfig, type Plugin, type ResolvedConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
+import federation from "@originjs/vite-plugin-federation";
+import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 function getBuildVersion() {
   const now = new Date();
@@ -64,20 +66,49 @@ export default defineConfig(({ command }) => {
     define: {
       __APP_VERSION__: JSON.stringify(getBuildVersion()),
     },
-    plugins: [vue(), tailwindcss(), swManifestPlugin()],
+    plugins: [
+      vue(),
+      tailwindcss(),
+      swManifestPlugin(),
+      cssInjectedByJsPlugin({
+        jsAssetsFilterFunction: function customJsAssetsFilterFunction(outputChunk) {
+          return outputChunk.fileName.includes('index') || outputChunk.fileName.includes('remoteEntry');
+        }
+      }),
+      federation({
+        name: 'rose_app',
+        filename: 'remoteEntry.js',
+        exposes: {
+          './SharedTodoUI': './src/components/external/SharedTodoUI.ts',
+          './SharedDocUI': './src/components/external/SharedDocUI.ts',
+          './SharedNoteUI': './src/components/external/SharedNoteUI.ts',
+        },
+        shared: ['vue']
+      })
+    ],
     build: {
+      target: "esnext",
+      minify: "terser",
+      terserOptions: {
+        keep_classnames: true,
+        keep_fnames: true,
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              // Let the federation plugin manage 'vue'
+              if (id.includes('/vue/') || id.includes('/@vue/')) { return; }
+              
               if (id.includes('@tiptap')) {return 'vendor-editor';}
               if (id.includes('fabric') || id.includes('perfect-freehand')) {return 'vendor-canvas';}
-              if (id.includes('vue') || id.includes('pinia')) {return 'vendor-vue';}
+              if (id.includes('pinia')) {return 'vendor-state';}
               return 'vendor-utils';
             }
           }
         }
-      }
+      },
+      cssCodeSplit: false,
     },
     resolve: {
       alias: {
@@ -86,12 +117,39 @@ export default defineConfig(({ command }) => {
     },
     server: {
       port: 5176,
+      cors: {
+        origin: "*",
+        methods: ["GET", "OPTIONS", "POST"],
+        allowedHeaders: ["Content-Type"],
+      },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
+        "Access-Control-Allow-Headers": "*",
+      },
       ...(isDev && {
         https: {
           cert: readFileSync("certs/localhost.pem"),
           key: readFileSync("certs/localhost-key.pem"),
         },
       }),
+    },
+    preview: {
+      port: 4176,
+      cors: {
+        origin: "*",
+        methods: ["GET", "OPTIONS", "POST"],
+        allowedHeaders: ["Content-Type"],
+      },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
+        "Access-Control-Allow-Headers": "*",
+      },
+      https: {
+        cert: readFileSync("certs/localhost.pem"),
+        key: readFileSync("certs/localhost-key.pem"),
+      },
     },
   };
 });

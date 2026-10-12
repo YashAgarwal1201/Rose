@@ -34,7 +34,7 @@ export interface ExportPayload {
 
 export async function exportData(options: ExportOptions) {
   const exportPayload: ExportPayload = {
-    version: 7, // Current database schema version
+    version: 9, // Current database schema version
     exportDate: new Date().toISOString(),
     data: {},
   };

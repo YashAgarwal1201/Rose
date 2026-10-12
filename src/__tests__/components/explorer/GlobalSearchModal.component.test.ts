@@ -12,7 +12,7 @@ vi.mock(import('@/composables/home/useHomeSummary'), () => ({
 }));
 vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-}));
+} as any));
 
 const router = createRouter({
   history: createWebHistory(),
