@@ -157,7 +157,7 @@ describe("foldersStore", () => {
   });
 
   describe("deleteFolder", () => {
-    it("deletes a leaf folder from state and DB", async () => {
+    it("soft-deletes a leaf folder from state and DB", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -166,7 +166,7 @@ describe("foldersStore", () => {
       await store.deleteFolder(folderId);
       expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
       const row = await db.folders.get(folderId);
-      expect(row).toBeUndefined();
+      expect(row?.trashedAt).not.toBeNull();
     });
 
     it("deletes a folder and all its descendants", async () => {
@@ -180,7 +180,7 @@ describe("foldersStore", () => {
       expect(store.folders.filter(f => f.id !== "vault")).toHaveLength(0);
     });
 
-    it("cascade-deletes todo lists inside a deleted folder", async () => {
+    it("cascade-trashes todo lists inside a deleted folder", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -189,11 +189,13 @@ describe("foldersStore", () => {
       const folderId = await foldersStore.createFolder("F", null, "todo");
       await todosStore.createTodoList("List A", folderId);
       await foldersStore.deleteFolder(folderId);
+      expect(todosStore.todoLists).toHaveLength(0);
       const lists = await db.todoLists.toArray();
-      expect(lists).toHaveLength(0);
+      expect(lists[0]?.trashedAt).not.toBeNull();
+      expect(lists[0]?.trashedByFolderId).toBe(folderId);
     });
 
-    it("cascade-deletes todos inside lists of a deleted folder", async () => {
+    it("hides todo lists and their items from active state when folder is deleted", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -204,8 +206,7 @@ describe("foldersStore", () => {
       await todosStore.loadTodos(listId);
       await todosStore.createTodo("Task", listId);
       await foldersStore.deleteFolder(folderId);
-      const allTodos = await db.todos.toArray();
-      expect(allTodos).toHaveLength(0);
+      expect(todosStore.todoLists).toHaveLength(0);
     });
 
     it("does nothing when folder id does not exist", async () => {

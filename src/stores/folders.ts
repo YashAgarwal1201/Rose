@@ -7,6 +7,7 @@ import { useTodosStore } from "./todos";
 import { useDocsStore } from "./docs";
 import { useActivityStore } from "./activity";
 import { useVaultStore } from "./vault";
+import { useTrashStore } from "./trash";
 import { decryptField, decryptJSONField, encryptField, encryptJSONField } from "@/utils/crypto";
 
 export const useFoldersStore = defineStore("folders", () => {
@@ -39,18 +40,20 @@ export const useFoldersStore = defineStore("folders", () => {
         iv: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        trashedAt: null,
+        trashedByFolderId: null,
       });
     } else if (vault.parentId !== null || !vault.isVaulted) {
       // Repair any corruption: ensure vault is always at root and always isVaulted
       await db.folders.update("vault", { parentId: null, isVaulted: true });
     }
 
+    const allActiveFolders = (await db.folders.toArray()).filter((f) => !f.trashedAt);
     if (type) {
-      const allFolders = await db.folders.toArray();
-      folders.value = allFolders.filter(f => f.type === type || f.type === "mixed");
+      folders.value = allActiveFolders.filter(f => f.type === type || f.type === "mixed");
       lastLoadedType.value = type;
     } else {
-      folders.value = await db.folders.toArray();
+      folders.value = allActiveFolders;
       lastLoadedType.value = null;
     }
   }
@@ -103,6 +106,8 @@ export const useFoldersStore = defineStore("folders", () => {
       updatedAt: now,
       isVaulted,
       iv: null,
+      trashedAt: null,
+      trashedByFolderId: null,
     };
     await db.folders.add(folder);
     await useActivityStore().record("folder_created", folder.id);
@@ -160,31 +165,8 @@ export const useFoldersStore = defineStore("folders", () => {
     if (id === "vault") {
       throw new Error("Secure Vault cannot be deleted.");
     }
-    const target = folders.value.find((folder) => folder.id === id);
-    if (!target) {
-      return;
-    }
-
-    const descendantIds = collectDescendantIds(id);
-    const allIds = [id, ...descendantIds];
-    const todosStore = useTodosStore();
-    const docsStore = useDocsStore();
-
-    const todoFolderIds = allIds.filter(
-      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "todo" || folders.value.find((folder) => folder.id === folderId)?.type === "mixed",
-    );
-    await Promise.all(
-      todoFolderIds.map((folderId) => todosStore.deleteTodoListsByFolder(folderId)),
-    );
-
-    const docFolderIds = allIds.filter(
-      (folderId) => folders.value.find((folder) => folder.id === folderId)?.type === "doc" || folders.value.find((folder) => folder.id === folderId)?.type === "mixed",
-    );
-    await Promise.all(docFolderIds.map((folderId) => docsStore.deleteDocsByFolder(folderId)));
-    
-    // TODO: also delete notes when note store has the equivalent method, but for now we just delete the folders
-    await db.folders.bulkDelete(allIds);
-    await reloadCurrent();
+    const trashStore = useTrashStore();
+    await trashStore.moveToTrash("folder", id);
   }
 
   function isDescendantOf(candidateId: string, ancestorId: string): boolean {

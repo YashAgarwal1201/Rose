@@ -34,7 +34,7 @@ export interface ExportPayload {
 
 export async function exportData(options: ExportOptions) {
   const exportPayload: ExportPayload = {
-    version: 9, // Current database schema version
+    version: 10, // Current database schema version
     exportDate: new Date().toISOString(),
     data: {},
   };
@@ -44,14 +44,16 @@ export async function exportData(options: ExportOptions) {
       exportPayload.data.settings = await db.settings.toArray();
     }
     if (options.notes) {
-      exportPayload.data.notes = await db.notes.toArray();
+      exportPayload.data.notes = (await db.notes.toArray()).filter((n) => !n.trashedAt);
     }
     if (options.docs) {
-      exportPayload.data.docs = await db.docs.toArray();
+      exportPayload.data.docs = (await db.docs.toArray()).filter((d) => !d.trashedAt);
     }
     if (options.todos) {
-      exportPayload.data.todos = await db.todos.toArray();
-      exportPayload.data.todoLists = await db.todoLists.toArray();
+      const activeLists = (await db.todoLists.toArray()).filter((l) => !l.trashedAt);
+      const activeListIds = new Set(activeLists.map((l) => l.id));
+      exportPayload.data.todoLists = activeLists;
+      exportPayload.data.todos = (await db.todos.toArray()).filter((t) => activeListIds.has(t.listId));
     }
     if (options.activity) {
       exportPayload.data.activity = await db.activity.toArray();
@@ -59,7 +61,7 @@ export async function exportData(options: ExportOptions) {
 
     // Always include folders if notes, docs, or todos are selected
     if (options.notes || options.docs || options.todos) {
-      exportPayload.data.folders = await db.folders.toArray();
+      exportPayload.data.folders = (await db.folders.toArray()).filter((f) => !f.trashedAt);
     }
 
     const jsonString = JSON.stringify(exportPayload, null, 2);

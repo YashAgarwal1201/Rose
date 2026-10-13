@@ -26,6 +26,7 @@ interface GridFolder {
   itemCount?: number;
   updatedAt?: number;
   createdAt?: number;
+  isVaulted?: boolean;
 }
 interface GridFile {
   id: string;
@@ -34,6 +35,7 @@ interface GridFile {
   updatedAt?: number;
   createdAt?: number;
   thumbnail?: string | null; // NEW
+  isVaulted?: boolean;
 }
 
 interface DisplayItem {
@@ -45,6 +47,7 @@ interface DisplayItem {
   createdAt?: number;
   isNew?: boolean;
   thumbnail?: string | null;
+  isVaulted?: boolean;
 }
 interface RenameOptions {
   kind: "folder" | "file";
@@ -107,6 +110,7 @@ const displayItems = computed<DisplayItem[]>(() => {
     kind: "folder",
     name: f.name,
     updatedAt: f.updatedAt,
+    isVaulted: f.isVaulted,
   }));
   const fileItems: DisplayItem[] = sortedFiles.value.map((f) => ({
     createdAt: f.createdAt,
@@ -116,6 +120,7 @@ const displayItems = computed<DisplayItem[]>(() => {
     name: f.name,
     thumbnail: f.thumbnail, // NEW
     updatedAt: f.updatedAt,
+    isVaulted: f.isVaulted,
   }));
 
   const placeholder: DisplayItem | null = creatingType.value
@@ -194,23 +199,23 @@ function cancelRename() {
 async function handleDeleteFolder(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    confirmLabel: "Delete",
-    message: `Delete "${name}" and everything inside it? This can't be undone.`,
-    title: "Delete folder",
+    confirmLabel: "Move to Trash",
+    message: `Move "${name}" and everything inside it to Trash? You can restore it anytime within 30 days.`,
+    title: "Move Folder to Trash",
   });
   if (!confirmed) {
     return;
   }
   emit("deleteFolder", id);
-  showToast(`Deleted "${name}"`, "info");
+  showToast(`Moved "${name}" to Trash`, "info");
 }
 
 async function handleDeleteFile(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    confirmLabel: "Delete",
-    message: `Delete "${name}"? This can't be undone.`,
-    title: `Delete ${fileLabel}`,
+    confirmLabel: "Move to Trash",
+    message: `Move "${name}" to Trash? You can restore it anytime within 30 days.`,
+    title: `Move ${fileLabel} to Trash`,
   });
   if (!confirmed) {
     return;
@@ -531,6 +536,7 @@ defineExpose({ startCreate });
       <PencilIcon class="w-4 h-4" /> Rename
     </button>
     <button
+      v-if="!contextMenu.activeItem.value?.isVaulted"
       class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
       @click="handleMenuDelete"
     >

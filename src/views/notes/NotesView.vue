@@ -87,6 +87,7 @@ onMounted(async () => {
         updatedAt: n.updatedAt,
         createdAt: n.createdAt,
         thumbnail: n.thumbnail,
+        isVaulted: n.isVaulted,
       }))
         " :file-icon="PenLineIcon" file-label="note" @open-file="openNote" @rename-file="handleRenameFile"
         @delete-file="handleDeleteFile" />

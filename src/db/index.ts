@@ -164,4 +164,25 @@ db.version(9)
     }
   });
 
+db.version(10)
+  .stores({
+    activity: "id, timestamp, entityId",
+    docs: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    folders: "id, parentId, type, isVaulted, trashedAt, trashedByFolderId",
+    notes: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    settings: "id",
+    todoLists: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    todos: "id, listId, done, isVaulted",
+  })
+  .upgrade(async (tx) => {
+    const addTrashFields = (item: { trashedAt?: number | null; trashedByFolderId?: string | null }) => {
+      item.trashedAt = null;
+      item.trashedByFolderId = null;
+    };
+    await tx.table("folders").toCollection().modify(addTrashFields);
+    await tx.table("docs").toCollection().modify(addTrashFields);
+    await tx.table("notes").toCollection().modify(addTrashFields);
+    await tx.table("todoLists").toCollection().modify(addTrashFields);
+  });
+
 export default db;

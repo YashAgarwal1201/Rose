@@ -14,15 +14,17 @@
           </h3>
           <p id="confirm-dialog-desc" class="text-base text-rose-text-muted mb-6">{{ options.message }}</p>
           <div class="flex justify-end gap-2">
-            <button class="px-4 py-2 text-base rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors"
+            <button class="flex items-center gap-2 px-4 py-2 text-base rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors"
               @click="handleCancel">
-              {{ options.cancelLabel || "Cancel" }}
+              <component :is="cancelIconComponent" class="w-4 h-4" />
+              <span>{{ options.cancelLabel || "Cancel" }}</span>
             </button>
 
             <button
-              class="px-4 py-2 text-base rounded-md bg-red-500 text-white hover:bg-rose-primary-hover transition-colors"
+              class="flex items-center gap-2 px-4 py-2 text-base rounded-md bg-red-500 text-white hover:bg-rose-primary-hover transition-colors"
               @click="handleConfirm">
-              {{ options.confirmLabel || "Confirm" }}
+              <component :is="confirmIconComponent" class="w-4 h-4" />
+              <span>{{ options.confirmLabel || "Confirm" }}</span>
             </button>
           </div>
         </div>
@@ -32,7 +34,8 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
+import { CheckIcon, Trash2Icon, XIcon } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import { useBackButtonClose } from "@/composables/ui/useBackButtonClose.ts";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
@@ -42,6 +45,19 @@ const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: fa
 watch(dialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
 
 const { isOpen, options, handleConfirm, handleCancel } = useConfirm();
+
+const cancelIconComponent = computed(() => options.value.cancelIcon || XIcon);
+
+const confirmIconComponent = computed(() => {
+  if (options.value.confirmIcon) {
+    return options.value.confirmIcon;
+  }
+  const label = (options.value.confirmLabel || "").toLowerCase();
+  if (label.includes("trash") || label.includes("delete") || label.includes("reset") || label.includes("remove")) {
+    return Trash2Icon;
+  }
+  return options.value.confirmLabel ? CheckIcon : Trash2Icon;
+});
 
 useBackButtonClose(isOpen, "confirm", handleCancel);
 </script>

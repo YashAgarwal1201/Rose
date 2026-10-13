@@ -99,6 +99,7 @@ onMounted(async () => {
         itemCount: listItemCounts[l.id] ?? 0,
         updatedAt: l.updatedAt,
         createdAt: l.createdAt,
+        isVaulted: l.isVaulted,
       }))
         " :file-icon="ListTodoIcon" file-label="list" @open-file="openList" @rename-file="handleRenameFile"
         @delete-file="handleDeleteFile" />

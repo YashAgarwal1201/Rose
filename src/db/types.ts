@@ -17,6 +17,8 @@ export interface Folder {
   iv: string | null;
   createdAt: number;
   updatedAt: number;
+  trashedAt?: number | null;
+  trashedByFolderId?: string | null;
 }
 
 export interface TodoList {
@@ -28,6 +30,8 @@ export interface TodoList {
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
+  trashedAt?: number | null;
+  trashedByFolderId?: string | null;
 }
 
 export interface Todo {
@@ -53,6 +57,8 @@ export interface Doc {
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
+  trashedAt?: number | null;
+  trashedByFolderId?: string | null;
 }
 
 export interface AppSettings {
@@ -98,4 +104,6 @@ export interface Note {
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number | null;
+  trashedAt?: number | null;
+  trashedByFolderId?: string | null;
 }

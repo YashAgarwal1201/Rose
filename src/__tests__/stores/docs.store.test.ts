@@ -54,6 +54,30 @@ describe("docsStore", () => {
       const found = store.docs.find((d) => d.id === id);
       expect(found?.title).toBe("Updated");
     });
+
+    it("excludes trashed docs from loadDocs", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      const id = await store.createDoc("Active", null);
+      await db.docs.add({
+        id: "trashed-doc",
+        title: "Trashed",
+        folderId: null,
+        contentJSON: null,
+        isVaulted: false,
+        iv: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        lastOpenedAt: null,
+        trashedAt: Date.now(),
+        trashedByFolderId: null,
+      });
+      await store.loadDocs();
+      expect(store.docs).toHaveLength(1);
+      expect(store.docs[0]?.id).toBe(id);
+    });
   });
 
   // ─────────────────────────────────────────────
@@ -270,7 +294,7 @@ describe("docsStore", () => {
   // deleteDoc
   // ─────────────────────────────────────────────
   describe("deleteDoc", () => {
-    it("removes the doc from state and DB", async () => {
+    it("soft-deletes the doc (removes from active state and sets trashedAt in DB)", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -279,7 +303,7 @@ describe("docsStore", () => {
       await store.deleteDoc(id);
       expect(store.docs).toHaveLength(0);
       const row = await db.docs.get(id);
-      expect(row).toBeUndefined();
+      expect(row?.trashedAt).not.toBeNull();
     });
 
     it("refreshes state via loadDocs after deletion", async () => {

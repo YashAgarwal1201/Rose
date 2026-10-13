@@ -31,7 +31,7 @@ describe("validatePayload", () => {
     expect(validatePayload(payload).version).toBe(7);
   });
 
-  it("accepts a well-formed v8 and v9 payload", () => {
+  it("accepts a well-formed v8, v9, and v10 payload", () => {
     const v8 = makeValidPayload({ version: 8 });
     expect(() => validatePayload(v8)).not.toThrow();
     expect(validatePayload(v8).version).toBe(8);
@@ -39,6 +39,10 @@ describe("validatePayload", () => {
     const v9 = makeValidPayload({ version: 9 });
     expect(() => validatePayload(v9)).not.toThrow();
     expect(validatePayload(v9).version).toBe(9);
+
+    const v10 = makeValidPayload({ version: 10 });
+    expect(() => validatePayload(v10)).not.toThrow();
+    expect(validatePayload(v10).version).toBe(10);
   });
 
   it("throws when passed null", () => {
@@ -58,8 +62,8 @@ describe("validatePayload", () => {
     const raw = { version: 3, exportDate: "2026-01-01T00:00:00.000Z", data: {} };
     expect(() => validatePayload(raw)).toThrow("Unsupported backup version 3");
 
-    const raw10 = { version: 10, exportDate: "2026-01-01T00:00:00.000Z", data: {} };
-    expect(() => validatePayload(raw10)).toThrow("Unsupported backup version 10");
+    const raw11 = { version: 11, exportDate: "2026-01-01T00:00:00.000Z", data: {} };
+    expect(() => validatePayload(raw11)).toThrow("Unsupported backup version 11");
   });
 
   it("throws when exportDate is missing", () => {
@@ -172,16 +176,20 @@ describe("importData migration", () => {
     const folder = await db.folders.get("f1");
     expect(folder?.isVaulted).toBe(false);
     expect(folder?.iv).toBeNull();
+    expect(folder?.trashedAt).toBeNull();
 
     const note = await db.notes.get("n1");
     expect(note?.isVaulted).toBe(false);
     expect(note?.backgroundPattern).toBe("solid");
+    expect(note?.trashedAt).toBeNull();
 
     const doc = await db.docs.get("d1");
     expect(doc?.isVaulted).toBe(false);
+    expect(doc?.trashedAt).toBeNull();
 
     const list = await db.todoLists.get("l1");
     expect(list?.isVaulted).toBe(false);
+    expect(list?.trashedAt).toBeNull();
 
     const todo = await db.todos.get("t1");
     expect(todo?.isVaulted).toBe(false);

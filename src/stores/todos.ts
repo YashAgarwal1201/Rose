@@ -6,6 +6,7 @@ import type { Todo, TodoList } from "@/db/types";
 import { useActivityStore } from "./activity";
 import { useFoldersStore } from "./folders";
 import { useVaultStore } from "./vault";
+import { useTrashStore } from "./trash";
 import { decryptField, encryptField } from "@/utils/crypto";
 
 export const useTodosStore = defineStore("todos", () => {
@@ -35,7 +36,7 @@ export const useTodosStore = defineStore("todos", () => {
   }));
 
   async function loadTodoLists() {
-    todoLists.value = await db.todoLists.toArray();
+    todoLists.value = (await db.todoLists.toArray()).filter((l) => !l.trashedAt);
   }
 
   async function createTodoList(name: string, folderId: string | null) {
@@ -62,6 +63,8 @@ export const useTodosStore = defineStore("todos", () => {
       updatedAt: now,
       isVaulted,
       iv: null,
+      trashedAt: null,
+      trashedByFolderId: null,
     };
     await db.todoLists.add(list);
     await useActivityStore().record("todo_list_created", list.id);
@@ -103,9 +106,8 @@ export const useTodosStore = defineStore("todos", () => {
   }
 
   async function deleteTodoList(id: string) {
-    await deleteTodosByList(id);
-    await db.todoLists.delete(id);
-    await loadTodoLists();
+    const trashStore = useTrashStore();
+    await trashStore.moveToTrash("todoList", id);
   }
 
   async function getTodoList(id: string): Promise<TodoList | undefined> {

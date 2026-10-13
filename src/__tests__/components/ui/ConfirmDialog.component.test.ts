@@ -53,6 +53,8 @@ describe("ConfirmDialog.vue", () => {
     const buttons = wrapper.findAll("button");
     expect(buttons[0]?.text()).toBe("No");
     expect(buttons[1]?.text()).toBe("Yes");
+    expect(buttons[0]?.find("svg").exists()).toBe(true);
+    expect(buttons[1]?.find("svg").exists()).toBe(true);
 
     await buttons[0]?.trigger("click");
     expect(handleCancel).toHaveBeenCalled();

@@ -120,7 +120,7 @@ describe("todosStore", () => {
   });
 
   describe("deleteTodoList", () => {
-    it("deletes the list from state and DB", async () => {
+    it("soft-deletes the list from state and DB", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -129,10 +129,10 @@ describe("todosStore", () => {
       await store.deleteTodoList(listId);
       expect(store.todoLists).toHaveLength(0);
       const row = await db.todoLists.get(listId);
-      expect(row).toBeUndefined();
+      expect(row?.trashedAt).not.toBeNull();
     });
 
-    it("cascade-deletes all todos belonging to the deleted list", async () => {
+    it("hides the list from active state and retains todos in DB for recovery", async () => {
       expect.hasAssertions();
       await freshDb();
       setActivePinia(createPinia());
@@ -142,8 +142,9 @@ describe("todosStore", () => {
       await store.createTodo("Task 1", listId);
       await store.createTodo("Task 2", listId);
       await store.deleteTodoList(listId);
-      const remaining = await db.todos.toArray();
-      expect(remaining).toHaveLength(0);
+      expect(store.todoLists).toHaveLength(0);
+      const listInDb = await db.todoLists.get(listId);
+      expect(listInDb?.trashedAt).not.toBeNull();
     });
   });
 

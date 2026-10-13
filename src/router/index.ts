@@ -12,6 +12,7 @@ const NoteView = () => import("@/views/notes/NoteView.vue");
 const DocsView = () => import("@/views/docs/DocsView.vue");
 const DocView = () => import("@/views/docs/DocView.vue");
 const FilesView = () => import("@/views/files/FilesView.vue");
+const TrashView = () => import("@/views/trash/TrashView.vue");
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +25,7 @@ const router = createRouter({
       path: "/onboarding",
     },
     { component: SettingsView, name: "settings", meta: { title: "Settings" }, path: "/settings" },
+    { component: TrashView, name: "trash", meta: { title: "Trash" }, path: "/trash" },
 
     {
       component: FilesView,

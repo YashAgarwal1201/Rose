@@ -87,6 +87,7 @@ onMounted(async () => {
         name: d.title,
         updatedAt: d.updatedAt,
         createdAt: d.createdAt,
+        isVaulted: d.isVaulted,
       }))
         " :file-icon="FileTextIcon" file-label="doc" @open-file="openDoc" @rename-file="handleRenameFile"
         @delete-file="handleDeleteFile" />

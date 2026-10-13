@@ -118,4 +118,31 @@ describe("useHomeSummary", () => {
     expect(summary.dueSoonTodos.value[2]!.title).toBe("Tomorrow Task");
     expect(summary.dueSoonTodos.value[3]!.title).toBe("Day 2 Task");
   });
+
+  it("excludes trashed items from recentItems and dueSoonTodos", async () => {
+    expect.hasAssertions();
+    const now = Date.now();
+
+    vi.spyOn(db.folders, "toArray").mockResolvedValue([
+      { id: "f-trashed", name: "Trashed Folder", type: "mixed", parentId: null, createdAt: 1, updatedAt: 100, trashedAt: now, trashedByFolderId: null } as any,
+    ]);
+    vi.spyOn(db.todoLists, "toArray").mockResolvedValue([
+      { id: "tl-trashed", name: "Trashed List", folderId: null, createdAt: 1, updatedAt: 200, lastOpenedAt: 1000, isVaulted: false, trashedAt: now, trashedByFolderId: null } as any,
+    ]);
+    vi.spyOn(db.todos, "toArray").mockResolvedValue([
+      { id: "t-in-trashed-list", title: "Task In Trashed List", listId: "tl-trashed", done: false, priority: "high", dueDate: now, isVaulted: false, createdAt: 1 } as any,
+    ]);
+    vi.spyOn(db.docs, "toArray").mockResolvedValue([
+      { id: "d-trashed", title: "Trashed Doc", folderId: null, createdAt: 1, updatedAt: 300, lastOpenedAt: 2000, isVaulted: false, trashedAt: now, trashedByFolderId: null } as any,
+    ]);
+    vi.spyOn(db.notes, "toArray").mockResolvedValue([]);
+
+    const summary = useHomeSummary();
+    await summary.refresh();
+
+    expect(summary.topFolders.value).toHaveLength(0);
+    expect(summary.recentItems.value).toHaveLength(0);
+    expect(summary.dueSoonTodos.value).toHaveLength(0);
+    expect(summary.openTodoCount.value).toBe(0);
+  });
 });

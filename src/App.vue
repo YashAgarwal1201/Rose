@@ -52,6 +52,7 @@ import GlobalSearchModal from "@/components/explorer/GlobalSearchModal.vue";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 
 import { useUiStore } from "./stores/ui";
+import { useTrashStore } from "./stores/trash";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { useThemeStore } from "./stores/theme";
@@ -231,7 +232,10 @@ function onSWUpdate() {
   showToast("App updated — refresh to get the latest version.", "info", TOAST_AUTO_DISMISS_MS);
 }
 
-onMounted(() => globalThis.addEventListener("sw-update-available", onSWUpdate));
+onMounted(async () => {
+  globalThis.addEventListener("sw-update-available", onSWUpdate);
+  await useTrashStore().purgeExpired();
+});
 onUnmounted(() => globalThis.removeEventListener("sw-update-available", onSWUpdate));
 </script>
 
