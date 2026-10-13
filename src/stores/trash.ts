@@ -1,4 +1,25 @@
-// src/stores/trash.ts
+/**
+ * src/stores/trash.ts
+ *
+ * Manages the soft-deletion lifecycle across all primary entities (folders, docs, notes, todoLists).
+ *
+ * Architecture & Cascading Rules:
+ * 1. Top-level trashed items:
+ *    - Marked with `trashedAt = Date.now()` and `trashedByFolderId = null`.
+ * 2. Cascaded folder descendants:
+ *    - All nested folders, docs, notes, and todo lists receive `trashedAt = Date.now()`
+ *      and `trashedByFolderId = rootFolderId`.
+ *    - In the Trash view, only top-level items (`!trashedByFolderId`) appear in the root listing,
+ *      with their cascaded children aggregated into `childCount`.
+ * 3. Restoration:
+ *    - Restores the item and any cascaded children (`trashedByFolderId === id`).
+ *    - If the original parent folder was purged or no longer exists, the item is safely
+ *      relocated to the Files root (`/files`) to prevent dangling/orphaned references.
+ *    - Sibling name collisions in the target folder are resolved by suffixing `(Restored)`.
+ * 4. Permanent Deletion & Retention:
+ *    - Permanent deletion cascades through nested todos in todo lists and Dexie records.
+ *    - Items older than RETENTION_MS (30 days) are eligible for automated purge.
+ */
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import db from "@/db";

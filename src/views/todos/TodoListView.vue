@@ -31,9 +31,6 @@ import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import TodoListIllustration from "@/assets/illustrations/todo-list.svg";
 import { getErrorMessage } from "@/utils/error";
 
-// const MENU_WIDTH_PX = 288;
-// const MENU_OFFSET_PX = 8;
-
 const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();

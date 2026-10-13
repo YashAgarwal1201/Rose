@@ -8,10 +8,14 @@ Color palette and visual identity are inspired by the rose flower — deep reds/
 
 ## Features
 
-- **Todos** — nested folders, list view + inline edit, priorities, due dates
-- **Notes** — freehand sketching/handwriting via canvas, with pointer-based palm rejection (pen vs. touch vs. mouse)
-- **Docs** — lightweight rich-text document creation
-- **Shared UX patterns** across all three: list view, edit view, folder navigation
+- **Files & Folders** — unified explorer (`/files`) for organizing mixed collections of todos, docs, and notes with `@dnd-kit/vue` drag-and-drop
+- **Todos** — nested folders, list view + inline edit, priorities, due dates, and Home "Due Soon" widget
+- **Notes** — freehand sketching/handwriting via canvas, with pointer-based palm rejection (pen vs. touch vs. mouse) and vector shapes
+- **Docs** — rich-text document editing with tables, CSV import, markdown/PDF export, autofocus, and distraction-free read/edit modes
+- **Secure Vault** — zero-knowledge client-side encryption (PBKDF2 + AES-GCM 256-bit) with auto-lock and PIN authentication
+- **Trash & Recovery** — safe soft deletion, restore directly to root files directory, and permanent purge
+- **Dashboard** — personalized greeting, global search, activity heatmap, contribution breakdown, and due soon tasks
+- **Module Federation** — embeddable standalone components (`SharedTodoUI`, `SharedDocUI`, `SharedNoteUI`) for host apps and AI orchestrators
 - **Theming** — system / light / dark, rose-based color tokens
 - **Persistence** — 100% client-side via IndexedDB (Dexie.js), no data ever leaves the browser
 
@@ -23,8 +27,11 @@ Color palette and visual identity are inspired by the rose flower — deep reds/
 | Routing                   | Vue Router                                                         |
 | State                     | Pinia                                                              |
 | Persistence               | Dexie.js (IndexedDB wrapper)                                       |
-| Sketching/Handwriting     | Fabric.js                                                          |
+| Sketching/Handwriting     | Fabric.js + perfect-freehand                                       |
 | Rich text (Docs)          | TipTap                                                             |
+| Drag and Drop             | @dnd-kit/vue                                                       |
+| Microfrontends            | @originjs/vite-plugin-federation                                   |
+| Cryptography              | Web Crypto API (PBKDF2, AES-GCM 256-bit)                           |
 | Styling                   | Tailwind CSS (v4, Vite plugin) + CSS custom properties for theming |
 | Unit/Component testing    | Vitest + Vue Testing Library + @vue/test-utils                     |
 | E2E testing               | Playwright                                                         |
@@ -68,23 +75,32 @@ Test reports and coverage output are generated in `html/` and `coverage/` direct
 
 ```
 src/
-  components/    # Shared UI (folder tree, theme toggle, layout shell)
-  composables/   # Shared logic and integrations (notes, docs, explorer, etc.)
-  db/            # Dexie schema + database instance
+  components/    # Shared UI (folder tree, theme toggle, layout shell, external wrappers)
+  composables/   # Shared logic and integrations (notes, docs, explorer, shortcuts, etc.)
+  db/            # Dexie schema + database instance + migration types
   router/        # Vue Router setup and route definitions
-  stores/        # Pinia stores for state management
+  stores/        # Pinia stores for state management (todos, notes, docs, folders, trash, vault)
   styles/        # Theme tokens, Tailwind config
   types/         # TypeScript types/interfaces
-  utils/         # Helper functions
+  utils/         # Helper functions (crypto, formatters, export/import)
   views/         # Feature/Page components
     docs/
+    files/
+    home/
     notes/
+    onboarding/
+    settings/
     todos/
+    trash/
 ```
 
 ## Data Ownership & Backup
 
-Rose stores everything in your browser's IndexedDB. There is no cloud sync by default. **Clearing browser data will delete your data.** A JSON export/import feature is planned (see ROADMAP.md) — until then, treat this as you would any local-only app: back up manually if the data matters.
+Rose stores everything in your browser's IndexedDB. There is no external cloud dependency.
+
+Built-in JSON backup and restore is available directly in Settings (`/settings`):
+- **Export Data**: Download your entire database (or selected stores) into a portable JSON backup file.
+- **Import Data**: Restore from backup using either **Merge** (upserts data preserving existing items) or **Replace** (complete clean restore). Legacy data format translation is automatically handled.
 
 ## Roadmap
 

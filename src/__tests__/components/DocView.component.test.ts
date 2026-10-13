@@ -152,7 +152,10 @@ vi.mock(import('../../utils/debounce'), () => ({
     },
 } as any));
 vi.mock(import('@/components/docs/DocToolbar.vue'), () => ({
-  default: { template: "<div data-testid='doc-toolbar' />" },
+  default: {
+    template: "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
+    emits: ["toggleReadMode"],
+  },
 } as any));
 
 // \u2500\u2500\u2500 Router factory \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -481,8 +484,9 @@ describe("DocView", () => {
       const { wrapper } = await mountDocView(["Read Mode Doc"]);
       const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
       expect(toggleBtn.exists()).toBe(true);
-      expect(toggleBtn.text()).toContain("Edit mode");
+      expect(toggleBtn.text()).toContain("Read mode");
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
+      expect(fakeEditor.commands.focus).toHaveBeenCalledWith("end");
     });
 
     it("toggles to read mode when clicked and back to edit mode", async () => {
@@ -501,20 +505,22 @@ describe("DocView", () => {
       const { wrapper } = await mountDocView(["Toggle Mode Doc"]);
       const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
 
-      // Switch to read mode
+      // Switch to read mode (clicking the toolbar button)
       await toggleBtn.trigger("click");
       await flushPromises();
 
-      expect(toggleBtn.text()).toContain("Read mode");
+      const readModeToggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(readModeToggleBtn.text()).toContain("Edit mode");
       expect(fakeEditor.setEditable).toHaveBeenCalledWith(false);
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(false);
       expect(wrapper.find(".rose-editor-content").classes()).toContain("read-mode");
 
-      // Switch back to edit mode
-      await toggleBtn.trigger("click");
+      // Switch back to edit mode (clicking the header button)
+      await readModeToggleBtn.trigger("click");
       await flushPromises();
 
-      expect(toggleBtn.text()).toContain("Edit mode");
+      const editModeToggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(editModeToggleBtn.text()).toContain("Read mode");
       expect(fakeEditor.setEditable).toHaveBeenCalledWith(true);
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
       expect(wrapper.find(".rose-editor-content").classes()).not.toContain("read-mode");
@@ -536,7 +542,7 @@ describe("DocView", () => {
       });
       const { wrapper } = await mountDocView(["Mobile Read Doc"]);
       const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
-      expect(toggleBtn.text()).toContain("Read mode");
+      expect(toggleBtn.text()).toContain("Edit mode");
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(false);
       expect(wrapper.find(".rose-editor-content").classes()).toContain("read-mode");
     });

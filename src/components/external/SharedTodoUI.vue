@@ -1,3 +1,10 @@
+<!--
+  src/components/external/SharedTodoUI.vue
+
+  Microfrontend component exposed via Vite Module Federation.
+  Enables external host applications (e.g. Blueberry / Tulip AI orchestrators) to mount
+  and embed Rose's standalone todo manager UI without depending on internal routing.
+-->
 <script setup lang="ts">
 import { type Component, computed, ref } from "vue";
 import {

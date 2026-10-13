@@ -1,3 +1,10 @@
+<!--
+  src/components/external/SharedNoteUI.vue
+
+  Microfrontend component exposed via Vite Module Federation.
+  Enables external host applications (e.g. Blueberry / Tulip AI orchestrators) to mount
+  and embed Rose's standalone sketching/handwriting canvas without depending on internal routing.
+-->
 <script setup lang="ts">
 import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";

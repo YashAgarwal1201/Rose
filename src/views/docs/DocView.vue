@@ -1,6 +1,6 @@
 <!-- src/views/DocView.vue -->
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter } from "vue-router";
 import { EditorContent, useEditor } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
@@ -11,7 +11,6 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   ArrowLeftIcon,
-  BookOpenIcon,
   PanelBottomIcon,
   PanelLeftIcon,
   PanelRightIcon,
@@ -90,6 +89,11 @@ const isReadMode = ref(isMobile.value);
 
 watch(isReadMode, (readOnly) => {
   editor.value?.setEditable(!readOnly);
+  if (!readOnly && !isMobile.value) {
+    nextTick(() => {
+      editor.value?.commands.focus("end");
+    });
+  }
 });
 
 let activeLoadToken = 0;
@@ -156,9 +160,9 @@ const saveContent = debounce(async (id: string, contentJSON: Record<string, unkn
 
 const editor = useEditor({
   editable: !isReadMode.value,
+  autofocus: !isReadMode.value && !isMobile.value ? "end" : false,
   content: "",
   extensions: [
-    // StarterKit.configure({ link: false }),
     StarterKit.configure({ link: false, underline: false }),
     TaskList,
     TaskItem.configure({
@@ -265,8 +269,6 @@ const CELL_BG_COLORS = [
   { label: "Orange", value: "#ffedd5" },
   { label: "Gray", value: "#e2e8f0" },
 ];
-
-// const isCellBgPickerOpen = ref(false);
 
 function isCurrentTableBordered(): boolean {
   if (!editor.value) {
@@ -436,6 +438,11 @@ async function loadDoc() {
     docsStore.touchDoc(fullDoc.id);
     const rawContent = fullDoc.contentJSON ? structuredClone(toRaw(fullDoc).contentJSON) : "";
     editor.value?.commands.setContent(rawContent, { emitUpdate: false });
+    if (!isReadMode.value && !isMobile.value) {
+      nextTick(() => {
+        editor.value?.commands.focus("end");
+      });
+    }
   } catch (error: unknown) {
     console.error("loadDoc Error:", error);
     if (getErrorMessage(error) === "Vault is locked") {
@@ -807,21 +814,18 @@ onBeforeUnmount(() => {
             Saved {{ formatRelativeTime(currentDoc.updatedAt) }}
           </span>
 
-          <!-- Mode toggle button (Read / Edit) -->
+          <!-- Mode toggle button (Edit mode only shown in Read mode) -->
           <button
+            v-if="isReadMode"
             type="button"
             data-testid="mode-toggle-btn"
-            :title="isReadMode ? 'Switch to edit mode' : 'Switch to read mode'"
-            :aria-label="isReadMode ? 'Switch to edit mode' : 'Switch to read mode'"
-            class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors shrink-0 ml-2"
-            :class="isReadMode
-              ? 'bg-rose-surface-alt border-rose-border text-rose-text hover:bg-rose-surface'
-              : 'border-transparent text-rose-text-muted hover:text-rose-text hover:bg-rose-surface-alt'"
-            @click="isReadMode = !isReadMode"
+            title="Switch to edit mode"
+            aria-label="Switch to edit mode"
+            class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-surface-alt border border-rose-border text-rose-text hover:bg-rose-surface transition-colors shrink-0 ml-2"
+            @click="isReadMode = false"
           >
-            <BookOpenIcon v-if="isReadMode" class="w-4 h-4 text-rose-primary" />
-            <PencilIcon v-else class="w-4 h-4" />
-            <span class="hidden sm:inline">{{ isReadMode ? "Read mode" : "Edit mode" }}</span>
+            <PencilIcon class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">Edit mode</span>
           </button>
 
           <!-- Toolbar position toggle (desktop only) -->
@@ -848,7 +852,8 @@ onBeforeUnmount(() => {
               :editor="editor" :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS"
               :position="effectivePosition" @trigger-image-pick="triggerImagePick" @set-link="setLink"
               @insert-table="insertTable" @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml"
-              @export-as-markdown="exportAsMarkdown" @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+              @export-as-markdown="exportAsMarkdown" @export-as-text="exportAsText" @export-as-pdf="exportAsPdf"
+              @toggle-read-mode="isReadMode = true" />
 
             <!-- Editor + table context bar -->
             <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
@@ -941,14 +946,16 @@ onBeforeUnmount(() => {
               :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
               @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
               @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
-              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf"
+              @toggle-read-mode="isReadMode = true" />
 
             <!-- Toolbar: bottom position (fixed, rendered outside flow but still here for v-if) -->
             <DocToolbar ref="toolbarRef" v-if="!isReadMode && editor && effectivePosition === 'bottom'" :editor="editor"
               :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
               @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
               @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
-              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf"
+              @toggle-read-mode="isReadMode = true" />
           </div>
           </div>
         </ErrorBoundary>

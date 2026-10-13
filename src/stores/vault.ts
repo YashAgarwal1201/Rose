@@ -1,4 +1,19 @@
-// src/stores/vault.ts
+/**
+ * src/stores/vault.ts
+ *
+ * Manages the Secure Vault authentication state, key derivation, and auto-lock lifecycle.
+ *
+ * Security Model:
+ * 1. Zero Key Persistence:
+ *    - The derived AES-GCM 256-bit key (`derivedKey`) is held strictly in volatile memory (`ref<CryptoKey | null>`).
+ *    - It is NEVER written to IndexedDB, LocalStorage, SessionStorage, or disk.
+ * 2. Key Derivation:
+ *    - Derived from the user's PIN + unique stored salt via PBKDF2-HMAC-SHA-256 (100,000 iterations).
+ * 3. Inactivity Auto-Lock:
+ *    - Locks automatically after 5 minutes of inactivity (`LOCK_TIMEOUT_MS`).
+ *    - Global user interactions (mousemove, keydown, touchstart) reset the lock timer.
+ *    - When locked, `derivedKey.value = null` and `isUnlocked.value = false`, and all listeners are detached.
+ */
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "../db";

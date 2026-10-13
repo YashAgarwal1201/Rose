@@ -1,3 +1,10 @@
+<!--
+  src/components/external/SharedDocUI.vue
+
+  Microfrontend component exposed via Vite Module Federation.
+  Enables external host applications (e.g. Blueberry / Tulip AI orchestrators) to mount
+  and embed Rose's standalone rich-text document editor without depending on internal routing.
+-->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { EditorContent, useEditor } from "@tiptap/vue-3";
