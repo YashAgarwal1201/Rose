@@ -83,6 +83,15 @@
       <HomeRecentScroller title="Recent docs" :items="summary.recentDocs.value" @open="openItem" />
       <HomeRecentScroller title="Recent notes" :items="summary.recentNotes.value" @open="openItem" />
 
+      <!-- Due Soon Widget -->
+      <HomeDueSoonWidget
+        v-if="summary.dueSoonTodos.value.length > 0"
+        :items="summary.dueSoonTodos.value"
+        :total-count="summary.totalDueSoonCount.value"
+        @open="openDueSoonItem"
+        @view-all="viewAllTodos"
+      />
+
       <HomeActivityCard v-if="settingsStore.showActivityChart" />
       <HomeStatsWidget :list-count="summary.listCount.value" :note-count="summary.noteCount.value"
         :doc-count="summary.docCount.value" />
@@ -95,13 +104,14 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ArrowRight, FileTextIcon, ListTodoIcon, PenLineIcon, SearchIcon, XIcon } from "@lucide/vue";
 import { useSettingsStore } from "@/stores/settings";
-import { type HomeItem, useHomeSummary } from "@/composables/home/useHomeSummary.ts";
+import { type DueSoonItem, type HomeItem, useHomeSummary } from "@/composables/home/useHomeSummary.ts";
 import NoDataIllustration from "@/assets/illustrations/no-data-home.svg";
 import NoFileFoundIllustration from "@/assets/illustrations/no-file-found.svg";
 import HomeFolderTile from "@/components/home/HomeFolderTile.vue";
 import HomeFileCard from "@/components/home/HomeFileCard.vue";
 import type { FeatureType } from "@/db/types";
 import HomeRecentScroller from "@/components/home/HomeRecentScroller.vue";
+import HomeDueSoonWidget from "@/components/home/HomeDueSoonWidget.vue";
 import HomeActivityCard from "@/components/home/HomeActivityCard.vue";
 import HomeStatsWidget from "@/components/home/HomeStatsWidget.vue";
 
@@ -158,6 +168,14 @@ function openItem(item: HomeItem) {
   } else {
     router.push({ name: "files-doc", params: { pathMatch: item.path } });
   }
+}
+
+function openDueSoonItem(item: DueSoonItem) {
+  router.push({ name: "files-list", params: { pathMatch: item.listPath } });
+}
+
+function viewAllTodos() {
+  router.push({ name: "todos-all" });
 }
 
 onMounted(summary.refresh);

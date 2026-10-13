@@ -1,11 +1,13 @@
 // Src/composables/useConfirm.ts
-import { ref } from "vue";
+import { type Component, ref } from "vue";
 
-interface ConfirmOptions {
+export interface ConfirmOptions {
   title?: string;
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmIcon?: Component;
+  cancelIcon?: Component;
 }
 
 const isOpen = ref(false);

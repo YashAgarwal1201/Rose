@@ -34,6 +34,8 @@ Organizes notes, documents, and todo lists into a directory hierarchy.
 *   `iv` (string | null, initialization vector if folder metadata needs encryption)
 *   `createdAt` (number)
 *   `updatedAt` (number)
+*   `trashedAt` (number | null)
+*   `trashedByFolderId` (string | null)
 
 ### 2. `todoLists`
 Contains metadata for task lists.
@@ -45,6 +47,8 @@ Contains metadata for task lists.
 *   `createdAt` (number)
 *   `updatedAt` (number)
 *   `lastOpenedAt` (number | null)
+*   `trashedAt` (number | null)
+*   `trashedByFolderId` (string | null)
 
 ### 3. `todos`
 Individual tasks linked to a `todoList`.
@@ -70,6 +74,8 @@ Rich text documents.
 *   `createdAt` (number)
 *   `updatedAt` (number)
 *   `lastOpenedAt` (number | null)
+*   `trashedAt` (number | null)
+*   `trashedByFolderId` (string | null)
 
 ### 5. `notes`
 Vector drawings and sketch notes.
@@ -85,6 +91,8 @@ Vector drawings and sketch notes.
 *   `createdAt` (number)
 *   `updatedAt` (number)
 *   `lastOpenedAt` (number | null)
+*   `trashedAt` (number | null)
+*   `trashedByFolderId` (string | null)
 
 ### 6. `settings`
 Global configurations (singleton record, `id: 1`).
@@ -149,13 +157,15 @@ Rose employs **Zero-Knowledge Client-Side Encryption** to keep sensitive data sa
 *   **Global Search**: Instantly searches names, titles, and text contents of unvaulted notes, docs, and todo items.
 *   **Tiles & Quick Nav**: Display top folders, recently opened logs, and categorised lists of recent documents/notes/todo lists.
 *   **Activity Heatmap**: A contribution chart visualizing the user's logged entries in the `activity` store over the last year. Can be toggled on/off.
+*   **Due Soon Tasks Widget**: A dedicated dashboard widget (`HomeDueSoonWidget.vue`) surfacing tasks approaching their due dates with relative badges (e.g., "today", "tomorrow"), priority indicators, and inline completion checkboxes.
 *   **Stats Widget**: Summary counters.
 
 ### File Explorer
 *   **Directory Grid**: Renders folder hierarchies using breadcrumbs and custom grids. Shows file sizes, item counts, and timestamps.
+*   **Unified Files View**: Supports mixed item collections (`FilesView.vue`, `MixedExplorerGrid.vue`) where folders can contain todos, notes, and docs concurrently.
 *   **Folder Tree Sidebar**: An expandable navigation menu, adapting into a slide-out drawer on mobile devices.
 *   **Folder Creation & Upgrades**: Dynamically supports mixed contents.
-*   **Drag & Drop / Picker Moves**: Move files or folders into nested subfolders.
+*   **Fluid Drag & Drop / Picker Moves**: Move files or folders into nested subfolders using `@dnd-kit/vue` or modal pickers.
 *   **Name Collision Resolution**: If a moved file has a name mismatch, prompts the user to overwrite or automatically suffix (`(1)`).
 
 ### Rich Text Documents (Docs)
@@ -164,6 +174,10 @@ Rose employs **Zero-Knowledge Client-Side Encryption** to keep sensitive data sa
 *   **Advanced Tables**: Max size `20` rows by `10` columns. Supports column/row insertions before/after, custom cell color picker, border toggle, and table deletion.
 *   **Image Import**: Drag-and-drop or select images, saving them as local data URLs.
 *   **CSV Import**: Imports `.csv` data directly into formatted TipTap tables.
+*   **Autofocus**: Automatically focuses the document canvas at the end of content upon creation or open.
+*   **Dual Mode UX (Approach B)**:
+    *   *Edit Mode*: Displays full formatting toolbar (`DocToolbar.vue`) with a dedicated `Read mode` toggle button at the trailing edge.
+    *   *Read Mode*: Hides the formatting toolbar for a clean, distraction-free reading canvas, providing an `Edit mode` action in the header to return to editing.
 *   **Exports**: HTML, Markdown (`.md`), Plain Text (`.txt`), and formatted PDF (triggers browser print interface).
 
 ### Vector Sketchpads (Notes)
@@ -192,6 +206,21 @@ Rose employs **Zero-Knowledge Client-Side Encryption** to keep sensitive data sa
 *   **Cleanups**:
     *   *Clear Content*: Wipes folders, todos, notes, and docs; preserves profile.
     *   *Reset App*: Prompts user to type "RESET" to wipe database tables and re-trigger onboarding.
+
+### Trash & Recovery Management
+*   **Dedicated Trash View**: Located at `/trash` (`TrashView.vue`) with full-width responsive layout, cards and list view toggles, sort options (by name or deleted date), and item information popovers.
+*   **Soft Deletion**: Deleting an item or folder sets `deletedAt: Date.now()` rather than immediately deleting records from IndexedDB.
+*   **Restore to Files Root**: Restoring any item or folder relocates it to the root files directory (`/files`), eliminating orphan references if original parent folders were purged.
+*   **Permanent Deletion**: Individual items can be permanently purged, or the user can wipe all trashed data with an "Empty Trash" confirmation modal.
+*   **View Isolation**: Trashed records are completely filtered out from Home recent items, search indexes, active folder counts, and breadcrumb trails.
+
+### Microfrontend & Module Federation
+*   **Module Federation**: Rose exposes standalone microfrontend components via `@originjs/vite-plugin-federation` for integration into host applications or external AI orchestrators.
+*   **Exposed Components**:
+    *   `SharedTodoUI` (`src/components/external/SharedTodoUI.vue`): Standalone todo list manager.
+    *   `SharedDocUI` (`src/components/external/SharedDocUI.vue`): Standalone rich-text document viewer and editor.
+    *   `SharedNoteUI` (`src/components/external/SharedNoteUI.vue`): Standalone handwritten sketching canvas.
+*   **Data Portability**: Legacy data importer (`src/utils/importData.ts`) provides backward-compatible schema translation for importing data from external orchestrators directly into Rose's Dexie tables.
 
 ---
 

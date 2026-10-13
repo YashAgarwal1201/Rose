@@ -1,31 +1,4 @@
-// // Src/db/index.ts
-// import Dexie, { type EntityTable } from "dexie";
-// import type { Folder, Todo, TodoList } from "./types";
-
-// const db = new Dexie("RoseDatabase") as Dexie & {
-//   folders: EntityTable<Folder, "id">;
-//   todoLists: EntityTable<TodoList, "id">;
-//   todos: EntityTable<Todo, "id">;
-// };
-
-// db.version(1).stores({
-//   folders: "++id, parentId, type",
-//   todos: "++id, folderId, done",
-// });
-
-// db.version(2).stores({
-//   folders: "++id, parentId, type",
-//   todoLists: "++id, folderId",
-//   todos: "++id, listId, done",
-// });
-
-// db.version(3).stores({
-//   folders: "id, parentId, type",
-//   todoLists: "id, folderId",
-//   todos: "id, listId, done",
-// });
-
-// export default db;
+// src/db/index.ts
 
 import Dexie, { type EntityTable } from "dexie";
 import type { ActivityEntry, AppSettings, Doc, Folder, Note, Todo, TodoList } from "./types";
@@ -162,6 +135,27 @@ db.version(9)
         updatedAt: Date.now(),
       });
     }
+  });
+
+db.version(10)
+  .stores({
+    activity: "id, timestamp, entityId",
+    docs: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    folders: "id, parentId, type, isVaulted, trashedAt, trashedByFolderId",
+    notes: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    settings: "id",
+    todoLists: "id, folderId, isVaulted, trashedAt, trashedByFolderId",
+    todos: "id, listId, done, isVaulted",
+  })
+  .upgrade(async (tx) => {
+    const addTrashFields = (item: { trashedAt?: number | null; trashedByFolderId?: string | null }) => {
+      item.trashedAt = null;
+      item.trashedByFolderId = null;
+    };
+    await tx.table("folders").toCollection().modify(addTrashFields);
+    await tx.table("docs").toCollection().modify(addTrashFields);
+    await tx.table("notes").toCollection().modify(addTrashFields);
+    await tx.table("todoLists").toCollection().modify(addTrashFields);
   });
 
 export default db;

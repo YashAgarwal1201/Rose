@@ -12,17 +12,6 @@ import { TOAST_AUTO_DISMISS_MS } from "@/utils/constants";
 import type { BackgroundPattern } from "@/db/types";
 import { getErrorMessage } from "@/utils/error";
 
-// const props = withDefaults(
-//   defineProps<{
-//     initialCanvasJSON?: Record<string, unknown> | null;
-//     initialBackgroundColor: string;
-//     toolbarPosition: ToolbarPosition;
-//   }>(),
-//   {
-//     initialCanvasJSON: null,
-//   },
-// );
-
 const {
   initialCanvasJson,
   initialBackgroundColor,

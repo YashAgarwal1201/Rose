@@ -14,17 +14,17 @@ vi.mock(import('../../stores/folders'), () => ({
     createFolder: vi.fn(),
     deleteFolder: vi.fn(),
   }),
-}));
+} as any));
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
 vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
-}));
+} as any));
 
 vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 
 function mountTree(activeFolderId: string | null = null) {
   return mount(FolderTree, {
@@ -108,7 +108,7 @@ describe("FolderTree", () => {
     it("calls confirm() when the delete button is clicked", async () => {
       const wrapper = mountTree();
       await wrapper.find("button[title='Delete folder']").trigger("click");
-      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Move Folder to Trash" }));
     });
 
     it("does not call store.deleteFolder when confirm returns false", async () => {

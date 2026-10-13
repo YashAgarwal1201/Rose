@@ -231,11 +231,11 @@ function cancelRename() {
 async function handleDelete(item: DisplayItem, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    confirmLabel: "Delete",
+    confirmLabel: "Move to Trash",
     message: item.kind === 'folder'
-      ? `Delete "${item.name}" and everything inside it? This can't be undone.`
-      : `Delete "${item.name}"? This can't be undone.`,
-    title: `Delete ${typeLabel(item.kind)}`,
+      ? `Move "${item.name}" and everything inside it to Trash? You can restore it anytime within 30 days.`
+      : `Move "${item.name}" to Trash? You can restore it anytime within 30 days.`,
+    title: item.kind === 'folder' ? "Move Folder to Trash" : "Move to Trash",
   });
   if (!confirmed) {
     return;
@@ -515,7 +515,7 @@ defineExpose({ startCreate });
       @click="handleMenuRename">
       <PencilIcon class="w-4 h-4" /> Rename
     </button>
-    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
+    <button v-if="contextMenu.activeItem.value?.id !== 'vault' && !contextMenu.activeItem.value?.isVaulted"
       class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
       @click="handleMenuDelete">
       <TrashIcon class="w-4 h-4" /> Delete

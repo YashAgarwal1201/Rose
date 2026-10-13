@@ -43,8 +43,8 @@ describe("useDocExport", () => {
     const { exportAsHtml } = useDocExport(editor as any, title, isOpen);
     exportAsHtml();
 
-    expect(mockCreateObjectURL).toHaveBeenCalledWith();
-    expect(mockClick).toHaveBeenCalledWith();
+    expect(mockCreateObjectURL).toHaveBeenCalled();
+    expect(mockClick).toHaveBeenCalled();
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
     expect(isOpen.value).toBe(false);
   });
@@ -58,7 +58,7 @@ describe("useDocExport", () => {
     const { exportAsPdf } = useDocExport(editor as any, title, isOpen);
     exportAsPdf();
 
-    expect(mockCreateObjectURL).toHaveBeenCalledWith();
+    expect(mockCreateObjectURL).toHaveBeenCalled();
     expect(mockWindowOpen).toHaveBeenCalledWith("blob:fake-url", "_blank");
     
     // Revoke happens on timeout

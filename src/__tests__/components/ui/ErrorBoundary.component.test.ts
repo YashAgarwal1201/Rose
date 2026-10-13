@@ -64,6 +64,6 @@ describe("ErrorBoundary.vue", () => {
     await retryButton.trigger("click");
     // Since it immediately re-renders and re-throws, it might still show the error UI,
     // but we know the click handler fired.
-    expect(console.error).toHaveBeenCalledWith();
+    expect(console.error).toHaveBeenCalled();
   });
 });

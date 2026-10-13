@@ -177,15 +177,15 @@ function cancelCreate() {
 async function handleDelete(id: string, name: string, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
-    confirmLabel: "Delete",
-    message: `Delete "${name}" and everything inside it? This can't be undone.`,
-    title: "Delete folder",
+    confirmLabel: "Move to Trash",
+    message: `Move "${name}" and everything inside it to Trash? You can restore it anytime within 30 days.`,
+    title: "Move Folder to Trash",
   });
   if (!confirmed) {
     return;
   }
   await foldersStore.deleteFolder(id);
-  showToast(`Deleted "${name}"`, "info");
+  showToast(`Moved "${name}" to Trash`, "info");
 }
 
 const dragOverNodeId = ref<string | null>(null);

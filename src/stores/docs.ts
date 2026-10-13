@@ -6,13 +6,14 @@ import type { Doc } from "@/db/types";
 import { useActivityStore } from "./activity";
 import { useFoldersStore } from "./folders";
 import { useVaultStore } from "./vault";
+import { useTrashStore } from "./trash";
 import { decryptJSONField, encryptJSONField } from "@/utils/crypto";
 
 export const useDocsStore = defineStore("docs", () => {
   const docs = ref<Doc[]>([]);
 
   async function loadDocs() {
-    docs.value = await db.docs.toArray();
+    docs.value = (await db.docs.toArray()).filter((d) => !d.trashedAt);
   }
 
   async function createDoc(title: string, folderId: string | null) {
@@ -40,6 +41,8 @@ export const useDocsStore = defineStore("docs", () => {
       updatedAt: now,
       isVaulted,
       iv: null,
+      trashedAt: null,
+      trashedByFolderId: null,
     };
     await db.docs.add(doc);
     await useActivityStore().record("doc_created", doc.id);
@@ -68,11 +71,15 @@ export const useDocsStore = defineStore("docs", () => {
   }
 
   async function updateDoc(id: string, changes: Partial<Pick<Doc, "title" | "contentJSON">>) {
+    const doc = await db.docs.get(id);
+    if (!doc || doc.trashedAt) {
+      return;
+    }
+
     const sanitized: Partial<Doc> = { ...changes, updatedAt: Date.now() };
     if ("contentJSON" in changes) {
       sanitized.contentJSON = changes.contentJSON ? structuredClone(changes.contentJSON) : null;
     }
-    const doc = await db.docs.get(id);
     if (doc?.isVaulted && "contentJSON" in sanitized && sanitized.contentJSON) {
       const vault = useVaultStore();
       if (!vault.derivedKey) {throw new Error("Vault is locked");}
@@ -85,8 +92,8 @@ export const useDocsStore = defineStore("docs", () => {
   }
 
   async function deleteDoc(id: string) {
-    await db.docs.delete(id);
-    await loadDocs();
+    const trashStore = useTrashStore();
+    await trashStore.moveToTrash("doc", id);
   }
 
   async function deleteDocsByFolder(folderId: string) {

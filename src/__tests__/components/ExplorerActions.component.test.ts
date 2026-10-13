@@ -18,7 +18,7 @@ const { mockActivate, mockDeactivate, mockUseFocusTrap } = vi.hoisted(() => {
 
 vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: mockUseFocusTrap,
-}));
+} as any));
 
 function mountActions(fileLabel = "note") {
   return mount(ExplorerActions, {

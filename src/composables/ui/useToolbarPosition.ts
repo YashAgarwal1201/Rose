@@ -8,7 +8,7 @@ export function useToolbarPosition() {
   const savedPosition = ref<ToolbarPosition>(
     (localStorage.getItem(STORAGE_KEY) as ToolbarPosition) ?? "top",
   );
-  const isMobile = ref(false);
+  const isMobile = ref(typeof window !== "undefined" ? window.innerWidth < 768 : false);
 
   function checkMobile() {
     isMobile.value = window.innerWidth < 768;

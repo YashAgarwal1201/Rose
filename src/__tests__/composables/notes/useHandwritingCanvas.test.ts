@@ -5,7 +5,7 @@ import { ref } from "vue";
 // Partially mock perfect-freehand since we don't need its real math to test the composable's logic
 vi.mock(import('perfect-freehand'), () => ({
   default: vi.fn(() => [[0, 0], [10, 10]])
-}));
+} as any));
 
 // Partially mock fabric
 vi.mock(import('fabric'), () => (
@@ -38,7 +38,7 @@ vi.mock(import('fabric'), () => (
     Textbox: vi.fn(),
     FabricImage: { fromURL: vi.fn().mockResolvedValue({ scaleToWidth: vi.fn(), getBoundingRect: () => ({ top: 0, height: 100 }) }) },
     Pattern: vi.fn(),
-  }
+  } as any
 ));
 
 describe("useHandwritingCanvas", () => {

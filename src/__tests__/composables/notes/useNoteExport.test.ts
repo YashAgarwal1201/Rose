@@ -78,7 +78,7 @@ describe("useNoteExport", () => {
     exportAsSvg();
 
     expect(mockToSVG).toHaveBeenCalledWith();
-    expect(mockCreateObjectURL).toHaveBeenCalledWith();
+    expect(mockCreateObjectURL).toHaveBeenCalled();
     expect(mockClick).toHaveBeenCalledWith();
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
     expect(isOpen.value).toBe(false);

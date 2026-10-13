@@ -31,9 +31,6 @@ import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import TodoListIllustration from "@/assets/illustrations/todo-list.svg";
 import { getErrorMessage } from "@/utils/error";
 
-// const MENU_WIDTH_PX = 288;
-// const MENU_OFFSET_PX = 8;
-
 const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
 const router = useRouter();
@@ -512,6 +509,7 @@ watch(() => pathMatch, loadList);
             <PencilIcon class="w-5 h-5" /> Edit
           </button>
           <button
+            v-if="!contextMenu.activeItem.value?.isVaulted"
             class="flex items-center gap-3 w-full text-left px-4 py-3 text-base text-red-400 hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400"
             @click="handleMenuDelete()">
             <TrashIcon class="w-5 h-5" /> Delete

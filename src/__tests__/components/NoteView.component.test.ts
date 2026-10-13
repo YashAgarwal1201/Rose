@@ -20,7 +20,7 @@ vi.mock(import('vue-router'), () => ({
       params: { pathMatch: ["My Note"] },
     }),
   }),
-}));
+} as any));
 
 // Mock toast
 const showToastMock = vi.fn();
@@ -29,7 +29,7 @@ vi.mock(import('@/composables/ui/useToast.ts'), () => ({
 } as any));
 
 // Mock toolbar position
-vi.mock(import('../../composables/useToolbarPosition'), () => ({
+vi.mock(import('@/composables/ui/useToolbarPosition'), () => ({
   useToolbarPosition: () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
@@ -38,9 +38,10 @@ vi.mock(import('../../composables/useToolbarPosition'), () => ({
   }),
 } as any));
 
-// Mock HandwritingCanvas to avoid rendering fabric
-vi.mock(import('../../components/notes/HandwritingCanvas.vue'), () => ({
+// Mock NoteCanvas to avoid rendering fabric
+vi.mock(import('@/components/notes/NoteCanvas.vue'), () => ({
   default: {
+    name: "NoteCanvas",
     template: "<div data-testid='note-canvas'></div>",
     props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
   },

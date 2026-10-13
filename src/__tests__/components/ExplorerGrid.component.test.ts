@@ -20,7 +20,7 @@ const mockToggleViewMode = vi.fn(() => {
   mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
 });
 
-vi.mock(import('../../composables/useExplorerViewMode'), () => ({
+vi.mock(import('@/composables/explorer/useExplorerViewMode'), () => ({
   useExplorerViewMode: () => ({
     setSortKey: mockSetSortKey,
     sortDir: mockSortDir,
@@ -28,17 +28,17 @@ vi.mock(import('../../composables/useExplorerViewMode'), () => ({
     toggleViewMode: mockToggleViewMode,
     viewMode: mockViewMode,
   }),
-}));
+} as any));
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
 vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
-}));
+} as any));
 
 vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 
 const FOLDERS = [
   { id: "f1", name: "Zebra", updatedAt: 300, createdAt: 100 },

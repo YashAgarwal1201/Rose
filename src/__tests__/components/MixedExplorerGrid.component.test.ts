@@ -33,16 +33,16 @@ vi.mock(import('../../composables/explorer/useExplorerViewMode.ts'), () => ({
 const mockConfirm = vi.fn().mockResolvedValue(false);
 vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
   useConfirm: () => ({ confirm: mockConfirm }),
-}));
+} as any));
 
 vi.mock(import('@/composables/ui/useToast.ts'), () => ({
   useToast: () => ({ showToast: vi.fn() }),
-}));
+} as any));
 
 const mockIsMobile = ref(false);
 vi.mock(import('@vueuse/core'), () => ({
   useMediaQuery: vi.fn(() => mockIsMobile),
-}));
+} as any));
 
 vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
   const actual = await importOriginal();
@@ -51,13 +51,13 @@ vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
     useDraggable: vi.fn(() => ({ isDragging: ref(false) })),
     useDroppable: vi.fn(() => ({ isDropTarget: ref(false) })),
     useDragOverlay: vi.fn(() => ({ active: ref(false) })),
-  };
+  } as any;
 });
 
 const ITEMS = [
   { id: "f1", name: "Zebra", kind: "folder" as const, updatedAt: 300, createdAt: 100 },
   { id: "f2", name: "Alpha", kind: "folder" as const, updatedAt: 100, createdAt: 200 },
-  { id: "l1", name: "Work", kind: "file" as const, updatedAt: 150, createdAt: 150, thumbnail: null },
+  { id: "l1", name: "Work", kind: "todo" as const, updatedAt: 150, createdAt: 150, thumbnail: null },
 ];
 
 function mountGrid(items = ITEMS) {
@@ -103,7 +103,7 @@ describe("MixedExplorerGrid", () => {
       const wrapper = mountGrid();
       const nodes = wrapper.findAll('[role="listitem"]');
       expect(nodes.length).toBeGreaterThan(0);
-      expect(nodes[0].classes()).not.toContain('touch-none');
+      expect(nodes[0]?.classes()).not.toContain('touch-none');
     });
 
     it("applies touch-none class when on a desktop device", () => {
@@ -111,7 +111,7 @@ describe("MixedExplorerGrid", () => {
       const wrapper = mountGrid();
       const nodes = wrapper.findAll('[role="listitem"]');
       expect(nodes.length).toBeGreaterThan(0);
-      expect(nodes[0].classes()).toContain('touch-none');
+      expect(nodes[0]?.classes()).toContain('touch-none');
     });
   });
 

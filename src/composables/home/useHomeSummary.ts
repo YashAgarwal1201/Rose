@@ -1,7 +1,7 @@
 // src/composables/useHomeSummary.ts
 import { computed, ref } from "vue";
 import db from "@/db";
-import type { Doc, Folder, Note, TodoList } from "@/db/types";
+import type { Doc, Folder, Note, Todo, TodoList } from "@/db/types";
 import { MS_PER_WEEK } from "@/utils/constants";
 
 export type RecentItemType = "todo" | "doc" | "note";
@@ -23,6 +23,16 @@ export interface FolderSummary {
   itemCount: number;
   updatedAt: number;
   path: string[]; // route pathMatch segments to navigate into this folder
+}
+
+export interface DueSoonItem {
+  id: string;
+  listId: string;
+  title: string;
+  dueDate: number;
+  priority: "low" | "medium" | "high" | null;
+  listName: string;
+  listPath: string[];
 }
 
 const RECENT_ITEMS_LIMIT = 6;
@@ -54,6 +64,7 @@ function immediateFolderName(folderId: string | null, folders: Folder[]): string
 export function useHomeSummary() {
   const folders = ref<Folder[]>([]);
   const todoLists = ref<TodoList[]>([]);
+  const todos = ref<Todo[]>([]);
   const openTodoCount = ref(0);
   const docs = ref<Doc[]>([]);
   const notes = ref<Note[]>([]);
@@ -68,11 +79,13 @@ export function useHomeSummary() {
       db.notes.toArray(),
     ]);
 
-    folders.value = folderRows.filter(f => !f.isVaulted && f.id !== "vault");
-    todoLists.value = listRows.filter(l => !l.isVaulted);
-    docs.value = docRows.filter(d => !d.isVaulted);
-    notes.value = noteRows.filter(n => !n.isVaulted);
-    openTodoCount.value = todoRows.filter((todo) => !todo.done && !todo.isVaulted).length;
+    folders.value = folderRows.filter(f => !f.isVaulted && f.id !== "vault" && (f.trashedAt ?? null) === null);
+    todoLists.value = listRows.filter(l => !l.isVaulted && (l.trashedAt ?? null) === null);
+    docs.value = docRows.filter(d => !d.isVaulted && (d.trashedAt ?? null) === null);
+    notes.value = noteRows.filter(n => !n.isVaulted && (n.trashedAt ?? null) === null);
+    todos.value = todoRows.filter(t => !t.isVaulted);
+    const activeListIds = new Set(todoLists.value.map(l => l.id));
+    openTodoCount.value = todos.value.filter((todo) => !todo.done && activeListIds.has(todo.listId)).length;
     isLoaded.value = true;
   }
 
@@ -181,6 +194,67 @@ export function useHomeSummary() {
       .slice(0, SEARCH_RESULTS_LIMIT);
   }
 
+  const dueSoonTodos = computed<DueSoonItem[]>(() => {
+    const now = Date.now();
+    const current = new Date(now);
+    const endOfWindow = new Date(
+      current.getFullYear(),
+      current.getMonth(),
+      current.getDate() + 3,
+      23, 59, 59, 999
+    ).getTime();
+
+    const listMap = new Map(todoLists.value.map((list) => [list.id, list]));
+
+    return todos.value
+      .filter((t) => {
+        if (t.done || t.isVaulted || !t.dueDate) {
+          return false;
+        }
+        if (!listMap.has(t.listId)) {
+          return false;
+        }
+        return t.dueDate <= endOfWindow;
+      })
+      .sort((a, b) => (a.dueDate ?? 0) - (b.dueDate ?? 0))
+      .slice(0, 5)
+      .map((t) => {
+        const list = listMap.get(t.listId)!;
+        return {
+          id: t.id,
+          listId: t.listId,
+          title: t.title || (t as any).text || "Untitled",
+          dueDate: t.dueDate!,
+          priority: t.priority ?? null,
+          listName: list.name,
+          listPath: [...buildFolderPath(list.folderId, folders.value), list.name],
+        };
+      });
+  });
+
+  const totalDueSoonCount = computed(() => {
+    const now = Date.now();
+    const current = new Date(now);
+    const endOfWindow = new Date(
+      current.getFullYear(),
+      current.getMonth(),
+      current.getDate() + 3,
+      23, 59, 59, 999
+    ).getTime();
+
+    const listMap = new Map(todoLists.value.map((list) => [list.id, list]));
+
+    return todos.value.filter((t) => {
+      if (t.done || t.isVaulted || !t.dueDate) {
+        return false;
+      }
+      if (!listMap.has(t.listId)) {
+        return false;
+      }
+      return t.dueDate <= endOfWindow;
+    }).length;
+  });
+
   // return {
   //   docCount: computed(() => docs.value.length),
   //   folderCount: computed(() => folders.value.length),
@@ -197,6 +271,7 @@ export function useHomeSummary() {
 
   return {
     docCount: computed(() => docs.value.length),
+    dueSoonTodos,
     folderCount: computed(() => folders.value.length),
     isEmpty,
     isLoaded,
@@ -211,5 +286,6 @@ export function useHomeSummary() {
     refresh,
     search,
     topFolders,
+    totalDueSoonCount,
   };
 }

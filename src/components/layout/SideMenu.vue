@@ -107,6 +107,21 @@
 
           <div class="divider" />
 
+          <a href="/trash"
+            class="w-full flex items-center justify-between px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors cursor-pointer"
+            @click.prevent="goToTrash">
+            <div class="flex items-center gap-3">
+              <Trash2Icon class="w-4 h-4 text-rose-primary" />
+              <span class="font-medium text-rose-text">Trash</span>
+            </div>
+            <span v-if="trashStore.trashedCount > 0"
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-primary/15 text-rose-primary">
+              {{ trashStore.trashedCount }}
+            </span>
+          </a>
+
+          <div class="divider" />
+
           <!-- About This App -->
           <PanelSection :icon="InfoIcon" label="About This App" :is-open="openPanel === 3" @toggle="togglePanel(3)">
             <div class="flex flex-col gap-y-4 px-1 py-2">
@@ -150,6 +165,7 @@ import {
   SettingsIcon,
   Share2Icon,
   SunIcon,
+  Trash2Icon,
   XIcon,
 } from "@lucide/vue";
 import WhatsappIcon from "@/components/icons/WhatsappIcon.vue";
@@ -160,6 +176,7 @@ import EmailIcon from "@/components/icons/EmailIcon.vue";
 import SignalIcon from "@/components/icons/SignalIcon.vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import { useThemeStore } from "@/stores/theme";
+import { useTrashStore } from "@/stores/trash";
 import PanelSection from "@/components/ui/PanelSection.vue";
 import { useRouter } from "vue-router";
 
@@ -167,11 +184,19 @@ const { isOpen, initialPanel } = defineProps<{ isOpen: boolean; initialPanel?: n
 const emit = defineEmits<{ close: []; 'open-feedback': [] }>();
 
 const themeStore = useThemeStore();
+const trashStore = useTrashStore();
 const router = useRouter();
 
 const menuRef = ref<HTMLElement | null>(null);
 const { activate, deactivate } = useFocusTrap(menuRef, { escapeDeactivates: false });
-watch(() => isOpen, (val) => val ? nextTick().then(() => activate()) : deactivate());
+watch(() => isOpen, (val) => {
+  if (val) {
+    trashStore.loadTrash();
+    nextTick().then(() => activate());
+  } else {
+    deactivate();
+  }
+});
 
 const selectedMode = computed({
   get: () => themeStore.mode,
@@ -322,6 +347,11 @@ const techStack = [
 
 function goToSettings() {
   router.push({ name: "settings" });
+}
+
+function goToTrash() {
+  close();
+  router.push({ name: "trash" });
 }
 
 function close() {

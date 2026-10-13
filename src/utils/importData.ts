@@ -38,7 +38,7 @@ export interface ImportResult {
   summary: ImportSummary;
 }
 
-const SUPPORTED_VERSIONS = [7];
+const SUPPORTED_VERSIONS = [7, 8, 9, 10];
 
 /**
  * Parses and validates a File object as a Rose export payload.
@@ -163,24 +163,59 @@ export async function importData(
       const needsFolders =
         options.notes || options.docs || options.todos;
 
+      const isLegacyVault = rawPayload.version < 9;
+      const isLegacyPattern = rawPayload.version < 8;
+
       if (needsFolders && data.folders?.length) {
-        await db.folders.bulkPut(data.folders as Folder[]);
+        const folders = data.folders.map((f) => ({
+          ...f,
+          isVaulted: isLegacyVault ? (f.isVaulted ?? false) : f.isVaulted,
+          iv: isLegacyVault ? (f.iv ?? null) : f.iv,
+          trashedAt: f.trashedAt ?? null,
+          trashedByFolderId: f.trashedByFolderId ?? null,
+        }));
+        await db.folders.bulkPut(folders as Folder[]);
       }
 
       if (options.notes && data.notes?.length) {
-        await db.notes.bulkPut(data.notes as Note[]);
+        const notes = data.notes.map((n) => ({
+          ...n,
+          backgroundPattern: (isLegacyPattern || isLegacyVault) ? (n.backgroundPattern ?? "solid") : n.backgroundPattern,
+          isVaulted: isLegacyVault ? (n.isVaulted ?? false) : n.isVaulted,
+          iv: isLegacyVault ? (n.iv ?? null) : n.iv,
+          trashedAt: n.trashedAt ?? null,
+          trashedByFolderId: n.trashedByFolderId ?? null,
+        }));
+        await db.notes.bulkPut(notes as Note[]);
       }
 
       if (options.docs && data.docs?.length) {
-        await db.docs.bulkPut(data.docs as Doc[]);
+        const docs = data.docs.map((d) => ({
+          ...d,
+          isVaulted: isLegacyVault ? (d.isVaulted ?? false) : d.isVaulted,
+          iv: isLegacyVault ? (d.iv ?? null) : d.iv,
+          trashedAt: d.trashedAt ?? null,
+          trashedByFolderId: d.trashedByFolderId ?? null,
+        }));
+        await db.docs.bulkPut(docs as Doc[]);
       }
 
       if (options.todos) {
         if (data.todoLists?.length) {
-          await db.todoLists.bulkPut(data.todoLists as TodoList[]);
+          const lists = data.todoLists.map((l) => ({
+            ...l,
+            isVaulted: isLegacyVault ? (l.isVaulted ?? false) : l.isVaulted,
+            iv: isLegacyVault ? (l.iv ?? null) : l.iv,
+            trashedAt: l.trashedAt ?? null,
+            trashedByFolderId: l.trashedByFolderId ?? null,
+          }));
+          await db.todoLists.bulkPut(lists as TodoList[]);
         }
         if (data.todos?.length) {
-          await db.todos.bulkPut(data.todos as Todo[]);
+          const todos = isLegacyVault
+            ? data.todos.map((t) => ({ ...t, isVaulted: t.isVaulted ?? false, iv: t.iv ?? null }))
+            : data.todos;
+          await db.todos.bulkPut(todos as Todo[]);
         }
       }
 

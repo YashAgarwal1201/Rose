@@ -11,7 +11,7 @@ vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
     activate: mockActivate,
     deactivate: mockDeactivate
   }))
-}));
+} as any));
 
 function mountActions() {
   return mount(MixedExplorerActions);

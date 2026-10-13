@@ -10,10 +10,10 @@ vi.mock(import('../../utils/debounce'), () => ({
     debounced.flush = vi.fn(() => fn());
     return debounced;
   },
-}));
+} as any));
 
 // Mock the toolbar
-vi.mock(import('../../components/NoteToolbar.vue'), () => ({
+vi.mock(import('@/components/notes/NoteToolbar.vue'), () => ({
   default: { template: "<div data-testid='note-toolbar'></div>" },
 } as any));
 

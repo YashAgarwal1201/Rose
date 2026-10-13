@@ -42,9 +42,14 @@ function makeFakeEditor() {
     isActive: vi.fn(() => false),
     getAttributes: vi.fn(() => ({})),
     getJSON: vi.fn(() => ({ type: "doc", content: [] })),
+    setEditable: vi.fn(),
+    isEditable: true,
     state: {
       selection: {
         $from: { depth: 0, node: () => ({ type: { name: "" }, attrs: {} }), before: () => 0 },
+      },
+      doc: {
+        descendants: vi.fn(),
       },
     },
     view: { dispatch: vi.fn() },
@@ -59,6 +64,13 @@ vi.mock(import('@tiptap/vue-3'), () => ({
   EditorContent: { template: "<div data-testid='editor-content' />" },
 } as any));
 
+const { mockIsMobile, taskItemOptionsHolder } = vi.hoisted(() => {
+  return {
+    mockIsMobile: { value: false },
+    taskItemOptionsHolder: { current: null as any },
+  };
+});
+
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 function extensionStub(name: string): Record<string, unknown> {
   const ext: Record<string, unknown> = { name };
@@ -68,7 +80,17 @@ function extensionStub(name: string): Record<string, unknown> {
 }
 vi.mock(import('@tiptap/starter-kit'), () => ({ default: extensionStub("starterKit") } as any));
 vi.mock(import('@tiptap/extension-task-list'), () => ({ default: extensionStub("taskList") } as any));
-vi.mock(import('@tiptap/extension-task-item'), () => ({ default: extensionStub("taskItem") } as any));
+vi.mock(import('@tiptap/extension-task-item'), () => {
+  const stub: any = {
+    name: "taskItem",
+    configure: vi.fn((opts: any) => {
+      taskItemOptionsHolder.current = opts;
+      return stub;
+    }),
+    extend: vi.fn(() => stub),
+  };
+  return { default: stub } as any;
+});
 vi.mock(import('@tiptap/extension-link'), () => ({ default: extensionStub("link") } as any));
 vi.mock(import('@tiptap/extension-image'), () => ({ default: extensionStub("image") } as any));
 vi.mock(import('@tiptap/extension-placeholder'), () => ({ default: extensionStub("placeholder") } as any));
@@ -109,7 +131,7 @@ vi.mock(import('@/composables/ui/useToolbarPosition.ts'), () => ({
     effectivePosition: ref("top"),
     savedPosition: ref("top"),
     isVertical: ref(false),
-    isMobile: ref(false),
+    isMobile: mockIsMobile,
     setPosition: vi.fn(),
   }),
 } as any));
@@ -130,7 +152,10 @@ vi.mock(import('../../utils/debounce'), () => ({
     },
 } as any));
 vi.mock(import('@/components/docs/DocToolbar.vue'), () => ({
-  default: { template: "<div data-testid='doc-toolbar' />" },
+  default: {
+    template: "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
+    emits: ["toggleReadMode"],
+  },
 } as any));
 
 // \u2500\u2500\u2500 Router factory \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -178,6 +203,7 @@ async function mountDocView(pathMatch: string[] = []) {
 // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 describe("DocView", () => {
   beforeEach(async () => {
+    mockIsMobile.value = false;
     fakeEditor = makeFakeEditor();
     await freshDb();
   });
@@ -437,6 +463,126 @@ describe("DocView", () => {
       });
       const { wrapper } = await mountDocView(["Toolbar Doc"]);
       expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
+    });
+  });
+
+  // ── read / preview mode ───────────────────────────────────────────────────
+  describe("read / preview mode", () => {
+    it("renders the mode toggle button with default edit mode on desktop", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-read-1",
+        title: "Read Mode Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Read Mode Doc"]);
+      const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(toggleBtn.exists()).toBe(true);
+      expect(toggleBtn.text()).toContain("Read mode");
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
+      expect(fakeEditor.commands.focus).toHaveBeenCalledWith("end");
+    });
+
+    it("toggles to read mode when clicked and back to edit mode", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-read-2",
+        title: "Toggle Mode Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Toggle Mode Doc"]);
+      const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+
+      // Switch to read mode (clicking the toolbar button)
+      await toggleBtn.trigger("click");
+      await flushPromises();
+
+      const readModeToggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(readModeToggleBtn.text()).toContain("Edit mode");
+      expect(fakeEditor.setEditable).toHaveBeenCalledWith(false);
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(false);
+      expect(wrapper.find(".rose-editor-content").classes()).toContain("read-mode");
+
+      // Switch back to edit mode (clicking the header button)
+      await readModeToggleBtn.trigger("click");
+      await flushPromises();
+
+      const editModeToggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(editModeToggleBtn.text()).toContain("Read mode");
+      expect(fakeEditor.setEditable).toHaveBeenCalledWith(true);
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(true);
+      expect(wrapper.find(".rose-editor-content").classes()).not.toContain("read-mode");
+    });
+
+    it("defaults to read mode on mobile screens", async () => {
+      expect.hasAssertions();
+      mockIsMobile.value = true;
+      await db.docs.add({
+        id: "doc-read-mobile",
+        title: "Mobile Read Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Mobile Read Doc"]);
+      const toggleBtn = wrapper.find("[data-testid='mode-toggle-btn']");
+      expect(toggleBtn.text()).toContain("Edit mode");
+      expect(wrapper.find("[data-testid='doc-toolbar']").exists()).toBe(false);
+      expect(wrapper.find(".rose-editor-content").classes()).toContain("read-mode");
+    });
+
+    it("configures TaskItem with working onReadOnlyChecked callback", async () => {
+      expect.hasAssertions();
+      expect(taskItemOptionsHolder.current).toBeDefined();
+      expect(typeof (taskItemOptionsHolder.current as any)?.onReadOnlyChecked).toBe("function");
+
+      await db.docs.add({
+        id: "doc-read-task",
+        title: "Task Doc",
+        folderId: null,
+        contentJSON: { type: "doc", content: [] },
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      await mountDocView(["Task Doc"]);
+
+      const dummyNode = { attrs: { checked: false } } as any;
+      fakeEditor.state.doc.descendants = vi.fn((cb: (n: any, pos: number) => boolean | void) => {
+        cb(dummyNode, 5);
+      }) as any;
+
+      const mockTr = {
+        setNodeMarkup: vi.fn(),
+      };
+      (fakeEditor.state as any).tr = mockTr;
+
+      const onReadOnlyChecked = (taskItemOptionsHolder.current as any)?.onReadOnlyChecked as (
+        node: any,
+        checked: boolean,
+      ) => boolean;
+      const res = onReadOnlyChecked(dummyNode, true);
+      expect(res).toBe(true);
+      expect(mockTr.setNodeMarkup).toHaveBeenCalledWith(5, undefined, { checked: true });
+      expect(fakeEditor.view.dispatch).toHaveBeenCalledWith(mockTr);
     });
   });
 

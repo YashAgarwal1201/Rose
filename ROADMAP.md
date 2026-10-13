@@ -40,6 +40,8 @@ Development is organized by feature flows.
 - [x] Surface "Created" date and item type (folder/list) columns in Explorer list view
 - [x] Fix relative-time formatting bug (premature unit rounding in `formatRelativeTime.ts`)
 - [x] Universal item & folder moving system (`FolderPickerModal.vue`, drag-and-drop on grid cards, sidebar tree & breadcrumbs, name collision dialog)
+- [x] Unified Files view (`FilesView.vue`, `MixedExplorerGrid.vue`) supporting mixed items (todos, notes, docs) in folders
+- [x] Drag & drop system migration to `@dnd-kit/vue` for smooth card and tree node dragging
 
 
 ## Todos
@@ -75,6 +77,8 @@ Development is organized by feature flows.
 - [x] Export: PDF / HTML / Markdown (`useDocExport.ts`)
 - [x] Fixed doc content-loss bug (missing `saveContent.flush()` + `structuredClone(toRaw(...))` for Vue Proxy cloning)
 - [x] Unit/component tests for doc store logic and editor content round-trip
+- [x] TipTap editor canvas autofocus on document creation and load
+- [x] Mode toggle redesign (Approach B): dedicated Read Mode action in `DocToolbar.vue` during edit mode; distraction-free canvas with Edit Mode action in header during read mode
 
 ## Global UI & App State
 - [x] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `showActivityChart`, `onboardingCompleted`, `onboardingStep`, `createdAt`
@@ -108,6 +112,7 @@ Development is organized by feature flows.
 - [x] Sidebar: Home nav entry
 - [x] Activity heatmap — GitHub-style contribution calendar on Home (`activity` Dexie table + `stores/activity.ts` recording todo/doc/note create/update events, `useActivityHeatmap.ts`, `HomeActivityHeatmap.vue`)
 - [x] Contribution distribution chart — radar-style area chart showing % split of activity across Todos/Docs/Notes (`useContributionDistribution.ts`, `HomeContributionAreaChart.vue`), unified with the heatmap into one card (`HomeActivityCard.vue`)
+- [x] "Due Soon" widget (`HomeDueSoonWidget.vue`) displaying upcoming tasks directly on the dashboard with priority indicators, relative time formatting (`formatDueDate`), and instant completion checkbox toggling
 
 ## Settings & Data Management
 - [x] New `SettingsView.vue` + `/settings` route
@@ -124,11 +129,33 @@ Development is organized by feature flows.
 - [x] Sidebar: Settings nav entry
 - [ ] About section (version, tech stack, keyboard shortcuts) inside Settings — this info currently still only lives in `MenuOverlay.vue`, never migrated in
 
+## Secure Vault & Privacy
+- [x] Zero-knowledge client-side encryption using PBKDF2 (100k iterations) and AES-GCM 256-bit
+- [x] Dedicated "Secure Vault" root directory with auto-seeding and repair logic
+- [x] Inactivity auto-lock (5 minutes) with memory clearing of derived keys
+- [x] Recovery key generation and master PIN setup flow (`VaultAuthView.vue`)
+- [x] Transparent item encryption on moving into vault / decryption on moving out
+
+## Trash & Soft Deletion
+- [x] Dexie schema extension: `trashedAt: number | null` and `trashedByFolderId: string | null` across `folders`, `todoLists`, `docs`, and `notes`
+- [x] Dedicated Trash store (`src/stores/trash.ts`) managing soft deletion, restoration, and permanent purge
+- [x] Dedicated `/trash` route and responsive view (`TrashView.vue`) with full-width layout, cards/list view toggle, and info popover
+- [x] Restore items directly to files root (`/files`)
+- [x] Permanent single-item deletion and "Empty Trash" confirmation modal
+- [x] Updated deletion dialogs across explorer and folder tree to "Move to Trash" with trash icons
+- [x] Strict exclusion of trashed items from Home recents, search results, folder counts, and activity metrics
+
+## Microfrontend & Module Federation
+- [x] Vite Module Federation configuration (`@originjs/vite-plugin-federation`) exposing standalone components
+- [x] Shared UI wrappers: `SharedTodoUI.vue`, `SharedDocUI.vue`, and `SharedNoteUI.vue` for external orchestrators and host apps
+- [x] Dedicated federation build verification tests (`src/__tests__/build/federation.build.test.ts`)
+- [x] Backwards-compatible legacy data import pipeline (`importData.ts`) supporting external JSON schemas into Dexie stores
+
 ## Backlog / Ideas
-- [ ] Drag-and-drop reordering across folders
+- [x] Drag-and-drop reordering across folders
 - [ ] Tags in addition to folders
 - [x] Keyboard shortcuts (new item, search, toggle theme)
 - [x] Rich shape tools in Notes (rectangles, arrows) beyond freehand ink
-- [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp (blocked on Export/Import existing first)
+- [ ] "Haven't backed up in a while" nudge on Home, based on last export timestamp
 - [ ] Pinned items section on Home (beyond recents)
 - [x] Fix: `notes` table omitted from both "Clear all content" and "Reset app completely" Dexie transactions in `SettingsView.vue`

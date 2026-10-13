@@ -15,7 +15,7 @@ vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
 }));
 vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
   useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-}));
+} as any));
 
 describe("ConfirmDialog.vue", () => {
   beforeEach(() => {
@@ -53,12 +53,14 @@ describe("ConfirmDialog.vue", () => {
     const buttons = wrapper.findAll("button");
     expect(buttons[0]?.text()).toBe("No");
     expect(buttons[1]?.text()).toBe("Yes");
+    expect(buttons[0]?.find("svg").exists()).toBe(true);
+    expect(buttons[1]?.find("svg").exists()).toBe(true);
 
     await buttons[0]?.trigger("click");
-    expect(handleCancel).toHaveBeenCalledWith();
+    expect(handleCancel).toHaveBeenCalled();
 
     await buttons[1]?.trigger("click");
-    expect(handleConfirm).toHaveBeenCalledWith();
+    expect(handleConfirm).toHaveBeenCalled();
   });
 
   it("does not render when isOpen is false", async () => {

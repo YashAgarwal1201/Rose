@@ -9,13 +9,14 @@ const DEFAULT_BACKGROUND = "#ffffff";
 
 import { useFoldersStore } from "./folders";
 import { useVaultStore } from "./vault";
+import { useTrashStore } from "./trash";
 import { encryptJSONField, decryptJSONField, encryptField, decryptField } from "@/utils/crypto";
 
 export const useNotesStore = defineStore("notes", () => {
   const notes = ref<Note[]>([]);
 
   async function loadNotes() {
-    notes.value = await db.notes.toArray();
+    notes.value = (await db.notes.toArray()).filter((n) => !n.trashedAt);
   }
   async function createNote(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled";
@@ -45,6 +46,8 @@ export const useNotesStore = defineStore("notes", () => {
       updatedAt: now,
       isVaulted,
       iv: null,
+      trashedAt: null,
+      trashedByFolderId: null,
     };
     await db.notes.add(note);
     await useActivityStore().record("note_created", note.id);
@@ -76,12 +79,16 @@ export const useNotesStore = defineStore("notes", () => {
     id: string,
     changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "backgroundPattern" | "thumbnail">>,
   ) {
+    const note = await db.notes.get(id);
+    if (!note || note.trashedAt) {
+      return;
+    }
+
     const sanitized: Partial<Note> = { ...changes, updatedAt: Date.now() };
     if ("canvasJSON" in changes) {
       sanitized.canvasJSON = changes.canvasJSON ? structuredClone(changes.canvasJSON) : null;
     }
 
-    const note = await db.notes.get(id);
     if (note?.isVaulted) {
       const vault = useVaultStore();
       if (!vault.derivedKey) {throw new Error("Vault is locked");}
@@ -100,8 +107,8 @@ export const useNotesStore = defineStore("notes", () => {
   }
 
   async function deleteNote(id: string) {
-    await db.notes.delete(id);
-    await loadNotes();
+    const trashStore = useTrashStore();
+    await trashStore.moveToTrash("note", id);
   }
 
   async function deleteNotesByFolder(folderId: string) {

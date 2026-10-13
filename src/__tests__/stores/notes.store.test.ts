@@ -10,7 +10,7 @@ vi.mock(import('../../stores/activity'), () => ({
   useActivityStore: () => ({
     record: vi.fn(),
   }),
-}));
+} as any));
 
 async function freshDb(): Promise<void> {
   db.close();
@@ -263,14 +263,14 @@ describe("notesStore", () => {
   // deleteNote
   // ─────────────────────────────────────────────
   describe("deleteNote", () => {
-    it("removes the note from state and DB", async () => {
+    it("soft-deletes the note from state and DB", async () => {
       expect.hasAssertions();
       const store = useNotesStore();
       const id = await store.createNote("ToDelete", null);
       await store.deleteNote(id);
       expect(store.notes).toHaveLength(0);
       const row = await db.notes.get(id);
-      expect(row).toBeUndefined();
+      expect(row?.trashedAt).not.toBeNull();
     });
 
     it("refreshes state via loadNotes after deletion", async () => {

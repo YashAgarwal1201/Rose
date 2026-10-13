@@ -330,9 +330,9 @@ async function performMove(
     showToast(`Moved to ${destName}`, "success");
     await loadCurrentFolder();
   } catch (error: unknown) {
-    console.error("Error moving item:", error);
     const message = getErrorMessage(error);
     if (message.includes("already exists in the destination")) {
+      console.warn("Item move collision detected; prompting user for resolution:", message);
       const itemToMove = itemsToMove.value.find((i) => i.id === id) || {
         kind,
         id,
@@ -352,6 +352,7 @@ async function performMove(
       };
       isCollisionDialogOpen.value = true;
     } else {
+      console.error("Error moving item:", error);
       showToast(message, "error");
     }
   }

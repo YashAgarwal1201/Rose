@@ -33,7 +33,7 @@ describe("FeedbackSidebar.vue", () => {
     await new Promise((r) => setTimeout(r, 700));
 
     // It should emit close after successful mock submit
-    expect(wrapper.emitted("close")).toBe(true);
+    expect(wrapper.emitted("close")).toBeTruthy();
   });
 
   it("does not render when isOpen is false", () => {

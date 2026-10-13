@@ -3,13 +3,13 @@ import { mount } from "@vue/test-utils";
 import NoteToolbar from "@/components/notes/NoteToolbar.vue";
 
 // Mock the popover position composable
-vi.mock(import('../../composables/usePopoverPosition'), () => ({
+vi.mock(import('@/composables/ui/usePopoverPosition'), () => ({
   usePopoverPosition: () => ({
     style: { top: "0px", left: "0px" },
     open: vi.fn(),
     close: vi.fn(),
   }),
-}));
+} as any));
 
 describe("NoteToolbar.vue", () => {
   const defaultProps = {
@@ -46,7 +46,7 @@ describe("NoteToolbar.vue", () => {
     it("emits triggerImagePick when the insert image button is clicked", async () => {
       const wrapper = mountToolbar();
       await wrapper.find('button[title="Insert image"]').trigger("click");
-      expect(wrapper.emitted("triggerImagePick")).toBe(true);
+      expect(wrapper.emitted("triggerImagePick")).toBeTruthy();
     });
   });
 
@@ -77,19 +77,19 @@ describe("NoteToolbar.vue", () => {
     it("emits undo when the undo button is clicked and canUndo is true", async () => {
       const wrapper = mountToolbar({ canUndo: true });
       await wrapper.find('button[title="Undo"]').trigger("click");
-      expect(wrapper.emitted("undo")).toBe(true);
+      expect(wrapper.emitted("undo")).toBeTruthy();
     });
 
     it("does not emit undo when the undo button is disabled", async () => {
       const wrapper = mountToolbar({ canUndo: false });
       await wrapper.find('button[title="Undo"]').trigger("click");
-      expect(wrapper.emitted("undo")).toBe(false);
+      expect(wrapper.emitted("undo")).toBeUndefined();
     });
 
     it("emits redo when the redo button is clicked and canRedo is true", async () => {
       const wrapper = mountToolbar({ canRedo: true });
       await wrapper.find('button[title="Redo"]').trigger("click");
-      expect(wrapper.emitted("redo")).toBe(true);
+      expect(wrapper.emitted("redo")).toBeTruthy();
     });
   });
 });
