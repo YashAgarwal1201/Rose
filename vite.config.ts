@@ -61,6 +61,13 @@ function swManifestPlugin(): Plugin {
 
 export default defineConfig(({ command }) => {
   const isDev = command === "serve";
+  const hasCerts = existsSync("certs/localhost.pem") && existsSync("certs/localhost-key.pem");
+  const httpsConfig = hasCerts
+    ? {
+        cert: readFileSync("certs/localhost.pem"),
+        key: readFileSync("certs/localhost-key.pem"),
+      }
+    : undefined;
 
   return {
     define: {
@@ -71,7 +78,7 @@ export default defineConfig(({ command }) => {
       tailwindcss(),
       swManifestPlugin(),
       cssInjectedByJsPlugin({
-        jsAssetsFilterFunction: function customJsAssetsFilterFunction(outputChunk) {
+        jsAssetsFilterFunction(outputChunk) {
           return outputChunk.fileName.includes('index') || outputChunk.fileName.includes('remoteEntry');
         }
       }),
@@ -127,12 +134,7 @@ export default defineConfig(({ command }) => {
         "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
         "Access-Control-Allow-Headers": "*",
       },
-      ...(isDev && {
-        https: {
-          cert: readFileSync("certs/localhost.pem"),
-          key: readFileSync("certs/localhost-key.pem"),
-        },
-      }),
+      ...(isDev && httpsConfig && { https: httpsConfig }),
     },
     preview: {
       port: 4176,
@@ -146,10 +148,7 @@ export default defineConfig(({ command }) => {
         "Access-Control-Allow-Methods": "GET,OPTIONS,POST",
         "Access-Control-Allow-Headers": "*",
       },
-      https: {
-        cert: readFileSync("certs/localhost.pem"),
-        key: readFileSync("certs/localhost-key.pem"),
-      },
+      ...(httpsConfig && { https: httpsConfig }),
     },
   };
 });
