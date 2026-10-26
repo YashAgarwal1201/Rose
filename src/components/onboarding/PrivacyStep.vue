@@ -25,10 +25,32 @@
         >
       </li>
     </ul>
+
+    <div class="mt-8 pt-5 border-t border-rose-border flex flex-col items-center gap-2.5">
+      <button
+        type="button"
+        class="text-xs font-semibold text-rose-primary hover:text-rose-primary-hover underline underline-offset-4 cursor-pointer transition-colors"
+        @click="emit('restore')"
+      >
+        Restore from a backup file
+      </button>
+      <button
+        type="button"
+        class="text-xs font-medium text-rose-text-muted hover:text-rose-text underline underline-offset-4 cursor-pointer transition-colors"
+        @click="emit('skip')"
+      >
+        Skip setup, use defaults
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { CheckIcon } from "@lucide/vue";
 import PrivacyIllustration from "@/assets/illustrations/privacy-step.svg";
+
+const emit = defineEmits<{
+  restore: [];
+  skip: [];
+}>();
 </script>

@@ -3,35 +3,56 @@
 @import "./utilities.css";
 
 @layer base {
-  html, body, #app {
+  /* Standalone Rose application shell */
+  body.rose-standalone {
     height: 100%;
     height: 100dvh;
     margin: 0;
     padding: 0;
     overflow: hidden;
-  }
-
-  html {
     font-family: var(--font-content);
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  body.rose-standalone h1,
+  body.rose-standalone h2,
+  body.rose-standalone h3,
+  body.rose-standalone h4,
+  body.rose-standalone h5,
+  body.rose-standalone h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
+
+  /* Microfrontend container styling & typography */
+  .rose-mf-root {
+    font-family: var(--font-content);
+    color: var(--color-rose-text);
+    box-sizing: border-box;
+  }
+
+  .rose-mf-root * {
+    box-sizing: border-box;
+  }
+
+  .rose-mf-root h1,
+  .rose-mf-root h2,
+  .rose-mf-root h3,
+  .rose-mf-root h4,
+  .rose-mf-root h5,
+  .rose-mf-root h6 {
     font-family: var(--font-heading);
     font-weight: 600;
   }
 }
 
-button {
+.rose-standalone button,
+.rose-mf-root button {
   cursor: pointer;
   pointer-events: auto;
 }
 
-button:disabled {
+.rose-standalone button:disabled,
+.rose-mf-root button:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }

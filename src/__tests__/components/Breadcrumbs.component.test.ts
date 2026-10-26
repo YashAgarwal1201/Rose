@@ -88,13 +88,11 @@ describe("Breadcrumbs", () => {
         { id: "f2", name: "Beta" },
       ];
       const wrapper = mountBreadcrumbs(crumbs);
-      // Find the desktop crumb buttons (the ones inside sm:flex containers)
       const crumbButtons = wrapper.findAll("button").filter((b) => b.text().includes("Alpha"));
-      if (crumbButtons.length > 0) {
-        await crumbButtons[0]!.trigger("click");
-        expect(wrapper.emitted("navigate")).toBeTruthy();
-        expect(wrapper.emitted("navigate")![0]).toStrictEqual(["f1"]);
-      }
+      expect(crumbButtons.length).toBeGreaterThan(0);
+      await crumbButtons[0]!.trigger("click");
+      expect(wrapper.emitted("navigate")).toBeTruthy();
+      expect(wrapper.emitted("navigate")![0]).toStrictEqual(["f1"]);
     });
   });
 

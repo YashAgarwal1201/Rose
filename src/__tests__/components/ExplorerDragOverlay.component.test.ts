@@ -1,7 +1,6 @@
 // src/__tests__/components/ExplorerDragOverlay.component.test.ts
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { ref } from "vue";
 import { ListIcon } from "@lucide/vue";
 import ExplorerDragOverlay from "@/components/explorer/ExplorerDragOverlay.vue";
 

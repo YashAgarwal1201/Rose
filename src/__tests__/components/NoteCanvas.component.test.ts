@@ -73,9 +73,10 @@ describe("NoteCanvas.vue", () => {
     vi.clearAllMocks();
   });
 
-  function mountCanvas(props = {}) {
+  function mountCanvas(props = {}, options = {}) {
     return mount(NoteCanvas, {
       props: { ...defaultProps, ...props },
+      ...options,
     });
   }
 
@@ -109,5 +110,61 @@ describe("NoteCanvas.vue", () => {
     expect(mockDestroy).toHaveBeenCalledWith();
     // Since flush is called, we can't easily assert emit on an unmounted wrapper,
     // but we know destroy is called
+  });
+
+  describe("keyboard shortcut focus containment", () => {
+    it("ignores Ctrl+S when focus is outside the component in microfrontend mode", async () => {
+      document.body.className = "";
+      const wrapper = mountCanvas({}, { attachTo: document.body });
+      await flushPromises();
+
+      // Ensure focus is outside the component
+      const outsideButton = document.createElement("button");
+      document.body.appendChild(outsideButton);
+      outsideButton.focus();
+
+      const event = new KeyboardEvent("keydown", { key: "s", ctrlKey: true, cancelable: true });
+      window.dispatchEvent(event);
+
+      expect(wrapper.emitted("change")).toBeUndefined();
+      expect(event.defaultPrevented).toBe(false);
+
+      outsideButton.remove();
+      wrapper.unmount();
+    });
+
+    it("triggers Ctrl+S when focus is inside the canvas container", async () => {
+      document.body.className = "";
+      const wrapper = mountCanvas({}, { attachTo: document.body });
+      await flushPromises();
+
+      const scrollEl = wrapper.find<HTMLElement>(".note-canvas__scroll").element;
+      scrollEl.focus();
+
+      const event = new KeyboardEvent("keydown", { key: "s", ctrlKey: true, cancelable: true });
+      window.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(wrapper.emitted("change")).toBeDefined();
+
+      wrapper.unmount();
+    });
+
+    it("triggers Ctrl+S in standalone Rose mode even if focus is on body", async () => {
+      document.body.className = "rose-standalone";
+      const wrapper = mountCanvas({}, { attachTo: document.body });
+      await flushPromises();
+
+      (document.activeElement as HTMLElement)?.blur?.();
+
+      const event = new KeyboardEvent("keydown", { key: "s", ctrlKey: true, cancelable: true });
+      window.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(wrapper.emitted("change")).toBeDefined();
+
+      document.body.className = "";
+      wrapper.unmount();
+    });
   });
 });

@@ -51,8 +51,7 @@ describe("debounce", () => {
       vi.advanceTimersByTime(80);
       expect(fn).not.toHaveBeenCalled();
       vi.advanceTimersByTime(20);
-      expect(fn).toHaveBeenCalledOnce();
-      expect(fn).toHaveBeenCalledWith("second");
+      expect(fn).toHaveBeenCalledExactlyOnceWith("second");
     });
 
     it("does not call fn a second time once the delay has passed", () => {
@@ -98,8 +97,7 @@ describe("debounce", () => {
       const debounced = debounce(fn, 100);
       debounced("flushed");
       debounced.flush();
-      expect(fn).toHaveBeenCalledOnce();
-      expect(fn).toHaveBeenCalledWith("flushed");
+      expect(fn).toHaveBeenCalledExactlyOnceWith("flushed");
     });
 
     it("clears the pending timer so fn is not called again", () => {

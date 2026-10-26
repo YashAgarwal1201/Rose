@@ -1,18 +1,25 @@
 <!-- src/views/OnboardingView.vue -->
 <template>
   <div class="h-full flex flex-col">
-    <div class="flex-1 overflow-y-auto flex items-center justify-center p-6">
+    <!-- Step 0: Full Landing Screen -->
+    <div v-if="currentStep === 0" class="flex-1 overflow-y-auto">
+      <WelcomeStep @enter="goNext" />
+    </div>
+
+    <!-- Step 1+: Guided Setup Steps -->
+    <div v-else class="flex-1 overflow-y-auto flex items-center justify-center p-6">
+      <h1 class="sr-only">Rose Setup</h1>
       <div class="w-full max-w-sm">
-        <WelcomeStep v-if="currentStep === 0" @skip="skipSetup" @restore="goToImport" />
-        <ImportStep v-else-if="currentStep === 'import'" @ready="onImportReady" @not-ready="pendingImport = null" />
-        <PrivacyStep v-else-if="currentStep === 1" />
+        <ImportStep v-if="currentStep === 'import'" @ready="onImportReady" @not-ready="pendingImport = null" />
+        <PrivacyStep v-else-if="currentStep === 1" @restore="goToImport" @skip="skipSetup" />
         <ThemeStep v-else-if="currentStep === 2" />
         <UsernameStep v-else-if="currentStep === 3" v-model="draftUsername" />
         <FinishStep v-else-if="currentStep === 4" />
       </div>
     </div>
 
-    <div class="border-t border-rose-border p-4 flex items-center justify-between shrink-0">
+    <!-- Bottom Controls: Only visible during setup wizard steps (not on landing screen) -->
+    <div v-if="currentStep !== 0" class="border-t border-rose-border p-4 flex items-center justify-between shrink-0">
       <!-- Dot indicators (hide the 'import' pseudo-step from the dots) -->
       <div class="flex gap-1.5" role="presentation">
         <span v-for="(step, index) in steps" :key="step" class="h-1.5 rounded-full transition-all duration-200"
@@ -20,7 +27,7 @@
       </div>
 
       <div class="flex gap-2">
-        <button v-if="currentStep !== 0" type="button"
+        <button type="button"
           class="px-4 py-2 rounded-lg text-sm font-medium text-rose-text-muted hover:bg-rose-surface-alt transition-colors"
           @click="goBack">
           Back

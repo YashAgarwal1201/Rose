@@ -54,3 +54,5 @@ Disallow: /
 
 User-agent: *
 Disallow: /
+
+Sitemap: https://rosejournal.pages.dev/sitemap.xml

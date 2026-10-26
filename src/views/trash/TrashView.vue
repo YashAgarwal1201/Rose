@@ -328,7 +328,7 @@ import {
   Trash2Icon,
   XIcon,
 } from "@lucide/vue";
-import { useTrashStore, type TrashableKind, type TrashedItem } from "@/stores/trash";
+import { type TrashableKind, type TrashedItem, useTrashStore } from "@/stores/trash";
 import { useConfirm } from "@/composables/ui/useConfirm";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
@@ -364,40 +364,52 @@ function goBack() {
 
 function itemIcon(kind: TrashableKind) {
   switch (kind) {
-    case "folder":
+    case "folder": {
       return FolderIcon;
-    case "doc":
+    }
+    case "doc": {
       return FileTextIcon;
-    case "note":
+    }
+    case "note": {
       return PenLineIcon;
-    case "todoList":
+    }
+    case "todoList": {
       return ListTodoIcon;
+    }
   }
 }
 
 function itemIconClass(kind: TrashableKind): string {
   switch (kind) {
-    case "folder":
+    case "folder": {
       return "text-rose-primary";
-    case "doc":
+    }
+    case "doc": {
       return "text-rose-cream";
-    case "note":
+    }
+    case "note": {
       return "text-rose-purple";
-    case "todoList":
+    }
+    case "todoList": {
       return "text-rose-blue";
+    }
   }
 }
 
 function itemBgClass(kind: TrashableKind): string {
   switch (kind) {
-    case "folder":
+    case "folder": {
       return "bg-rose-primary/10";
-    case "doc":
+    }
+    case "doc": {
       return "bg-rose-cream/10";
-    case "note":
+    }
+    case "note": {
       return "bg-rose-purple/10";
-    case "todoList":
+    }
+    case "todoList": {
       return "bg-rose-blue/10";
+    }
   }
 }
 

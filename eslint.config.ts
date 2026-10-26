@@ -17,7 +17,7 @@ export default defineConfigWithVueTs(
     name: "app/files-to-lint",
   },
 
-  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
+  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**", "functions/**"]),
 
   ...pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
@@ -29,15 +29,21 @@ export default defineConfigWithVueTs(
 
   {
     ...pluginVitest.configs.recommended,
-    files: ["src/**/__tests__/*"],
+    files: ["src/**/__tests__/**/*", "src/**/__tests__/*"],
     rules: {
       ...pluginVitest.configs.recommended.rules,
-      "vitest/require-hook": "off", // ← add this
+      "vitest/require-hook": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 
   {
-    files: ["src/components/Breadcrumbs.vue", "src/components/Sidebar.vue"],
+    files: [
+      "src/components/Breadcrumbs.vue",
+      "src/components/Sidebar.vue",
+      "src/components/ui/Breadcrumbs.vue",
+      "src/components/layout/Navbar.vue",
+    ],
     rules: {
       "vue/multi-word-component-names": "off",
     },

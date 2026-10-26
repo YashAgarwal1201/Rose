@@ -20,11 +20,11 @@ const EXPORT_STYLES = `
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px;
+    font-size: 11pt;
     line-height: 1.7;
     color: #2b1a1e;
     background: #ffffff;
-    max-width: 800px;
+    max-width: 794px;
     margin: 2rem auto;
     padding: 0 1.5rem 4rem;
   }

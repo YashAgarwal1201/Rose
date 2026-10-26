@@ -20,7 +20,7 @@ const mockToggleViewMode = vi.fn(() => {
   mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
 });
 
-vi.mock(import('@/composables/explorer/useExplorerViewMode'), () => ({
+vi.mock(import('@/composables/explorer/useExplorerViewMode.ts'), () => ({
   useExplorerViewMode: () => ({
     setSortKey: mockSetSortKey,
     sortDir: mockSortDir,
@@ -96,7 +96,7 @@ describe("ExplorerGrid", () => {
       mockViewMode.value = "list";
     });
 
-    it.skip("renders column headers in list view", () => {
+    it("renders column headers in list view", () => {
       const wrapper = mountGrid();
       const text = wrapper.text();
       expect(text).toContain("Name");
@@ -105,8 +105,6 @@ describe("ExplorerGrid", () => {
       expect(text).toContain("Created");
       expect(text).toContain("Modified");
     });
-
-        
   });
 
   describe("sort by name", () => {
@@ -115,11 +113,11 @@ describe("ExplorerGrid", () => {
       const spans = wrapper
         .findAll(".text-sm.text-rose-text")
         .map((el) => el.text())
-        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+        .filter((title) => ["Zebra", "Alpha", "Mango"].includes(title));
       expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
     });
 
-    it.skip("calls setSortKey('name') when Name button is clicked", async () => {
+    it("calls setSortKey('name') when Name button is clicked", async () => {
       const wrapper = mountGrid();
       const sortButtons = wrapper.findAll(
         "div.flex.flex-wrap button[class*='text-rose-text-muted']",
@@ -130,7 +128,7 @@ describe("ExplorerGrid", () => {
   });
 
   describe("sort by modified date", () => {
-    it.skip("calls setSortKey('updatedAt') when Modified button is clicked", async () => {
+    it("calls setSortKey('updatedAt') when Modified button is clicked", async () => {
       const wrapper = mountGrid();
       const sortButtons = wrapper.findAll(
         "div.flex.flex-wrap button[class*='text-rose-text-muted']",
@@ -146,14 +144,14 @@ describe("ExplorerGrid", () => {
       const spans = wrapper
         .findAll(".text-sm.text-rose-text")
         .map((el) => el.text())
-        .filter((n) => ["Zebra", "Alpha", "Mango"].includes(n));
+        .filter((title) => ["Zebra", "Alpha", "Mango"].includes(title));
       // Alpha=100, Mango=200, Zebra=300
       expect(spans).toStrictEqual(["Alpha", "Mango", "Zebra"]);
     });
   });
 
   describe("view toggle", () => {
-    it.skip("calls toggleViewMode when the list view button is clicked", async () => {
+    it("calls toggleViewMode when the list view button is clicked", async () => {
       const wrapper = mountGrid();
       await wrapper.find("button[title='List view']").trigger("click");
       expect(mockToggleViewMode).toHaveBeenCalledWith();
@@ -167,18 +165,21 @@ describe("ExplorerGrid", () => {
   });
 
   describe("rename", () => {
-    it.skip("shows a rename input after clicking the pencil (rename) button", async () => {
+    it("shows a rename input after clicking the pencil (rename) button", async () => {
       const wrapper = mountGrid();
-      // Action buttons are inside .absolute div: first = pencil, second = trash
-      await wrapper.find('button[aria-label="Rename"]').trigger("click");
-      const input = wrapper.find("input[type='text']:not([placeholder])");
+      await wrapper.find('button[aria-label="More options"]').trigger("click");
+      const renameBtn = wrapper.findAll("button").find((b) => b.text().includes("Rename"));
+      await renameBtn?.trigger("click");
+      const input = wrapper.find("input[aria-label='Rename item']");
       expect(input.exists()).toBe(true);
     });
 
-    it.skip("emits renameFolder with the new name on Enter", async () => {
+    it("emits renameFolder with the new name on Enter", async () => {
       const wrapper = mountGrid();
-      await wrapper.find('button[aria-label="Rename"]').trigger("click");
-      const input = wrapper.find("input[type='text']:not([placeholder])");
+      await wrapper.find('button[aria-label="More options"]').trigger("click");
+      const renameBtn = wrapper.findAll("button").find((b) => b.text().includes("Rename"));
+      await renameBtn?.trigger("click");
+      const input = wrapper.find("input[aria-label='Rename item']");
       await input.setValue("Renamed");
       await input.trigger("keyup.enter");
       expect(wrapper.emitted("renameFolder")?.[0]).toStrictEqual(["f2", "Renamed"]);
@@ -186,42 +187,42 @@ describe("ExplorerGrid", () => {
   });
 
   describe("delete", () => {
-    it.skip("calls confirm() when the trash button is clicked", async () => {
+    it("calls confirm() when the trash button is clicked", async () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
       await wrapper.find('button.text-red-500').trigger("click");
-      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete folder" }));
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Move Folder to Trash" }));
     });
 
-    it.skip("emits deleteFolder when confirm returns true", async () => {
+    it("emits deleteFolder when confirm returns true", async () => {
       mockConfirm.mockResolvedValueOnce(true);
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
       await wrapper.find('button.text-red-500').trigger("click");
       await wrapper.vm.$nextTick();
-      expect(wrapper.emitted("deleteFolder")).toBe(true);
+      expect(wrapper.emitted("deleteFolder")).toBeTruthy();
     });
 
-    it.skip("does not emit deleteFolder when confirm returns false", async () => {
+    it("does not emit deleteFolder when confirm returns false", async () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
       await wrapper.find('button.text-red-500').trigger("click");
       await wrapper.vm.$nextTick();
-      expect(wrapper.emitted("deleteFolder")).toBe(false);
+      expect(wrapper.emitted("deleteFolder")).toBeFalsy();
     });
   });
 
   describe("create", () => {
     it("shows a new folder input when startCreate('folder') is called", async () => {
       const wrapper = mountGrid();
-      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate("folder");
       await wrapper.vm.$nextTick();
       expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
     });
 
     it("emits createFolder with the typed name on Enter", async () => {
       const wrapper = mountGrid();
-      await (wrapper.vm as unknown as { startCreate: (t: string) => void }).startCreate("folder");
+      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate("folder");
       await wrapper.vm.$nextTick();
       const input = wrapper.find("input[placeholder='Folder name']");
       await input.setValue("My New Folder");

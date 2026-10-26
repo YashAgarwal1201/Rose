@@ -1,4 +1,3 @@
-// src/composables/useBackButtonClose.ts
 import { type Ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -8,8 +7,19 @@ export function useBackButtonClose(
   close: () => void,
   open?: () => void
 ) {
-  const router = useRouter();
-  const route = useRoute();
+  let router: ReturnType<typeof useRouter> | null = null;
+  let route: ReturnType<typeof useRoute> | null = null;
+
+  try {
+    router = useRouter();
+    route = useRoute();
+  } catch {
+    return;
+  }
+
+  if (!router || !route) {
+    return;
+  }
 
   let isInternalChange = false;
 

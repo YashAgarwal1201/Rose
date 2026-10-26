@@ -60,8 +60,26 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Rose" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Rose",
+        "url": "https://rosejournal.pages.dev/",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "All",
+        "description": "Rose is a local-first writing and notes workspace for documents, rich text editing, tables, exports, and focused personal organization.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
   </head>
-  <body>
+  <body class="rose-standalone">
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

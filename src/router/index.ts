@@ -94,6 +94,12 @@ router.beforeEach(async (to) => {
 router.afterEach((to) => {
   const title = to.meta.title as string | undefined;
   document.title = title ? `${title} · Rose` : "Rose";
+
+  if (import.meta.env.DEV) {
+    import("@/utils/devAuditor").then(({ auditCurrentPage }) => {
+      auditCurrentPage(to.fullPath);
+    });
+  }
 });
 
 export default router;

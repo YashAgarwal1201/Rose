@@ -275,7 +275,7 @@ defineExpose({ toggleExportMenu });
 </script>
 
 <template>
-  <div ref="rootRef" :class="rootClasses">
+  <div ref="rootRef" :class="rootClasses" role="toolbar" aria-label="Formatting toolbar">
     <!-- Backdrop: closes whichever popover is open on outside click -->
     <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-30" aria-hidden="true" tabindex="-1" @click="closeAllPopovers"></div>
 

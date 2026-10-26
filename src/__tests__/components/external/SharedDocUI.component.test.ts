@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { ref } from "vue";
 import SharedDocUI from "@/components/external/SharedDocUI.vue";
@@ -7,7 +7,9 @@ import SharedDocUI from "@/components/external/SharedDocUI.vue";
 function makeChain() {
   const chain: Record<string, unknown> = new Proxy({}, {
     get(target, prop) {
-      if (prop === 'run') return vi.fn(() => true);
+      if (prop === 'run') {
+        return vi.fn(() => true);
+      }
       // For can() checks like undo() or redo(), return a function that returns false
       return vi.fn(() => typeof prop === 'string' && (prop === 'undo' || prop === 'redo') ? false : chain);
     }
@@ -75,11 +77,21 @@ vi.mock(import('@tiptap/markdown'), () => ({ Markdown: extensionStub("markdown")
 
 // ─── Shared Mock Hooks ─────────────────────────────────────────────────────────
 vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
+  useToast: () => ({ showToast: vi.fn(), toasts: ref([]), dismissToast: vi.fn() }),
 } as any));
 vi.mock(import('@/composables/ui/useInput.ts'), () => ({
-  useInput: () => ({ requestInput: vi.fn() }),
+  useInput: () => ({
+    requestInput: vi.fn(),
+    handleCancel: vi.fn(),
+    handleConfirm: vi.fn(),
+    isOpen: ref(false),
+    options: ref({}),
+    inputValue: ref(""),
+  }),
 } as any));
+vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
+  useBackButtonClose: vi.fn(),
+}));
 vi.mock(import('@/composables/ui/useToolbarPosition.ts'), () => ({
   useToolbarPosition: () => ({ effectivePosition: ref("top"), isVertical: ref(false) }),
 } as any));
@@ -109,5 +121,42 @@ describe("SharedDocUI.vue", () => {
     // Since Tiptap is stubbed, we can trigger the component's emit if we simulate onUpdate hook from Tiptap.
     // However, onUpdate is internal to useEditor options in the component.
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it("renders self-contained InputDialog and ToastContainer", () => {
+    const wrapper = mount(SharedDocUI);
+    expect(wrapper.findComponent({ name: "InputDialog" }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "ToastContainer" }).exists()).toBe(true);
+  });
+
+  it("does not trigger formatting shortcuts when focus is outside the component", async () => {
+    const wrapper = mount(SharedDocUI, { attachTo: document.body });
+    const outsideButton = document.createElement("button");
+    document.body.appendChild(outsideButton);
+    outsideButton.focus();
+
+    const event = new KeyboardEvent("keydown", { key: "b", ctrlKey: true, cancelable: true });
+    globalThis.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(fakeEditor.chain).not.toHaveBeenCalled();
+
+    outsideButton.remove();
+    wrapper.unmount();
+  });
+
+  it("triggers formatting shortcuts when focus is inside the component", async () => {
+    const wrapper = mount(SharedDocUI, { attachTo: document.body });
+    const contentEl = wrapper.find('[data-testid="editor-content"]').element as HTMLElement;
+    contentEl.setAttribute("tabindex", "-1");
+    contentEl.focus();
+
+    const event = new KeyboardEvent("keydown", { key: "b", ctrlKey: true, cancelable: true });
+    globalThis.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(fakeEditor.chain).toHaveBeenCalled();
+
+    wrapper.unmount();
   });
 });

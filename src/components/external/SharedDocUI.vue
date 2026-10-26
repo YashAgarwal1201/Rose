@@ -2,7 +2,7 @@
   src/components/external/SharedDocUI.vue
 
   Microfrontend component exposed via Vite Module Federation.
-  Enables external host applications (e.g. Blueberry / Tulip AI orchestrators) to mount
+  Enables external host applications and orchestrators to mount
   and embed Rose's standalone rich-text document editor without depending on internal routing.
 -->
 <script setup lang="ts">
@@ -32,7 +32,9 @@ import Superscript from "@tiptap/extension-superscript";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { useDocExport } from "@/composables/docs/useDocExport.ts";
 import { useInput } from "@/composables/ui/useInput.ts";
-import { useToast } from "@/composables/ui/useToast.ts";
+import { type ToastType, useToast } from "@/composables/ui/useToast.ts";
+import InputDialog from "@/components/ui/InputDialog.vue";
+import ToastContainer from "@/components/ui/ToastContainer.vue";
 
 const MAX_TABLE_ROWS = 20;
 const MAX_TABLE_COLS = 10;
@@ -43,11 +45,17 @@ const { contentJSON = null, title = "Shared Document" } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'change', content: Record<string, unknown>): void
+  (e: 'change', content: Record<string, unknown>): void;
+  (e: 'notify', message: string, type?: ToastType): void;
 }>();
 
 const { showToast } = useToast();
 const { requestInput } = useInput();
+
+function notify(message: string, type: ToastType = "info") {
+  showToast(message, type);
+  emit('notify', message, type);
+}
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const csvFileInputRef = ref<HTMLInputElement | null>(null);
@@ -328,7 +336,7 @@ function isTableAtMaxCols(): boolean {
 
 function addRowBeforeGuarded() {
   if (isTableAtMaxRows()) {
-    showToast(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
+    notify(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
     return;
   }
   editor.value?.chain().focus().addRowBefore().run();
@@ -336,7 +344,7 @@ function addRowBeforeGuarded() {
 
 function addRowAfterGuarded() {
   if (isTableAtMaxRows()) {
-    showToast(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
+    notify(`Tables are capped at ${MAX_TABLE_ROWS} rows.`, "error");
     return;
   }
   editor.value?.chain().focus().addRowAfter().run();
@@ -344,7 +352,7 @@ function addRowAfterGuarded() {
 
 function addColumnBeforeGuarded() {
   if (isTableAtMaxCols()) {
-    showToast(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
+    notify(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
     return;
   }
   editor.value?.chain().focus().addColumnBefore().run();
@@ -352,7 +360,7 @@ function addColumnBeforeGuarded() {
 
 function addColumnAfterGuarded() {
   if (isTableAtMaxCols()) {
-    showToast(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
+    notify(`Tables are capped at ${MAX_TABLE_COLS} columns.`, "error");
     return;
   }
   editor.value?.chain().focus().addColumnAfter().run();
@@ -384,13 +392,13 @@ async function handleCsvSelect(event: Event) {
   const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true });
 
   if (parsed.errors.length > 0) {
-    showToast("Couldn't read that CSV file.", "error");
+    notify("Couldn't read that CSV file.", "error");
     return;
   }
 
   let rows = parsed.data;
   if (rows.length === 0) {
-    showToast("That CSV file is empty.", "error");
+    notify("That CSV file is empty.", "error");
     return;
   }
 
@@ -409,7 +417,7 @@ async function handleCsvSelect(event: Event) {
       truncatedRows ? `first ${MAX_TABLE_ROWS} of ${totalRows} rows` : null,
       truncatedCols ? `first ${MAX_TABLE_COLS} of ${totalCols} columns` : null,
     ].filter(Boolean);
-    showToast(`CSV was larger than the table limit — imported ${parts.join(" and ")}.`, "error");
+    notify(`CSV was larger than the table limit — imported ${parts.join(" and ")}.`, "error");
   }
 }
 
@@ -423,15 +431,24 @@ function toggleCellBgPicker() {
   }
 }
 
+const rootContainerRef = ref<HTMLElement | null>(null);
 const toolbarRef = ref<InstanceType<typeof DocToolbar> | null>(null);
+
+function shouldHandleShortcut(): boolean {
+  if (!rootContainerRef.value) { return false; }
+  const active = document.activeElement;
+  if (!active || !rootContainerRef.value.contains(active)) { return false; }
+  const tag = active.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+  return true;
+}
 
 useKeyboardShortcuts([
   {
     key: "b",
     ctrl: true,
     handler: () => {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+      if (!shouldHandleShortcut()) { return false; }
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -439,8 +456,7 @@ useKeyboardShortcuts([
     key: "i",
     ctrl: true,
     handler: () => {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+      if (!shouldHandleShortcut()) { return false; }
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -448,8 +464,7 @@ useKeyboardShortcuts([
     key: "u",
     ctrl: true,
     handler: () => {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+      if (!shouldHandleShortcut()) { return false; }
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -458,8 +473,7 @@ useKeyboardShortcuts([
     ctrl: true,
     alt: true,
     handler: () => {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+      if (!shouldHandleShortcut()) { return false; }
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -467,8 +481,7 @@ useKeyboardShortcuts([
     key: "k",
     ctrl: true,
     handler: () => {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+      if (!shouldHandleShortcut()) { return false; }
       setLink();
     },
   },
@@ -477,6 +490,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
+      if (!rootContainerRef.value?.contains(document.activeElement)) { return false; }
       toolbarRef.value?.toggleExportMenu();
     },
   },
@@ -488,7 +502,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col bg-rose-bg">
+  <div ref="rootContainerRef" class="rose-mf-root flex h-full flex-col bg-rose-bg">
     <div class="flex flex-col h-full overflow-hidden">
       <!-- Body: toolbar + editor, direction depends on position -->
       <ErrorBoundary>
@@ -604,6 +618,8 @@ onBeforeUnmount(() => {
         </div>
       </ErrorBoundary>
     </div>
+    <InputDialog />
+    <ToastContainer />
   </div>
 </template>
 

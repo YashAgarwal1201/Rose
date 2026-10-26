@@ -9,7 +9,7 @@
   <Transition enter-active-class="transition-transform duration-300 ease-in-out" enter-from-class="translate-x-full"
     enter-to-class="translate-x-0" leave-active-class="transition-transform duration-300 ease-in-out"
     leave-from-class="translate-x-0" leave-to-class="translate-x-full">
-    <div v-if="isOpen" ref="menuRef" @keydown.escape="close"
+    <div v-if="isOpen" ref="menuRef" role="dialog" aria-modal="true" aria-label="More options" @keydown.escape="close"
       class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl rounded-none md:rounded-l-xl! bg-rose-bg shadow-2xl flex flex-col">
       <div class="flex items-center justify-between p-5 shrink-0">
         <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-rose-text">More Options</h3>
@@ -300,7 +300,7 @@ const shortcutCategories = [
   {
     label: "Navigation",
     items: [
-      { action: "Search", keys: "Ctrl+/" },
+      { action: "Search", keys: "Ctrl+K" },
       { action: "Go to Home", keys: "Ctrl+Shift+1" },
       { action: "Go to Todos", keys: "Ctrl+Shift+2" },
       { action: "Go to Notes", keys: "Ctrl+Shift+3" },

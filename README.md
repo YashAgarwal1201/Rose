@@ -102,6 +102,173 @@ Built-in JSON backup and restore is available directly in Settings (`/settings`)
 - **Export Data**: Download your entire database (or selected stores) into a portable JSON backup file.
 - **Import Data**: Restore from backup using either **Merge** (upserts data preserving existing items) or **Replace** (complete clean restore). Legacy data format translation is automatically handled.
 
+## Module Federation Integration Guide
+
+Rose exposes its core feature components as host-isolated microfrontends via [Vite Module Federation](https://github.com/originjs/vite-plugin-federation). Host applications and orchestrators can embed Rose's rich-text document editor, handwriting canvas, or todo lists without pulling in internal routing or conflicting with host styling.
+
+### Exposed Modules
+
+| Remote Export | Description |
+| :--- | :--- |
+| `rose_app/SharedDocUI` | Standalone TipTap rich-text document editor with table tools, CSV import, markdown/PDF export, and self-contained input/toast dialogs. |
+| `rose_app/SharedNoteUI` | Freehand drawing and sketch canvas with pointer-based palm rejection, vector shapes, backgrounds, and image insertion. |
+| `rose_app/SharedTodoUI` | Todo list manager with task creation, priorities, completion toggles, and detail editing. |
+
+### Architecture & Isolation Guarantees
+
+- **No CSS Pollution**: Layout constraints (`overflow: hidden`, `height: 100dvh`) are scoped to standalone Rose mode. Host `html` and `body` remain unlocked and scrollable.
+- **Shortcut Scoping**: Rich-text and canvas shortcuts (`Ctrl+B`, `Ctrl+I`, `Ctrl+K`, `Ctrl+S`, `Ctrl+Z`, etc.) only execute when focus is inside Rose's container. Host global shortcuts (e.g. `Ctrl+K` command palettes) are never intercepted.
+- **Multi-Instance Lifecycle**: Framework-agnostic `mount(el, props)` returns `{ app, update, unmount }` with element-keyed instance tracking, avoiding singleton collisions and DOM leaks.
+- **Dynamic CORS & Bandwidth Protection**: In production on Cloudflare Pages, edge middleware restricts `/assets/*` access to authorized origins, blocking public hotlinking.
+
+---
+
+### Host Configuration
+
+#### 1. Setup Environment Variables in Host
+
+In your host application's `.env`:
+
+```env
+# Local Development (served via Rose's preview server)
+VITE_ROSE_REMOTE_URL=http://localhost:4176/assets/remoteEntry.js
+
+# Production (Cloudflare Pages)
+# VITE_ROSE_REMOTE_URL=https://rosejournal.pages.dev/assets/remoteEntry.js
+```
+
+#### 2. Configure Host `vite.config.ts`
+
+```ts
+import { defineConfig, loadEnv } from "vite";
+import vue from "@vitejs/plugin-vue";
+import federation from "@originjs/vite-plugin-federation";
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const roseRemoteUrl =
+    env.VITE_ROSE_REMOTE_URL || "http://localhost:4176/assets/remoteEntry.js";
+
+  return {
+    plugins: [
+      vue(),
+      federation({
+        name: "host_app",
+        remotes: {
+          rose_app: roseRemoteUrl,
+        },
+        shared: ["vue"],
+      }),
+    ],
+  };
+});
+```
+
+> [!NOTE]
+> `@originjs/vite-plugin-federation` generates `remoteEntry.js` during **production build**, not dev server mode. When testing integration locally, build and run Rose's preview server:
+> ```bash
+> # In the Rose repository:
+> npm run build
+> npm run preview -- --port 4176
+> ```
+
+---
+
+### Component Contracts
+
+#### `SharedDocUI`
+- **Props**:
+  - `contentJSON` (`Record<string, unknown> | null`, optional) — TipTap JSON document structure.
+  - `title` (`string`, default: `"Shared Document"`) — Document title displayed in the header.
+- **Emits / Callbacks**:
+  - `change` (`content: Record<string, unknown>`) — Emitted whenever the document content is updated.
+  - `notify` (`message: string, type: ToastType`) — Emitted when toasts/alerts fire.
+
+#### `SharedNoteUI`
+- **Props**:
+  - `canvasJSON` (`Record<string, unknown> | null`, optional) — Fabric.js serialized canvas object.
+  - `backgroundColor` (`string`, default: `"#ffffff"`) — Canvas background fill color.
+  - `backgroundPattern` (`"solid" | "dots" | "grid" | "ruled"`, default: `"solid"`) — Canvas grid/guide pattern.
+  - `title` (`string`, default: `"Shared Note"`) — Note title for export filenames.
+- **Emits / Callbacks**:
+  - `change` (`canvasJSON, backgroundColor, backgroundPattern, thumbnail`) — Emitted on stroke completion or pattern change.
+
+#### `SharedTodoUI`
+- **Props**:
+  - `initialTodos` (`Todo[]`, optional) — Array of todo items to seed the component.
+  - `title` (`string`, default: `"Shared Todos"`) — Heading for the list.
+- **Emits / Callbacks**:
+  - `change` (`todos: Todo[]`) — Emitted when todos are added, edited, toggled, or deleted.
+  - `notify` (`message: string, type: ToastType`) — Emitted for notifications.
+
+---
+
+### Integration Examples
+
+#### Vue 3 (Async Component)
+
+```vue
+<script setup lang="ts">
+import { defineAsyncComponent, ref } from "vue";
+
+// Remote component import
+const SharedDocUI = defineAsyncComponent(() => import("rose_app/SharedDocUI"));
+
+const docData = ref<Record<string, unknown> | null>(null);
+
+function onDocChange(newContent: Record<string, unknown>) {
+  docData.value = newContent;
+}
+</script>
+
+<template>
+  <div class="h-[650px] w-full rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <SharedDocUI
+      :content-j-s-o-n="docData"
+      title="Project Brief"
+      @change="onDocChange"
+    />
+  </div>
+</template>
+```
+
+#### Vanilla JS / React (`mount` Lifecycle Wrapper)
+
+Every exposed module also exports framework-agnostic `mount(el, props)` and `unmount(el)` functions:
+
+```ts
+import { mount, unmount } from "rose_app/SharedDocUI";
+
+const container = document.getElementById("editor-root")!;
+
+// Mount instance
+const instance = mount(container, {
+  title: "Sprint Planning",
+  onChange: (content) => {
+    console.log("Updated document content:", content);
+  },
+});
+
+// Update props dynamically
+instance.update({ title: "Sprint Planning (Final)" });
+
+// Clean up when unmounting / navigating away
+instance.unmount();
+// Or: unmount(container);
+```
+
+---
+
+### Production Deployment & Access Control
+
+Rose deploys to **Cloudflare Pages**. An edge function at `functions/assets/[[path]].ts` controls CORS on `/assets/*`:
+- By default, requests from `http://localhost:*`, `https://localhost:*`, and `https://*.pages.dev` are allowed.
+- To authorize additional production domains, add the `ALLOWED_ORIGINS` environment variable in the Cloudflare Pages dashboard:
+  ```env
+  ALLOWED_ORIGINS=https://app.mycompany.com, https://dashboard.mycompany.com
+  ```
+- Unauthorized origins receive an immediate `403 Forbidden`, protecting bandwidth from unauthorized scraping.
+
 ## Roadmap
 
 See [ROADMAP.md](./ROADMAP.md) for the phased development plan and checklist.

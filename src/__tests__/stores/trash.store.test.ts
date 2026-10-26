@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { IDBFactory } from "fake-indexeddb";
 import { createPinia, setActivePinia } from "pinia";
 import db from "@/db";
 import { useTrashStore } from "@/stores/trash";
@@ -7,12 +6,6 @@ import { useFoldersStore } from "@/stores/folders";
 import { useDocsStore } from "@/stores/docs";
 import { useNotesStore } from "@/stores/notes";
 import { useTodosStore } from "@/stores/todos";
-
-async function freshDb(): Promise<void> {
-  db.close();
-  globalThis.indexedDB = new IDBFactory();
-  await db.open();
-}
 
 describe("trashStore", () => {
   beforeEach(async () => {
@@ -80,7 +73,6 @@ describe("trashStore", () => {
     });
 
     it("throws when attempting to move a vaulted item to trash", async () => {
-      const docsStore = useDocsStore();
       const trashStore = useTrashStore();
 
       await db.docs.add({

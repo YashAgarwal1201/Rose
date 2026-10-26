@@ -30,6 +30,7 @@ import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import TodoListIllustration from "@/assets/illustrations/todo-list.svg";
 import { getErrorMessage } from "@/utils/error";
+import { useDocumentTitle } from "@/composables/app/useDocumentTitle.ts";
 
 const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
@@ -42,6 +43,7 @@ const { showToast } = useToast();
 const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 const currentList = ref<TodoList | undefined>(undefined);
+useDocumentTitle(() => currentList.value?.name || "Todos");
 const isVaultLocked = ref(false);
 const isRenaming = ref(false);
 const renameValue = ref("");

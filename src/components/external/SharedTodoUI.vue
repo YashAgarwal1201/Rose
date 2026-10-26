@@ -2,7 +2,7 @@
   src/components/external/SharedTodoUI.vue
 
   Microfrontend component exposed via Vite Module Federation.
-  Enables external host applications (e.g. Blueberry / Tulip AI orchestrators) to mount
+  Enables external host applications and orchestrators to mount
   and embed Rose's standalone todo manager UI without depending on internal routing.
 -->
 <script setup lang="ts">
@@ -192,7 +192,7 @@ const sortedTodos = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full relative">
+  <div class="rose-mf-root flex flex-col h-full relative">
     <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6">
       <div class="flex items-center gap-2 mb-4">
         <input v-model="newTodoTitle" type="text" aria-label="Add a todo" placeholder="Add a todo..."

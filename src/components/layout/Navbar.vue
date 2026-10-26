@@ -2,10 +2,12 @@
 <template>
   <aside
     class="w-full h-full z-40 bg-rose-surface border-t md:border-t-0 md:border-r border-rose-border flex flex-row md:flex-col items-center px-1 py-1 md:py-3">
-    <div class="flex flex-row md:flex-col justify-around md:justify-center items-center gap-1 md:gap-3 w-full h-full">
+    <nav
+      aria-label="Main Navigation"
+      class="flex flex-row md:flex-col justify-around md:justify-center items-center gap-1 md:gap-3 w-full h-full">
       <router-link v-for="item in navItems" :key="item.name" :to="item.path" :aria-label="item.label"
         :aria-current="isActive(item.path) ? 'page' : undefined"
-        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none">
+        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary/70 focus-visible:ring-offset-2">
         <span class="rounded-full py-1 px-3 transition-all duration-200" :class="[
           isActive(item.path)
             ? 'bg-rose-primary text-white'
@@ -24,7 +26,7 @@
       </router-link>
 
       <button type="button" aria-label="Menu"
-        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none"
+        class="flex flex-col justify-center items-center group cursor-pointer bg-transparent border-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary/70 focus-visible:ring-offset-2"
         @click="emit('toggleMenu')">
         <span
           class="rounded-full py-1 px-3 transition-all duration-200 group-hover:bg-rose-surface-alt text-rose-text-muted group-hover:text-rose-text">
@@ -35,7 +37,7 @@
           Menu
         </span>
       </button>
-    </div>
+    </nav>
   </aside>
 </template>
 

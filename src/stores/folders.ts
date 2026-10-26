@@ -3,8 +3,6 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "@/db";
 import type { FeatureType, Folder } from "@/db/types";
-import { useTodosStore } from "./todos";
-import { useDocsStore } from "./docs";
 import { useActivityStore } from "./activity";
 import { useVaultStore } from "./vault";
 import { useTrashStore } from "./trash";
@@ -145,20 +143,6 @@ export const useFoldersStore = defineStore("folders", () => {
     }
     await db.folders.update(id, { name: trimmed, updatedAt: Date.now() });
     await reloadCurrent();
-  }
-
-  function collectDescendantIds(id: string): string[] {
-    const result: string[] = [];
-    const queue = [id];
-    while (queue.length > 0) {
-      const currentId = queue.shift();
-      const children = folders.value.filter((folder) => folder.parentId === currentId);
-      for (const child of children) {
-        result.push(child.id);
-        queue.push(child.id);
-      }
-    }
-    return result;
   }
 
   async function deleteFolder(id: string) {

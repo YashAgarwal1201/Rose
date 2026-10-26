@@ -4,8 +4,8 @@
   "description": "Your local-first workspace for todos, notes, and docs.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#0f0f0f",
+  "background_color": "#1b1416",
+  "theme_color": "#1b1416",
   "icons": [
     {
       "src": "/logo.svg",

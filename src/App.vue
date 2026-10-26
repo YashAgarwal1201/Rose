@@ -3,12 +3,20 @@
   <div
     class="flex flex-col-reverse md:flex-row h-dvh overflow-hidden bg-rose-bg text-rose-text antialiased"
   >
+    <!-- Accessibility Skip Link -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-150 focus:px-4 focus:py-2 focus:bg-rose-surface focus:text-rose-primary focus:border focus:border-rose-primary focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-rose-primary"
+    >
+      Skip to main content
+    </a>
+
     <div v-if="router.currentRoute.value.name !== 'onboarding'" class="w-full md:w-20 h-16 md:h-full shrink-0">
       <Navbar @toggle-menu="isMenuOpen = true" />
     </div>
 
     <div class="grow h-full relative overflow-hidden">
-      <main ref="mainRef" class="h-full w-full overflow-y-auto">
+      <main id="main-content" tabindex="-1" ref="mainRef" class="h-full w-full overflow-y-auto focus:outline-none">
         <RouterView v-slot="{ Component }">
           <ErrorBoundary>
             <Transition name="fade" mode="out-in">
@@ -114,9 +122,9 @@ watch(
 );
 
 useKeyboardShortcuts([
-  // Ctrl + / → Open Global Search
+  // Ctrl + K → Open Global Search
   {
-    key: "/",
+    key: "k",
     ctrl: true,
     handler: () => {
       uiStore.openSearch();

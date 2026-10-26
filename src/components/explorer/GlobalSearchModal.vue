@@ -36,9 +36,15 @@
             </button>
           </div>
 
+          <div aria-live="polite" class="sr-only">
+            {{ query.trim() ? (searchResults.length > 0 ? `${searchResults.length} results found` : `No matches found for ${query.trim()}`) : '' }}
+          </div>
+
           <div v-if="query.trim() && searchResults.length > 0"
+            role="listbox" aria-label="Search results"
             class="border-t border-rose-border max-h-[60vh] overflow-y-auto">
             <button v-for="(result, index) in searchResults" :key="`${result.type}-${result.id}`" ref="resultRefs"
+              role="option" :aria-selected="index === selectedIndex"
               type="button" class="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
               :class="index === selectedIndex ? 'bg-rose-surface-alt' : 'hover:bg-rose-surface-alt'"
               @click="selectResult(index)" @mouseenter="selectedIndex = index">

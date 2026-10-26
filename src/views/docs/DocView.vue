@@ -11,16 +11,26 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   ArrowLeftIcon,
+  FileTextIcon,
+  MaximizeIcon,
+  MinimizeIcon,
+  MinusIcon,
   PanelBottomIcon,
   PanelLeftIcon,
   PanelRightIcon,
   PanelTopIcon,
   PencilIcon,
+  PlusIcon,
 } from "@lucide/vue";
 import { useDocsStore } from "@/stores/docs";
 import { useFoldersStore } from "@/stores/folders";
 import { useToast } from "@/composables/ui/useToast.ts";
 import { useDocExport } from "@/composables/docs/useDocExport.ts";
+import {
+  A4_SHEET_HEIGHT_PX,
+  A4_SHEET_WIDTH_PX,
+  usePageView,
+} from "@/composables/docs/usePageView.ts";
 import { useInput } from "@/composables/ui/useInput.ts";
 import { debounce } from "@/utils/debounce";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
@@ -43,6 +53,7 @@ import Superscript from "@tiptap/extension-superscript";
 import { useKeyboardShortcuts } from "@/composables/app/useKeyboardShortcuts.ts";
 import { TOAST_AUTO_DISMISS_MS } from "@/utils/constants";
 import { getErrorMessage } from "@/utils/error";
+import { useDocumentTitle } from "@/composables/app/useDocumentTitle.ts";
 
 const AUTOSAVE_DELAY_MS = 600;
 const MAX_TABLE_ROWS = 20;
@@ -59,6 +70,7 @@ const { requestInput } = useInput();
 const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 
 const currentDoc = ref<Doc | undefined>(undefined);
+useDocumentTitle(() => currentDoc.value?.title || "Doc");
 const isVaultLocked = ref(false);
 const vFocus = {
   mounted: (el: HTMLElement) => el.focus()
@@ -84,13 +96,106 @@ const cellBgAnchor = usePopoverPosition(
 
 const { effectivePosition, savedPosition, isVertical, isMobile, setPosition } =
   useToolbarPosition();
+const isDesktop = computed(() => !isMobile.value);
+const {
+  isPageView,
+  togglePageView,
+  isFullWidth,
+  toggleFullWidth,
+  zoomLevel,
+  effectiveScale,
+  setContainerWidth,
+  setZoom,
+  zoomIn,
+  zoomOut,
+} = usePageView();
+
+const editorScrollContainerRef = ref<HTMLElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
+
+const a11yAnnouncement = ref("");
+
+function announceA11y(msg: string) {
+  a11yAnnouncement.value = "";
+  nextTick(() => {
+    a11yAnnouncement.value = msg;
+  });
+}
+
+function handleTogglePageView() {
+  togglePageView();
+  announceA11y(
+    isPageView.value
+      ? "Switched to Page View. A4 print layout active."
+      : "Switched to Continuous View.",
+  );
+}
+
+function handleToggleFullWidth() {
+  toggleFullWidth();
+  announceA11y(
+    isFullWidth.value
+      ? "Full width layout enabled."
+      : "Standard readable width (72ch) enabled.",
+  );
+}
+
+function handleZoomIn() {
+  zoomIn();
+  announceA11y(`Zoom increased to ${Math.round(effectiveScale.value * 100)}%`);
+}
+
+function handleZoomOut() {
+  zoomOut();
+  announceA11y(`Zoom decreased to ${Math.round(effectiveScale.value * 100)}%`);
+}
+
+function handleCycleZoom() {
+  cycleZoom();
+  announceA11y(
+    zoomLevel.value === "fit"
+      ? "Zoom set to Fit to width"
+      : `Zoom set to ${Math.round(effectiveScale.value * 100)}%`,
+  );
+}
+
+function updateContainerWidth() {
+  if (editorScrollContainerRef.value) {
+    setContainerWidth(editorScrollContainerRef.value.clientWidth);
+  }
+}
+
+function cycleZoom() {
+  if (zoomLevel.value === "fit") {
+    setZoom(1);
+  } else if (zoomLevel.value === 1) {
+    setZoom(1.25);
+  } else if (zoomLevel.value === 1.25) {
+    setZoom(0.75);
+  } else if (zoomLevel.value === 0.75) {
+    setZoom("fit");
+  } else {
+    setZoom("fit");
+  }
+}
+
+watch(isPageView, (active) => {
+  if (active) {
+    nextTick().then(() => {
+      updateContainerWidth();
+      if (!isDesktop.value || (editorScrollContainerRef.value && editorScrollContainerRef.value.clientWidth < 850)) {
+        setZoom("fit");
+      }
+    });
+  }
+});
 
 const isReadMode = ref(isMobile.value);
 
 watch(isReadMode, (readOnly) => {
   editor.value?.setEditable(!readOnly);
   if (!readOnly && !isMobile.value) {
-    nextTick(() => {
+    nextTick().then(() => {
       editor.value?.commands.focus("end");
     });
   }
@@ -172,8 +277,8 @@ const editor = useEditor({
           return false;
         }
         let foundPos: number | null = null;
-        editor.value.state.doc.descendants((n, pos) => {
-          if (n === node) {
+        editor.value.state.doc.descendants((docNode, pos) => {
+          if (docNode === node) {
             foundPos = pos;
             return false;
           }
@@ -439,7 +544,7 @@ async function loadDoc() {
     const rawContent = fullDoc.contentJSON ? structuredClone(toRaw(fullDoc).contentJSON) : "";
     editor.value?.commands.setContent(rawContent, { emitUpdate: false });
     if (!isReadMode.value && !isMobile.value) {
-      nextTick(() => {
+      nextTick().then(() => {
         editor.value?.commands.focus("end");
       });
     }
@@ -749,6 +854,37 @@ useKeyboardShortcuts([
       toolbarRef.value?.toggleExportMenu();
     },
   },
+  // Ctrl + Alt + P → Toggle Page View (A4)
+  {
+    key: "p",
+    ctrl: true,
+    alt: true,
+    handler: () => {
+      if (isReadMode.value) { return false; }
+      handleTogglePageView();
+    },
+  },
+  // Ctrl + Alt + F → Toggle Full Width (when in Continuous view)
+  {
+    key: "f",
+    ctrl: true,
+    alt: true,
+    handler: () => {
+      if (isReadMode.value || isPageView.value) { return false; }
+      handleToggleFullWidth();
+    },
+  },
+  // Ctrl + Alt + 0 → Reset / Fit Zoom (when in Page View)
+  {
+    key: "0",
+    ctrl: true,
+    alt: true,
+    handler: () => {
+      if (isReadMode.value || !isPageView.value) { return false; }
+      setZoom("fit");
+      announceA11y("Zoom set to Fit to width");
+    },
+  },
 ]);
 
 function handleVisibilityChange() {
@@ -762,6 +898,12 @@ onMounted(() => {
     isReadMode.value = true;
   }
   loadDoc();
+  updateContainerWidth();
+  if (typeof ResizeObserver !== "undefined" && editorScrollContainerRef.value) {
+    resizeObserver = new ResizeObserver(() => updateContainerWidth());
+    resizeObserver.observe(editorScrollContainerRef.value);
+  }
+  window.addEventListener("resize", updateContainerWidth);
   window.addEventListener("pagehide", flushPendingSave);
   document.addEventListener("visibilitychange", handleVisibilityChange);
 });
@@ -777,6 +919,8 @@ watch(
 
 onBeforeUnmount(() => {
   flushPendingSave();
+  resizeObserver?.disconnect();
+  window.removeEventListener("resize", updateContainerWidth);
   window.removeEventListener("pagehide", flushPendingSave);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
   editor.value?.destroy();
@@ -788,15 +932,20 @@ onBeforeUnmount(() => {
     <VaultAuthView v-if="isVaultLocked" @unlocked="loadDoc" />
     <template v-else-if="currentDoc">
       <div class="flex flex-col h-full overflow-hidden">
+        <!-- Live screen reader announcements for view and zoom adjustments -->
+        <div class="sr-only" aria-live="polite" aria-atomic="true">
+          {{ a11yAnnouncement }}
+        </div>
+
         <!-- Header — always full width on top -->
         <div class="flex items-center gap-2 px-4 pt-4 pb-2 md:px-6 shrink-0">
           <button class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
-            @click="goBack">
+            @click="goBack" aria-label="Back to files">
             <ArrowLeftIcon class="w-4 h-4" />
           </button>
 
           <div class="flex items-center gap-2 flex-1 min-w-0 ml-2 group">
-            <input v-if="isRenaming" v-model="renameValue" type="text" v-focus
+            <input v-if="isRenaming" v-model="renameValue" type="text" v-focus aria-label="Document title"
               class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
               @keyup.enter="confirmRenameTitle" @keyup.escape="cancelRenameTitle" @blur="confirmRenameTitle" />
             <template v-else>
@@ -804,6 +953,7 @@ onBeforeUnmount(() => {
               <button
                 v-if="!isReadMode"
                 class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
+                aria-label="Rename document"
                 @click="startRenameTitle">
                 <PencilIcon class="w-4 h-4" />
               </button>
@@ -828,10 +978,146 @@ onBeforeUnmount(() => {
             <span class="hidden sm:inline">Edit mode</span>
           </button>
 
-          <!-- Toolbar position toggle (desktop only) -->
-          <div v-if="!isMobile && !isReadMode" class="flex items-center gap-0.5 ml-2 shrink-0">
+          <!-- Mobile A4 Preview Toggle (Scenario 1) -->
+          <div v-if="!isDesktop" class="flex items-center gap-1 ml-2 shrink-0">
+            <button
+              type="button"
+              data-testid="mobile-page-view-btn"
+              :title="isPageView ? 'Exit Page View' : 'Preview A4 Page'"
+              :aria-label="isPageView ? 'Exit Page View' : 'Preview A4 Page'"
+              :aria-pressed="isPageView"
+              class="flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-lg border transition-colors shrink-0"
+              :class="isPageView
+                ? 'bg-rose-primary text-white border-rose-primary'
+                : 'bg-rose-surface-alt border-rose-border text-rose-text hover:bg-rose-surface'
+              "
+              @click="handleTogglePageView"
+            >
+              <FileTextIcon class="w-3.5 h-3.5" />
+              <span>{{ isPageView ? 'Exit A4' : 'A4 View' }}</span>
+            </button>
+
+            <!-- Mobile Zoom Controls (shown in Page View) -->
+            <div v-if="isPageView" role="group" aria-label="Zoom controls" class="flex items-center gap-0.5 bg-rose-surface-alt border border-rose-border rounded-lg p-0.5">
+              <button
+                type="button"
+                class="p-1 rounded text-rose-text-muted hover:text-rose-text disabled:opacity-40"
+                :disabled="effectiveScale <= 0.5"
+                :aria-disabled="effectiveScale <= 0.5"
+                title="Zoom out"
+                aria-label="Zoom out"
+                @click="handleZoomOut"
+              >
+                <MinusIcon class="w-3 h-3" />
+              </button>
+
+              <button
+                type="button"
+                class="px-1 py-0.5 text-[10px] font-semibold text-rose-text min-w-[2.5rem] text-center hover:bg-rose-surface rounded"
+                title="Cycle zoom preset"
+                :aria-label="`Zoom level: ${zoomLevel === 'fit' ? 'Fit to width' : Math.round(effectiveScale * 100) + '%'}. Click to change preset`"
+                @click="handleCycleZoom"
+              >
+                {{ zoomLevel === 'fit' ? 'Fit' : `${Math.round(effectiveScale * 100)}%` }}
+              </button>
+
+              <button
+                type="button"
+                class="p-1 rounded text-rose-text-muted hover:text-rose-text disabled:opacity-40"
+                :disabled="effectiveScale >= 1.5"
+                :aria-disabled="effectiveScale >= 1.5"
+                title="Zoom in"
+                aria-label="Zoom in"
+                @click="handleZoomIn"
+              >
+                <PlusIcon class="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar position & view toggles (desktop only) -->
+          <div v-if="isDesktop && !isReadMode" role="toolbar" aria-label="Document layout and view controls" class="flex items-center gap-0.5 ml-2 shrink-0">
+            <!-- Page View toggle (Continuous vs A4 Sheet) -->
+            <button
+              type="button"
+              data-testid="page-view-toggle-btn"
+              :title="isPageView ? 'Switch to Continuous view' : 'Switch to Page view (A4)'"
+              :aria-label="isPageView ? 'Switch to Continuous view' : 'Switch to Page view (A4)'"
+              :aria-pressed="isPageView"
+              class="p-1 rounded transition-colors"
+              :class="isPageView
+                ? 'text-rose-primary bg-rose-surface-alt'
+                : 'text-rose-text-muted hover:text-rose-text'
+              "
+              @click="handleTogglePageView"
+            >
+              <FileTextIcon class="w-4 h-4" />
+            </button>
+
+            <!-- Full Width toggle (Continuous view only) -->
+            <button
+              v-if="!isPageView"
+              type="button"
+              data-testid="full-width-toggle-btn"
+              :title="isFullWidth ? 'Standard width (72ch)' : 'Full width'"
+              :aria-label="isFullWidth ? 'Standard width (72ch)' : 'Full width'"
+              :aria-pressed="isFullWidth"
+              class="p-1 rounded transition-colors"
+              :class="isFullWidth
+                ? 'text-rose-primary bg-rose-surface-alt'
+                : 'text-rose-text-muted hover:text-rose-text'
+              "
+              @click="handleToggleFullWidth"
+            >
+              <MinimizeIcon v-if="isFullWidth" class="w-4 h-4" />
+              <MaximizeIcon v-else class="w-4 h-4" />
+            </button>
+
+            <!-- Zoom controls (Page View only) -->
+            <div v-if="isPageView" role="group" aria-label="Zoom controls" class="flex items-center gap-0.5 bg-rose-surface-alt/70 border border-rose-border rounded-lg p-0.5 ml-0.5">
+              <button
+                type="button"
+                class="p-1 rounded text-rose-text-muted hover:text-rose-text disabled:opacity-40"
+                :disabled="effectiveScale <= 0.5"
+                :aria-disabled="effectiveScale <= 0.5"
+                title="Zoom out"
+                aria-label="Zoom out"
+                @click="handleZoomOut"
+              >
+                <MinusIcon class="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                data-testid="zoom-level-btn"
+                class="px-1.5 py-0.5 text-[11px] font-semibold text-rose-text min-w-[2.8rem] text-center hover:bg-rose-surface rounded"
+                title="Cycle zoom preset (Fit / 100% / 125% / 75%)"
+                :aria-label="`Zoom level: ${zoomLevel === 'fit' ? 'Fit to width' : Math.round(effectiveScale * 100) + '%'}. Click to change preset`"
+                @click="handleCycleZoom"
+              >
+                {{ zoomLevel === 'fit' ? 'Fit' : `${Math.round(effectiveScale * 100)}%` }}
+              </button>
+
+              <button
+                type="button"
+                class="p-1 rounded text-rose-text-muted hover:text-rose-text disabled:opacity-40"
+                :disabled="effectiveScale >= 1.5"
+                :aria-disabled="effectiveScale >= 1.5"
+                title="Zoom in"
+                aria-label="Zoom in"
+                @click="handleZoomIn"
+              >
+                <PlusIcon class="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div class="w-px h-4 bg-rose-border mx-1 shrink-0"></div>
+
             <button v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]" :key="pos"
-              :title="`Toolbar ${pos}`" class="p-1 rounded transition-colors" :class="savedPosition === pos
+              :title="`Toolbar ${pos}`"
+              :aria-label="`Place toolbar at ${pos}`"
+              :aria-pressed="savedPosition === pos"
+              class="p-1 rounded transition-colors" :class="savedPosition === pos
                 ? 'text-rose-primary'
                 : 'text-rose-text-muted hover:text-rose-text'
                 " @click="setPosition(pos)">
@@ -856,12 +1142,22 @@ onBeforeUnmount(() => {
               @toggle-read-mode="isReadMode = true" />
 
             <!-- Editor + table context bar -->
-            <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
-              :class="!isReadMode && effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'">
+            <div
+              ref="editorScrollContainerRef"
+              class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-2 sm:px-4 md:px-6 pt-4"
+              :class="[
+                !isReadMode && effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8',
+                isPageView ? 'page-view-desk' : 'continuous-view-canvas'
+              ]">
               <!-- Table context toolbar — always horizontal, always above editor -->
               <div v-if="!isReadMode && editor?.isActive('table')" ref="cellBgRootRef"
                 class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0"
-                :style="{ maxWidth: 'clamp(320px, 72ch, 860px)', marginLeft: 'auto', marginRight: 'auto', width: '100%' }">
+                :style="{
+                  maxWidth: isPageView ? `${A4_SHEET_WIDTH_PX * effectiveScale}px` : (isFullWidth ? 'min(100%, 1400px)' : 'clamp(320px, 72ch, 860px)'),
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  width: '100%'
+                }">
                 <div v-if="isCellBgPickerOpen" class="fixed inset-0 z-10" @click="
                   isCellBgPickerOpen = false;
                 cellBgAnchor.close();
@@ -871,52 +1167,67 @@ onBeforeUnmount(() => {
                   <span class="text-xs text-rose-text-muted px-1 shrink-0">Table:</span>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxRows()" @click="addRowBeforeGuarded">
+                    :disabled="isTableAtMaxRows()"
+                    aria-label="Insert row above"
+                    @click="addRowBeforeGuarded">
                     ↑ Row
                   </button>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxRows()" @click="addRowAfterGuarded">
+                    :disabled="isTableAtMaxRows()"
+                    aria-label="Insert row below"
+                    @click="addRowAfterGuarded">
                     ↓ Row
                   </button>
                   <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    aria-label="Delete current row"
                     @click="editor.chain().focus().deleteRow().run()">
                     Del row
                   </button>
 
-                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
+                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0" role="separator"></div>
 
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxCols()" @click="addColumnBeforeGuarded">
+                    :disabled="isTableAtMaxCols()"
+                    aria-label="Insert column before"
+                    @click="addColumnBeforeGuarded">
                     ← Col
                   </button>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxCols()" @click="addColumnAfterGuarded">
+                    :disabled="isTableAtMaxCols()"
+                    aria-label="Insert column after"
+                    @click="addColumnAfterGuarded">
                     → Col
                   </button>
                   <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    aria-label="Delete current column"
                     @click="editor.chain().focus().deleteColumn().run()">
                     Del col
                   </button>
 
-                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
+                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0" role="separator"></div>
 
                   <button ref="cellBgTriggerRef"
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-                    :aria-expanded="isCellBgPickerOpen" @click="toggleCellBgPicker">
+                    :aria-expanded="isCellBgPickerOpen"
+                    aria-haspopup="dialog"
+                    aria-label="Cell background color"
+                    @click="toggleCellBgPicker">
                     Cell color
                   </button>
 
                   <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    :aria-label="isCurrentTableBordered() ? 'Hide table borders' : 'Show table borders'"
                     @click="toggleTableBorders">
                     {{ isCurrentTableBordered() ? "Hide borders" : "Show borders" }}
                   </button>
 
-                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
+                  <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0" role="separator"></div>
 
                   <button class="px-2 py-1 rounded text-xs text-red-400 hover:bg-rose-surface-alt shrink-0"
+                    aria-label="Delete table"
                     @click="editor.chain().focus().deleteTable().run()">
                     Delete table
                   </button>
@@ -927,18 +1238,52 @@ onBeforeUnmount(() => {
                   :style="cellBgAnchor.style">
                   <button v-for="color in CELL_BG_COLORS" :key="color.label"
                     class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs"
-                    :style="color.value ? { backgroundColor: color.value } : {}" :title="color.label"
+                    :style="color.value ? { backgroundColor: color.value } : {}"
+                    :title="color.label"
+                    :aria-label="color.value ? `Set cell background to ${color.label}` : 'Clear cell background color'"
                     @click="applyCellBackground(color.value)">
                     <span v-if="!color.value" class="text-rose-text-muted">×</span>
                   </button>
                 </div>
               </div>
 
-              <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="handleImageSelect" />
-              <input ref="csvFileInputRef" type="file" accept=".csv,text/csv" class="hidden"
+              <input ref="fileInputRef" type="file" accept="image/*" class="hidden" aria-label="Upload image" @change="handleImageSelect" />
+              <input ref="csvFileInputRef" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import CSV"
                 @change="handleCsvSelect" />
 
-              <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" :class="{ 'read-mode': isReadMode }" />
+              <!-- PAGE VIEW (A4 SHEET) -->
+              <div
+                v-if="isPageView"
+                class="page-view-sheet-wrapper"
+                :style="{
+                  width: `${A4_SHEET_WIDTH_PX * effectiveScale}px`,
+                  minHeight: `${A4_SHEET_HEIGHT_PX * effectiveScale}px`
+                }"
+              >
+                <div
+                  class="page-view-sheet-scaler"
+                  :style="{
+                    transform: `scale(${effectiveScale})`,
+                    transformOrigin: 'top center',
+                    width: `${A4_SHEET_WIDTH_PX}px`
+                  }"
+                >
+                  <div class="page-view-sheet">
+                    <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1 page-view-content" :class="{ 'read-mode': isReadMode }" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- CONTINUOUS VIEW (ELEVATED CARD) -->
+              <div
+                v-else
+                class="continuous-doc-card w-full flex-1 flex flex-col"
+                :class="[
+                  isFullWidth ? 'continuous-full-width' : 'continuous-standard-width'
+                ]"
+              >
+                <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" :class="{ 'read-mode': isReadMode, 'full-width-content': isFullWidth }" />
+              </div>
             </div>
 
             <!-- Toolbar: right position -->
@@ -1189,5 +1534,173 @@ onBeforeUnmount(() => {
   overflow: visible;
   background: transparent;
   color: inherit;
+}
+
+/* ── Page View (A4 Paper on Desk) ── */
+.page-view-desk {
+  background-color: var(--desk-bg, #ded6d8);
+  transition: background-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1.5rem;
+  padding-bottom: 3.5rem;
+}
+
+.dark .page-view-desk {
+  --desk-bg: #120b0d;
+}
+
+.page-view-sheet-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  transition: width 0.15s ease-out, min-height 0.15s ease-out;
+}
+
+.page-view-sheet-scaler {
+  transform-origin: top center;
+  transition: transform 0.15s ease-out;
+  flex-shrink: 0;
+}
+
+.page-view-sheet {
+  width: 794px;
+  min-height: 1122px;
+  background-color: #ffffff;
+  color: #2b1a1e;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.12), 0 2px 8px -1px rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  border: 1px solid rgba(43, 26, 30, 0.16);
+  padding: 76px 68px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.dark .page-view-sheet {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Page break guide line every 1122px (297mm @ 96 dpi) */
+.page-view-sheet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 1121px,
+    rgba(179, 64, 90, 0.28) 1121px,
+    rgba(179, 64, 90, 0.28) 1122px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Inside paper sheet, typography mirrors print exactly */
+.page-view-sheet .rose-editor-content .ProseMirror {
+  max-width: 100% !important;
+  width: 100%;
+  font-size: 11pt;
+  line-height: 1.6;
+  margin: 0;
+  color: #2b1a1e;
+}
+
+/* Consistent document ink contrast inside paper sheet */
+.page-view-sheet .rose-editor-content h1,
+.page-view-sheet .rose-editor-content h2,
+.page-view-sheet .rose-editor-content h3 {
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content p,
+.page-view-sheet .rose-editor-content li {
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content td,
+.page-view-sheet .rose-editor-content th {
+  color: #2b1a1e;
+  border-color: #e6d3d7;
+}
+
+.page-view-sheet .rose-editor-content th {
+  background-color: #f6ecee;
+}
+
+.page-view-sheet .rose-editor-content pre {
+  background: #f6ecee;
+  border-color: #e6d3d7;
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content code {
+  background: #f6ecee;
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content blockquote {
+  color: #7a6367;
+  border-left-color: #b3405a;
+}
+
+/* ── Continuous View (Elevated Document Card) ── */
+.continuous-view-canvas {
+  background-color: var(--color-rose-bg);
+}
+
+.continuous-doc-card {
+  background-color: var(--color-rose-surface);
+  border: 1px solid var(--color-rose-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2.5rem 3rem 4rem;
+  transition: max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+  min-height: 100%;
+}
+
+.continuous-standard-width {
+  max-width: clamp(320px, 72ch, 860px);
+}
+
+.continuous-full-width {
+  max-width: min(100%, 1400px);
+}
+
+.rose-editor-content.full-width-content .ProseMirror {
+  max-width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .continuous-doc-card {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0.5rem 0.25rem 2rem;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-view-desk,
+  .page-view-sheet-wrapper,
+  .page-view-sheet-scaler,
+  .continuous-doc-card {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .page-view-sheet,
+  .continuous-doc-card {
+    border: 2px solid CanvasText !important;
+  }
 }
 </style>

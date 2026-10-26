@@ -482,7 +482,7 @@ export const useTrashStore = defineStore("trash", () => {
     );
 
     const expiredLists = allLists.filter(
-      (l) => (typeof l.trashedAt === "number" && l.trashedAt < cutoff) || (!!l.trashedByFolderId && expiredFolderIds.has(l.trashedByFolderId))
+      (l) => (typeof l.trashedAt === "number" && l.trashedAt < cutoff) || (l.trashedByFolderId ? expiredFolderIds.has(l.trashedByFolderId) : false)
     );
     const expiredListIds = expiredLists.map((l) => l.id);
 
@@ -491,13 +491,13 @@ export const useTrashStore = defineStore("trash", () => {
     }
 
     const expiredFolders = allFolders.filter(
-      (f) => (typeof f.trashedAt === "number" && f.trashedAt < cutoff) || (!!f.trashedByFolderId && expiredFolderIds.has(f.trashedByFolderId))
+      (f) => (typeof f.trashedAt === "number" && f.trashedAt < cutoff) || (f.trashedByFolderId ? expiredFolderIds.has(f.trashedByFolderId) : false)
     );
     const expiredDocs = allDocs.filter(
-      (d) => (typeof d.trashedAt === "number" && d.trashedAt < cutoff) || (!!d.trashedByFolderId && expiredFolderIds.has(d.trashedByFolderId))
+      (d) => (typeof d.trashedAt === "number" && d.trashedAt < cutoff) || (d.trashedByFolderId ? expiredFolderIds.has(d.trashedByFolderId) : false)
     );
     const expiredNotes = allNotes.filter(
-      (n) => (typeof n.trashedAt === "number" && n.trashedAt < cutoff) || (!!n.trashedByFolderId && expiredFolderIds.has(n.trashedByFolderId))
+      (n) => (typeof n.trashedAt === "number" && n.trashedAt < cutoff) || (n.trashedByFolderId ? expiredFolderIds.has(n.trashedByFolderId) : false)
     );
 
     await Promise.all([
