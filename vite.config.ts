@@ -79,8 +79,10 @@ export default defineConfig(({ command }) => {
       swManifestPlugin(),
       cssInjectedByJsPlugin({
         jsAssetsFilterFunction(outputChunk) {
-          return outputChunk.fileName.includes('index') || outputChunk.fileName.includes('remoteEntry');
-        }
+          return (
+            outputChunk.fileName.includes("index") || outputChunk.fileName.includes("remoteEntry")
+          );
+        },
       }),
       federation({
         name: 'rose_app',
@@ -90,8 +92,8 @@ export default defineConfig(({ command }) => {
           './SharedDocUI': './src/components/external/SharedDocUI.ts',
           './SharedNoteUI': './src/components/external/SharedNoteUI.ts',
         },
-        shared: ['vue']
-      })
+        shared: ['vue'],
+      }),
     ],
     build: {
       target: "esnext",
@@ -103,17 +105,25 @@ export default defineConfig(({ command }) => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules')) {
+            if (id.includes("node_modules")) {
               // Let the federation plugin manage 'vue'
-              if (id.includes('/vue/') || id.includes('/@vue/')) { return; }
-              
-              if (id.includes('@tiptap')) {return 'vendor-editor';}
-              if (id.includes('fabric') || id.includes('perfect-freehand')) {return 'vendor-canvas';}
-              if (id.includes('pinia')) {return 'vendor-state';}
-              return 'vendor-utils';
+              if (id.includes("/vue/") || id.includes("/@vue/")) {
+                return;
+              }
+
+              if (id.includes("@tiptap") || id.includes("tiptap-a4-pagination")) {
+                return "vendor-editor";
+              }
+              if (id.includes("fabric") || id.includes("perfect-freehand")) {
+                return "vendor-canvas";
+              }
+              if (id.includes("pinia")) {
+                return "vendor-state";
+              }
+              return "vendor-utils";
             }
-          }
-        }
+          },
+        },
       },
       cssCodeSplit: false,
     },

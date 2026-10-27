@@ -95,4 +95,20 @@ describe("usePageView", () => {
     zoomOut();
     expect(zoomLevel.value).toBe(0.5); // at min preset
   });
+
+  it("updates page count and calculates total sheet height including page gaps", () => {
+    const { pageCount, setPageCount, totalSheetHeight } = usePageView();
+    expect(pageCount.value).toBe(1);
+    const singlePageHeight = totalSheetHeight.value;
+    expect(singlePageHeight).toBeGreaterThan(1100);
+
+    setPageCount(2);
+    expect(pageCount.value).toBe(2);
+    // 2 pages height = 2 * (pageHeight + gap) - gap = singlePageHeight * 2 + gap
+    expect(totalSheetHeight.value).toBeGreaterThan(singlePageHeight * 2);
+
+    // Guard against negative or invalid count
+    setPageCount(0);
+    expect(pageCount.value).toBe(2);
+  });
 });

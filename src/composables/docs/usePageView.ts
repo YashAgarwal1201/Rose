@@ -5,7 +5,8 @@ const STORAGE_FULL_WIDTH = "rose:doc:fullWidth";
 const STORAGE_ZOOM = "rose:doc:zoom";
 
 export const A4_SHEET_WIDTH_PX = 794;
-export const A4_SHEET_HEIGHT_PX = 1122;
+export const A4_SHEET_HEIGHT_PX = 1123;
+export const A4_SHEET_GAP_PX = 40;
 
 export const ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 export type ZoomLevel = (typeof ZOOM_PRESETS)[number] | "fit";
@@ -114,7 +115,7 @@ export function usePageView() {
     if (nextPreset) {
       zoomLevel.value = nextPreset;
     } else {
-      zoomLevel.value = ZOOM_PRESETS[ZOOM_PRESETS.length - 1];
+      zoomLevel.value = 1.5;
     }
   }
 
@@ -124,9 +125,23 @@ export function usePageView() {
     if (prevPreset) {
       zoomLevel.value = prevPreset;
     } else {
-      zoomLevel.value = ZOOM_PRESETS[0];
+      zoomLevel.value = 0.5;
     }
   }
+
+  const pageCount = ref<number>(1);
+
+  function setPageCount(count: number) {
+    if (Number.isFinite(count) && count >= 1) {
+      pageCount.value = Math.floor(count);
+    }
+  }
+
+  const totalSheetHeight = computed<number>(() => {
+    return (
+      Math.max(1, pageCount.value) * (A4_SHEET_HEIGHT_PX + A4_SHEET_GAP_PX) - A4_SHEET_GAP_PX
+    );
+  });
 
   return {
     isPageView,
@@ -139,6 +154,9 @@ export function usePageView() {
     setZoom,
     zoomIn,
     zoomOut,
+    pageCount,
+    setPageCount,
+    totalSheetHeight,
     ZOOM_PRESETS,
   };
 }

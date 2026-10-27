@@ -35,7 +35,13 @@ function makeChain() {
 
 function makeFakeEditor() {
   return {
-    commands: { setContent: vi.fn(), focus: vi.fn() },
+    commands: {
+      setContent: vi.fn(),
+      focus: vi.fn(),
+      enablePagination: vi.fn(),
+      disablePagination: vi.fn(),
+    },
+    storage: { PaginationPlus: { pageCount: 1 } },
     chain: vi.fn(() => makeChain()),
     isActive: vi.fn(() => false),
     getAttributes: vi.fn(() => ({})),
@@ -57,10 +63,14 @@ function makeFakeEditor() {
 
 let fakeEditor: ReturnType<typeof makeFakeEditor>;
 
-vi.mock(import('@tiptap/vue-3'), () => ({
-  useEditor: () => ref(fakeEditor),
-  EditorContent: { template: "<div data-testid='editor-content' />" },
-} as any));
+vi.mock(
+  import("@tiptap/vue-3"),
+  () =>
+    ({
+      useEditor: () => ref(fakeEditor),
+      EditorContent: { template: "<div data-testid='editor-content' />" },
+    }) as any,
+);
 
 const { mockIsMobile, taskItemOptionsHolder } = vi.hoisted(() => ({
   mockIsMobile: { value: false },
@@ -74,9 +84,12 @@ function extensionStub(name: string): Record<string, unknown> {
   ext.extend = vi.fn(() => extensionStub(name));
   return ext;
 }
-vi.mock(import('@tiptap/starter-kit'), () => ({ default: extensionStub("starterKit") } as any));
-vi.mock(import('@tiptap/extension-task-list'), () => ({ default: extensionStub("taskList") } as any));
-vi.mock(import('@tiptap/extension-task-item'), () => {
+vi.mock(import("@tiptap/starter-kit"), () => ({ default: extensionStub("starterKit") }) as any);
+vi.mock(
+  import("@tiptap/extension-task-list"),
+  () => ({ default: extensionStub("taskList") }) as any,
+);
+vi.mock(import("@tiptap/extension-task-item"), () => {
   const stub: any = {
     name: "taskItem",
     configure: vi.fn((opts: any) => {
@@ -87,72 +100,126 @@ vi.mock(import('@tiptap/extension-task-item'), () => {
   };
   return { default: stub } as any;
 });
-vi.mock(import('@tiptap/extension-link'), () => ({ default: extensionStub("link") } as any));
-vi.mock(import('@tiptap/extension-image'), () => ({ default: extensionStub("image") } as any));
-vi.mock(import('@tiptap/extension-placeholder'), () => ({ default: extensionStub("placeholder") } as any));
-vi.mock(import('@tiptap/extension-text-align'), () => ({ default: extensionStub("textAlign") } as any));
-vi.mock(import('@tiptap/extension-text-style'), () => ({
-  TextStyle: extensionStub("textStyle"),
-  Color: extensionStub("color"),
-} as any));
-vi.mock(import('@tiptap/extension-highlight'), () => ({ Highlight: extensionStub("highlight") } as any));
-vi.mock(import('@tiptap/extension-underline'), () => ({ default: extensionStub("underline") } as any));
-vi.mock(import('@tiptap/extension-subscript'), () => ({ default: extensionStub("subscript") } as any));
-vi.mock(import('@tiptap/extension-superscript'), () => ({ default: extensionStub("superscript") } as any));
-vi.mock(import('@tiptap/extension-table'), () => ({
-  Table: extensionStub("table"),
-  TableCell: extensionStub("tableCell"),
-  TableHeader: extensionStub("tableHeader"),
-  TableRow: extensionStub("tableRow"),
-} as any));
-vi.mock(import('@tiptap/pm/tables'), () => ({
-  TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
-} as any));
-vi.mock(import('@tiptap/markdown'), () => ({ Markdown: extensionStub("markdown") } as any));
+vi.mock(import("@tiptap/extension-link"), () => ({ default: extensionStub("link") }) as any);
+vi.mock(import("@tiptap/extension-image"), () => ({ default: extensionStub("image") }) as any);
+vi.mock(
+  import("@tiptap/extension-placeholder"),
+  () => ({ default: extensionStub("placeholder") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-text-align"),
+  () => ({ default: extensionStub("textAlign") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-text-style"),
+  () =>
+    ({
+      TextStyle: extensionStub("textStyle"),
+      Color: extensionStub("color"),
+    }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-highlight"),
+  () => ({ Highlight: extensionStub("highlight") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-underline"),
+  () => ({ default: extensionStub("underline") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-subscript"),
+  () => ({ default: extensionStub("subscript") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-superscript"),
+  () => ({ default: extensionStub("superscript") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-table"),
+  () =>
+    ({
+      Table: extensionStub("table"),
+      TableCell: extensionStub("tableCell"),
+      TableHeader: extensionStub("tableHeader"),
+      TableRow: extensionStub("tableRow"),
+    }) as any,
+);
+vi.mock(
+  import("@tiptap/pm/tables"),
+  () =>
+    ({
+      TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
+    }) as any,
+);
+vi.mock(import("@tiptap/markdown"), () => ({ Markdown: extensionStub("markdown") }) as any);
 
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-} as any));
-vi.mock(import('@/composables/docs/useDocExport.ts'), () => ({
-  useDocExport: () => ({
-    exportAsHtml: vi.fn(),
-    exportAsMarkdown: vi.fn(),
-    exportAsText: vi.fn(),
-    exportAsPdf: vi.fn(),
-  }),
-} as any));
-vi.mock(import('@/composables/ui/useToolbarPosition.ts'), () => ({
-  useToolbarPosition: () => ({
-    effectivePosition: ref("top"),
-    savedPosition: ref("top"),
-    isVertical: ref(false),
-    isMobile: mockIsMobile,
-    setPosition: vi.fn(),
-  }),
-} as any));
-vi.mock(import('@/composables/ui/usePopoverPosition.ts'), () => ({
-  usePopoverPosition: () => ({
-    style: ref({}),
-    open: vi.fn(),
-    close: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/docs/useDocExport.ts"),
+  () =>
+    ({
+      useDocExport: () => ({
+        exportAsHtml: vi.fn(),
+        exportAsMarkdown: vi.fn(),
+        exportAsText: vi.fn(),
+        exportAsPdf: vi.fn(),
+      }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/ui/useToolbarPosition.ts"),
+  () =>
+    ({
+      useToolbarPosition: () => ({
+        effectivePosition: ref("top"),
+        savedPosition: ref("top"),
+        isVertical: ref(false),
+        isMobile: mockIsMobile,
+        setPosition: vi.fn(),
+      }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/ui/usePopoverPosition.ts"),
+  () =>
+    ({
+      usePopoverPosition: () => ({
+        style: ref({}),
+        open: vi.fn(),
+        close: vi.fn(),
+      }),
+    }) as any,
+);
 // debounce runs immediately in tests instead of waiting AUTOSAVE_DELAY_MS
-vi.mock(import('../../utils/debounce'), () => ({
-  debounce:
-    (fn: (...args: unknown[]) => unknown) => {
-      const debounced = (...args: unknown[]) => fn(...args);
-      debounced.flush = vi.fn();
-      return debounced;
-    },
-} as any));
-vi.mock(import('@/components/docs/DocToolbar.vue'), () => ({
-  default: {
-    template: "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
-    emits: ["toggleReadMode"],
-  },
-} as any));
+vi.mock(
+  import("../../utils/debounce"),
+  () =>
+    ({
+      debounce: (fn: (...args: unknown[]) => unknown) => {
+        const debounced = (...args: unknown[]) => fn(...args);
+        debounced.flush = vi.fn();
+        return debounced;
+      },
+    }) as any,
+);
+vi.mock(
+  import("@/components/docs/DocToolbar.vue"),
+  () =>
+    ({
+      default: {
+        template:
+          "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
+        emits: ["toggleReadMode"],
+      },
+    }) as any,
+);
 
 // \u2500\u2500\u2500 Router factory \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const routerStub = { template: "<div />" };
@@ -191,7 +258,7 @@ async function mountDocView(pathMatch: string[] = []) {
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise((resolve) => setTimeout(resolve, 50));
   await flushPromises();
   return { wrapper, router };
 }
@@ -765,7 +832,9 @@ describe("DocView", () => {
       const { wrapper } = await mountDocView(["Controls A11y Doc"]);
 
       // Verify layout controls toolbar role
-      const layoutToolbar = wrapper.find("[role='toolbar'][aria-label='Document layout and view controls']");
+      const layoutToolbar = wrapper.find(
+        "[role='toolbar'][aria-label='Document layout and view controls']",
+      );
       expect(layoutToolbar.exists()).toBe(true);
 
       // Verify position buttons have accessible labels
