@@ -48,6 +48,12 @@ const router = createRouter({
       path: "/files/list/:pathMatch(.*)*",
       props: true,
     },
+    {
+      component: TodoListView,
+      name: "todos-list",
+      path: "/todos/:pathMatch(.*)*",
+      props: true,
+    },
 
     {
       component: NotesView,
@@ -57,10 +63,22 @@ const router = createRouter({
       props: true,
     },
     {
+      component: NoteView,
+      name: "notes-note",
+      path: "/notes/:pathMatch(.*)*",
+      props: true,
+    },
+    {
       component: DocsView,
       name: "docs-all",
       meta: { title: "Docs" },
       path: "/docs",
+      props: true,
+    },
+    {
+      component: DocView,
+      name: "docs-doc",
+      path: "/docs/doc/:pathMatch(.*)*",
       props: true,
     },
     { component: DocView, name: "files-doc", path: "/files/doc/:pathMatch(.*)*", props: true },

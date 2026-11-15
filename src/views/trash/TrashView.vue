@@ -459,10 +459,14 @@ async function handleEmptyTrash() {
 
 onMounted(async () => {
   await trashStore.loadTrash();
-  window.addEventListener("click", handleClickOutside);
+  if (typeof window !== "undefined") {
+    window.addEventListener("click", handleClickOutside);
+  }
 });
 
 onUnmounted(() => {
-  window.removeEventListener("click", handleClickOutside);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("click", handleClickOutside);
+  }
 });
 </script>

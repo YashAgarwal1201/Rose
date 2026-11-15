@@ -126,6 +126,12 @@ describe("notesStore", () => {
       expect(note?.updatedAt).toBe(note?.createdAt);
     });
 
+    it("rejects titles containing /", async () => {
+      expect.hasAssertions();
+      const store = useNotesStore();
+      await expect(store.createNote("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+    });
+
     it("throws on duplicate title within the same folder", async () => {
       expect.hasAssertions();
       const store = useNotesStore();
@@ -256,6 +262,21 @@ describe("notesStore", () => {
       await store.updateNote(id, { title: "Changed" });
       const row = await db.notes.get(id);
       expect(row?.updatedAt).toBeGreaterThan(before);
+    });
+
+    it("rejects renaming to a duplicate title in the same folder", async () => {
+      expect.hasAssertions();
+      const store = useNotesStore();
+      await store.createNote("Alpha", null);
+      const betaId = await store.createNote("Beta", null);
+      await expect(store.updateNote(betaId, { title: "Alpha" })).rejects.toThrow("already exists");
+    });
+
+    it("rejects renaming to a title containing /", async () => {
+      expect.hasAssertions();
+      const store = useNotesStore();
+      const id = await store.createNote("NoteValid", null);
+      await expect(store.updateNote(id, { title: "Note/Invalid" })).rejects.toThrow("cannot contain \"/\"");
     });
   });
 

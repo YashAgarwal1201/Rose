@@ -80,6 +80,9 @@ export const useFoldersStore = defineStore("folders", () => {
 
   async function createFolder(name: string, parentId: string | null, _type: FeatureType | "mixed" = "mixed") {
     const trimmed = name.trim() || "Untitled folder";
+    if (trimmed.includes("/")) {
+      throw new Error("Folder name cannot contain \"/\".");
+    }
     const duplicate = folders.value.find(
       (folder) =>
         folder.parentId === parentId &&
@@ -127,6 +130,9 @@ export const useFoldersStore = defineStore("folders", () => {
       throw new Error("Secure Vault cannot be renamed.");
     }
     const trimmed = name.trim();
+    if (trimmed.includes("/")) {
+      throw new Error("Folder name cannot contain \"/\".");
+    }
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
       return;

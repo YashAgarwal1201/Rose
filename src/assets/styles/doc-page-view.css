@@ -1,0 +1,224 @@
+/* src/assets/styles/doc-page-view.css */
+/* A4 Page View desk, sheet scaler, page gaps & print styles */
+
+/* ── Page View (A4 Paper on Desk) ── */
+.page-view-desk {
+  --desk-bg: #ded6d8;
+  background-color: var(--desk-bg);
+  transition: background-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1.5rem;
+  padding-bottom: 3.5rem;
+}
+
+.dark .page-view-desk {
+  --desk-bg: #120b0d;
+}
+
+.page-view-sheet-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  transition:
+    width 0.15s ease-out,
+    min-height 0.15s ease-out;
+}
+
+.page-view-sheet-scaler {
+  transform-origin: top center;
+  transition: transform 0.15s ease-out;
+  flex-shrink: 0;
+}
+
+.page-view-sheet {
+  width: 794px;
+  min-height: 1123px;
+  background-color: #ffffff;
+  color: #2b1a1e;
+  box-shadow:
+    0 4px 24px -2px rgba(0, 0, 0, 0.12),
+    0 2px 8px -1px rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  border: 1px solid rgba(43, 26, 30, 0.16);
+  padding: 0;
+  position: relative;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+.dark .page-view-sheet {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Styling for gaps and pages created by tiptap-pagination-plus (Page View only) */
+.page-view-sheet .rm-with-pagination {
+  background-color: #ffffff !important;
+  color: #2b1a1e !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Continuous View overrides: ensure dark/light theme, transparent background, and standard width */
+.continuous-doc-card .ProseMirror,
+.continuous-doc-card .rm-with-pagination,
+.ProseMirror[rm-pagination-disabled] {
+  background-color: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.continuous-doc-card .rm-pages-wrapper,
+.continuous-doc-card .rm-first-page-header,
+.continuous-doc-card [data-rm-pagination],
+.continuous-doc-card .rm-pagination-gap,
+[rm-pagination-disabled] .rm-pages-wrapper,
+[rm-pagination-disabled] .rm-first-page-header,
+[rm-pagination-disabled] [data-rm-pagination],
+[rm-pagination-disabled] .rm-pagination-gap {
+  display: none !important;
+}
+
+.rm-pagination-gap {
+  background-color: var(--desk-bg, #ded6d8) !important;
+  border-top: 1px solid rgba(43, 26, 30, 0.16) !important;
+  border-bottom: 1px solid rgba(43, 26, 30, 0.16) !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow:
+    inset 0 4px 8px -2px rgba(43, 26, 30, 0.1),
+    inset 0 -4px 8px -2px rgba(43, 26, 30, 0.1) !important;
+}
+
+.dark .rm-pagination-gap {
+  background-color: var(--desk-bg, #120b0d) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow:
+    inset 0 6px 14px -4px rgba(0, 0, 0, 0.6),
+    inset 0 -6px 14px -4px rgba(0, 0, 0, 0.6) !important;
+}
+
+.rm-page-header,
+.rm-page-footer {
+  font-family: inherit;
+  font-size: 9pt;
+  color: rgba(43, 26, 30, 0.6);
+  user-select: none;
+}
+
+/* Inside paper sheet, typography mirrors print exactly */
+.page-view-sheet .rose-editor-content .ProseMirror {
+  max-width: 100% !important;
+  width: 100%;
+  font-size: 11pt;
+  line-height: 1.6;
+  margin: 0;
+  color: #2b1a1e;
+}
+
+/* Consistent document ink contrast inside paper sheet */
+.page-view-sheet .rose-editor-content h1,
+.page-view-sheet .rose-editor-content h2,
+.page-view-sheet .rose-editor-content h3 {
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content p,
+.page-view-sheet .rose-editor-content li {
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content td,
+.page-view-sheet .rose-editor-content th {
+  color: #2b1a1e;
+  border-color: #e6d3d7;
+}
+
+.page-view-sheet .rose-editor-content th {
+  background-color: #f6ecee;
+}
+
+.page-view-sheet .rose-editor-content pre {
+  background: #f6ecee;
+  border-color: #e6d3d7;
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content code {
+  background: #f6ecee;
+  color: #2b1a1e;
+}
+
+.page-view-sheet .rose-editor-content blockquote {
+  color: #7a6367;
+  border-left-color: #b3405a;
+}
+
+/* ── Continuous View (Elevated Document Card) ── */
+.continuous-view-canvas {
+  background-color: var(--color-rose-bg);
+}
+
+.continuous-doc-card {
+  background-color: var(--color-rose-surface);
+  border: 1px solid var(--color-rose-border);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2.5rem 3rem 4rem;
+  transition:
+    max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  min-height: 100%;
+}
+
+.continuous-standard-width {
+  max-width: clamp(320px, 72ch, 860px);
+}
+
+.continuous-full-width {
+  max-width: min(100%, 1400px);
+}
+
+.rose-editor-content.full-width-content .ProseMirror {
+  max-width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .continuous-doc-card {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0.5rem 0.25rem 2rem;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-view-desk,
+  .page-view-sheet-wrapper,
+  .page-view-sheet-scaler,
+  .continuous-doc-card {
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .page-view-sheet,
+  .continuous-doc-card {
+    border: 2px solid CanvasText !important;
+  }
+}

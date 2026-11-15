@@ -155,6 +155,14 @@ describe("docsStore", () => {
       expect(doc?.updatedAt).toBe(doc?.createdAt);
     });
 
+    it("rejects titles containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      await expect(store.createDoc("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+    });
+
     it("throws on duplicate title within the same folder", async () => {
       expect.hasAssertions();
       await freshDb();
@@ -287,6 +295,25 @@ describe("docsStore", () => {
       const row = await db.docs.get(id);
       expect(row?.contentJSON).toStrictEqual(content);
       expect(row?.folderId).toBeNull();
+    });
+
+    it("rejects renaming to a duplicate title in the same folder", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      await store.createDoc("Alpha", null);
+      const betaId = await store.createDoc("Beta", null);
+      await expect(store.updateDoc(betaId, { title: "Alpha" })).rejects.toThrow("already exists");
+    });
+
+    it("rejects renaming to a title containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useDocsStore();
+      const id = await store.createDoc("DocA", null);
+      await expect(store.updateDoc(id, { title: "Doc/A" })).rejects.toThrow("cannot contain \"/\"");
     });
   });
 

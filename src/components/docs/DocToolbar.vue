@@ -8,7 +8,6 @@ import {
   AlignLeftIcon,
   AlignRightIcon,
   BoldIcon,
-  BookOpenIcon,
   CheckSquareIcon,
   CodeIcon,
   DownloadIcon,
@@ -524,20 +523,6 @@ defineExpose({ toggleExportMenu });
         @click="toggleExportMenu"
       >
         <DownloadIcon class="w-4 h-4" />
-      </button>
-
-      <div :class="dividerClass"></div>
-
-      <!-- Group: Read mode -->
-      <button
-        data-testid="mode-toggle-btn"
-        class="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-rose-text-muted hover:text-rose-text hover:bg-rose-surface-alt transition-colors shrink-0"
-        title="Switch to read mode"
-        aria-label="Switch to read mode"
-        @click="emit('toggleReadMode')"
-      >
-        <BookOpenIcon class="w-4 h-4" />
-        <span class="hidden sm:inline">Read mode</span>
       </button>
     </div>
 

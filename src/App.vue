@@ -136,7 +136,12 @@ useKeyboardShortcuts([
     ctrl: true,
     handler: () => {
       const { name } = router.currentRoute.value;
-      if (name === "docs-doc" || name === "notes-note") {
+      if (
+        name === "files-doc" ||
+        name === "docs-doc" ||
+        name === "files-note" ||
+        name === "notes-note"
+      ) {
         return false; // let the specific view handler save the doc/note!
       }
       // Just prevent browser default Save webpage dialog on home, settings, folders list, etc.
