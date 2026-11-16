@@ -9,8 +9,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: "/", name: "home", component: { template: "<div></div>" } },
-    { path: "/settings", name: "settings", component: { template: "<div></div>" } }
-  ]
+    { path: "/settings", name: "settings", component: { template: "<div></div>" } },
+  ],
 });
 
 describe("SideMenu.vue", () => {
@@ -24,8 +24,11 @@ describe("SideMenu.vue", () => {
       props: { isOpen: true },
       global: {
         plugins: [createPinia(), router],
-        stubs: { Teleport: true, PanelSection: { template: "<div><slot/><slot name='collapsed-preview'/></div>" } }
-      }
+        stubs: {
+          Teleport: true,
+          PanelSection: { template: "<div><slot/><slot name='collapsed-preview'/></div>" },
+        },
+      },
     });
 
     expect(wrapper.find("h3").text()).toBe("More Options");
@@ -45,8 +48,8 @@ describe("SideMenu.vue", () => {
       props: { isOpen: false },
       global: {
         plugins: [createPinia(), router],
-        stubs: { Teleport: true, PanelSection: true }
-      }
+        stubs: { Teleport: true, PanelSection: true },
+      },
     });
 
     expect(wrapper.find("h3").exists()).toBe(false);

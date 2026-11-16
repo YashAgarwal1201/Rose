@@ -4,12 +4,20 @@ import ImportModal from "@/components/settings/ImportModal.vue";
 import { createPinia } from "pinia";
 import * as importDataModule from "@/utils/importData";
 
-vi.mock(import('@/composables/ui/useToast'), () => ({
-  useToast: () => ({ showToast: vi.fn() })
-} as any));
-vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
-  useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
+vi.mock(
+  import("@vueuse/integrations/useFocusTrap"),
+  () =>
+    ({
+      useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() }),
+    }) as any,
+);
 
 describe("ImportModal.vue", () => {
   beforeEach(() => {
@@ -22,8 +30,8 @@ describe("ImportModal.vue", () => {
       props: { modelValue: true },
       global: {
         plugins: [createPinia()],
-        stubs: { Teleport: true, FileIcon: true }
-      }
+        stubs: { Teleport: true, FileIcon: true },
+      },
     });
 
     expect(wrapper.find("h3").text()).toBe("Import data");
@@ -34,24 +42,31 @@ describe("ImportModal.vue", () => {
     expect.hasAssertions();
     const parseSpy = vi.spyOn(importDataModule, "parseImportFile").mockResolvedValue({} as any);
     vi.spyOn(importDataModule, "summarisePayload").mockReturnValue({
-      notes: 1, docs: 0, todos: 0, todoLists: 0, folders: 0, activity: 0, settings: 0,
-      version: 1, exportDate: "2026-08-26"
+      notes: 1,
+      docs: 0,
+      todos: 0,
+      todoLists: 0,
+      folders: 0,
+      activity: 0,
+      settings: 0,
+      version: 1,
+      exportDate: "2026-08-26",
     });
 
     const wrapper = mount(ImportModal, {
       props: { modelValue: true },
-      global: { plugins: [createPinia()], stubs: { Teleport: true, FileIcon: true } }
+      global: { plugins: [createPinia()], stubs: { Teleport: true, FileIcon: true } },
     });
 
     const dropZone = wrapper.find(".cursor-pointer");
     const mockFile = new File(["{}"], "backup.json", { type: "application/json" });
-    
+
     // We must mock the event dataTransfer
     await dropZone.trigger("drop", { dataTransfer: { files: [mockFile] } });
-    
+
     // await promises inside processFile
-    await new Promise(r => setTimeout(r, 0));
-    
+    await new Promise((r) => setTimeout(r, 0));
+
     expect(parseSpy).toHaveBeenCalledWith(mockFile);
     // UI should now show Summary
     expect(wrapper.text()).toContain("Backup contents");

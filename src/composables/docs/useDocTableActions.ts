@@ -18,9 +18,7 @@ export const CELL_BG_COLORS = [
   { label: "Gray", value: "#e2e8f0" },
 ];
 
-export function useDocTableActions(params: {
-  editor: { value: Editor | undefined };
-}) {
+export function useDocTableActions(params: { editor: { value: Editor | undefined } }) {
   const { editor } = params;
   const { showToast } = useToast();
 

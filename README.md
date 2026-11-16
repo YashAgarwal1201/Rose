@@ -21,33 +21,35 @@ Color palette and visual identity are inspired by the rose flower — deep reds/
 
 ## Tech Stack
 
-| Concern                   | Choice                                                             |
-| ------------------------- | ------------------------------------------------------------------ |
-| Framework                 | Vue 3 + TypeScript + Vite                                          |
-| Routing                   | Vue Router                                                         |
-| State                     | Pinia                                                              |
-| Persistence               | Dexie.js (IndexedDB wrapper)                                       |
-| Sketching/Handwriting     | Fabric.js + perfect-freehand                                       |
-| Rich text (Docs)          | TipTap                                                             |
-| Drag and Drop             | @dnd-kit/vue                                                       |
-| Microfrontends            | @originjs/vite-plugin-federation                                   |
-| Cryptography              | Web Crypto API (PBKDF2, AES-GCM 256-bit)                           |
-| Styling                   | Tailwind CSS (v4, Vite plugin) + CSS custom properties for theming |
-| Unit/Component testing    | Vitest + Vue Testing Library + @vue/test-utils                     |
-| E2E testing               | Playwright                                                         |
-| Linting/Formatting        | ESLint, Prettier, oxlint, oxfmt                                    |
+| Concern                | Choice                                                             |
+| ---------------------- | ------------------------------------------------------------------ |
+| Framework              | Vue 3 + TypeScript + Vite                                          |
+| Routing                | Vue Router                                                         |
+| State                  | Pinia                                                              |
+| Persistence            | Dexie.js (IndexedDB wrapper)                                       |
+| Sketching/Handwriting  | Fabric.js + perfect-freehand                                       |
+| Rich text (Docs)       | TipTap                                                             |
+| Drag and Drop          | @dnd-kit/vue                                                       |
+| Microfrontends         | @originjs/vite-plugin-federation                                   |
+| Cryptography           | Web Crypto API (PBKDF2, AES-GCM 256-bit)                           |
+| Styling                | Tailwind CSS (v4, Vite plugin) + CSS custom properties for theming |
+| Unit/Component testing | Vitest + Vue Testing Library + @vue/test-utils                     |
+| E2E testing            | Playwright                                                         |
+| Linting/Formatting     | ESLint, Prettier, oxlint, oxfmt                                    |
 
 ## Getting Started
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Setup local HTTPS (Required for development)**
    Rose uses HTTPS for local development. You'll need [mkcert](https://github.com/FiloSottile/mkcert) to generate valid local certificates.
-   
+
    Install `mkcert` on your system (e.g., `brew install mkcert` on macOS, or see their [repo](https://github.com/FiloSottile/mkcert) for other OS instructions). Then, generate the certificates in a `certs/` directory:
+
    ```bash
    mkdir -p certs
    cd certs
@@ -99,6 +101,7 @@ src/
 Rose stores everything in your browser's IndexedDB. There is no external cloud dependency.
 
 Built-in JSON backup and restore is available directly in Settings (`/settings`):
+
 - **Export Data**: Download your entire database (or selected stores) into a portable JSON backup file.
 - **Import Data**: Restore from backup using either **Merge** (upserts data preserving existing items) or **Replace** (complete clean restore). Legacy data format translation is automatically handled.
 
@@ -108,11 +111,11 @@ Rose exposes its core feature components as host-isolated microfrontends via [Vi
 
 ### Exposed Modules
 
-| Remote Export | Description |
-| :--- | :--- |
-| `rose_app/SharedDocUI` | Standalone TipTap rich-text document editor with table tools, CSV import, markdown/PDF export, and self-contained input/toast dialogs. |
-| `rose_app/SharedNoteUI` | Freehand drawing and sketch canvas with pointer-based palm rejection, vector shapes, backgrounds, and image insertion. |
-| `rose_app/SharedTodoUI` | Todo list manager with task creation, priorities, completion toggles, and detail editing. |
+| Remote Export           | Description                                                                                                                            |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
+| `rose_app/SharedDocUI`  | Standalone TipTap rich-text document editor with table tools, CSV import, markdown/PDF export, and self-contained input/toast dialogs. |
+| `rose_app/SharedNoteUI` | Freehand drawing and sketch canvas with pointer-based palm rejection, vector shapes, backgrounds, and image insertion.                 |
+| `rose_app/SharedTodoUI` | Todo list manager with task creation, priorities, completion toggles, and detail editing.                                              |
 
 ### Architecture & Isolation Guarantees
 
@@ -146,8 +149,7 @@ import federation from "@originjs/vite-plugin-federation";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const roseRemoteUrl =
-    env.VITE_ROSE_REMOTE_URL || "http://localhost:4176/assets/remoteEntry.js";
+  const roseRemoteUrl = env.VITE_ROSE_REMOTE_URL || "http://localhost:4176/assets/remoteEntry.js";
 
   return {
     plugins: [
@@ -166,6 +168,7 @@ export default defineConfig(({ mode }) => {
 
 > [!NOTE]
 > `@originjs/vite-plugin-federation` generates `remoteEntry.js` during **production build**, not dev server mode. When testing integration locally, build and run Rose's preview server:
+>
 > ```bash
 > # In the Rose repository:
 > npm run build
@@ -177,6 +180,7 @@ export default defineConfig(({ mode }) => {
 ### Component Contracts
 
 #### `SharedDocUI`
+
 - **Props**:
   - `contentJSON` (`Record<string, unknown> | null`, optional) — TipTap JSON document structure.
   - `title` (`string`, default: `"Shared Document"`) — Document title displayed in the header.
@@ -185,6 +189,7 @@ export default defineConfig(({ mode }) => {
   - `notify` (`message: string, type: ToastType`) — Emitted when toasts/alerts fire.
 
 #### `SharedNoteUI`
+
 - **Props**:
   - `canvasJSON` (`Record<string, unknown> | null`, optional) — Fabric.js serialized canvas object.
   - `backgroundColor` (`string`, default: `"#ffffff"`) — Canvas background fill color.
@@ -194,6 +199,7 @@ export default defineConfig(({ mode }) => {
   - `change` (`canvasJSON, backgroundColor, backgroundPattern, thumbnail`) — Emitted on stroke completion or pattern change.
 
 #### `SharedTodoUI`
+
 - **Props**:
   - `initialTodos` (`Todo[]`, optional) — Array of todo items to seed the component.
   - `title` (`string`, default: `"Shared Todos"`) — Heading for the list.
@@ -223,11 +229,7 @@ function onDocChange(newContent: Record<string, unknown>) {
 
 <template>
   <div class="h-[650px] w-full rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-    <SharedDocUI
-      :content-j-s-o-n="docData"
-      title="Project Brief"
-      @change="onDocChange"
-    />
+    <SharedDocUI :content-j-s-o-n="docData" title="Project Brief" @change="onDocChange" />
   </div>
 </template>
 ```
@@ -262,6 +264,7 @@ instance.unmount();
 ### Production Deployment & Access Control
 
 Rose deploys to **Cloudflare Pages**. An edge function at `functions/assets/[[path]].ts` controls CORS on `/assets/*`:
+
 - By default, requests from `http://localhost:*`, `https://localhost:*`, and `https://*.pages.dev` are allowed.
 - To authorize additional production domains, add the `ALLOWED_ORIGINS` environment variable in the Cloudflare Pages dashboard:
   ```env

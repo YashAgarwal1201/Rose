@@ -52,7 +52,8 @@
                   </button>
                 </div>
                 <p class="leading-relaxed">
-                  Items in Trash are retained for <strong class="text-rose-text">30 days</strong>, after which they are permanently deleted automatically.
+                  Items in Trash are retained for <strong class="text-rose-text">30 days</strong>,
+                  after which they are permanently deleted automatically.
                 </p>
               </div>
             </div>
@@ -88,7 +89,9 @@
       class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6"
     >
       <div class="relative w-full max-w-sm">
-        <SearchIcon class="w-4 h-4 text-rose-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <SearchIcon
+          class="w-4 h-4 text-rose-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+        />
         <input
           v-model="searchQuery"
           type="text"
@@ -107,7 +110,9 @@
       </div>
 
       <!-- View Mode Toggle Buttons -->
-      <div class="flex items-center self-end sm:self-auto bg-rose-surface-alt p-1 rounded-xl border border-rose-border/60">
+      <div
+        class="flex items-center self-end sm:self-auto bg-rose-surface-alt p-1 rounded-xl border border-rose-border/60"
+      >
         <button
           type="button"
           class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
@@ -155,24 +160,33 @@
           <!-- Card Top: Icon + Days Remaining -->
           <div class="flex items-start justify-between gap-2 mb-3">
             <div class="p-2.5 rounded-lg shrink-0" :class="itemBgClass(item.kind)">
-              <component :is="itemIcon(item.kind)" class="w-5 h-5" :class="itemIconClass(item.kind)" />
+              <component
+                :is="itemIcon(item.kind)"
+                class="w-5 h-5"
+                :class="itemIconClass(item.kind)"
+              />
             </div>
             <span
               class="px-2 py-0.5 rounded-full text-[11px] font-medium border"
               :class="countdownBadgeClass(item.daysRemaining)"
             >
-              {{ item.daysRemaining }} {{ item.daysRemaining === 1 ? 'day' : 'days' }} left
+              {{ item.daysRemaining }} {{ item.daysRemaining === 1 ? "day" : "days" }} left
             </span>
           </div>
 
           <!-- Card Title & Kind Badge -->
-          <h3 class="font-medium text-rose-text text-sm sm:text-base line-clamp-1 mb-1" :title="item.title">
+          <h3
+            class="font-medium text-rose-text text-sm sm:text-base line-clamp-1 mb-1"
+            :title="item.title"
+          >
             {{ item.title }}
           </h3>
 
           <div v-if="item.kind === 'folder' && item.childCount > 0" class="mb-2">
-            <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-rose-surface-alt text-rose-text-muted border border-rose-border">
-              Folder &bull; {{ item.childCount }} {{ item.childCount === 1 ? 'item' : 'items' }}
+            <span
+              class="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-rose-surface-alt text-rose-text-muted border border-rose-border"
+            >
+              Folder &bull; {{ item.childCount }} {{ item.childCount === 1 ? "item" : "items" }}
             </span>
           </div>
 
@@ -212,10 +226,7 @@
     </div>
 
     <!-- List view -->
-    <div
-      v-else-if="filteredItems.length > 0 && viewMode === 'list'"
-      class="flex flex-col gap-2.5"
-    >
+    <div v-else-if="filteredItems.length > 0 && viewMode === 'list'" class="flex flex-col gap-2.5">
       <div
         v-for="item in filteredItems"
         :key="item.kind + '-' + item.id"
@@ -223,23 +234,26 @@
       >
         <!-- Left: Icon & Meta -->
         <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-          <div
-            class="p-2.5 rounded-lg shrink-0"
-            :class="itemBgClass(item.kind)"
-          >
-            <component :is="itemIcon(item.kind)" class="w-5 h-5" :class="itemIconClass(item.kind)" />
+          <div class="p-2.5 rounded-lg shrink-0" :class="itemBgClass(item.kind)">
+            <component
+              :is="itemIcon(item.kind)"
+              class="w-5 h-5"
+              :class="itemIconClass(item.kind)"
+            />
           </div>
 
           <div class="flex flex-col min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-medium text-rose-text text-sm sm:text-base truncate max-w-xs sm:max-w-md lg:max-w-2xl">
+              <span
+                class="font-medium text-rose-text text-sm sm:text-base truncate max-w-xs sm:max-w-md lg:max-w-2xl"
+              >
                 {{ item.title }}
               </span>
               <span
                 v-if="item.kind === 'folder' && item.childCount > 0"
                 class="px-2 py-0.5 rounded-md text-xs font-medium bg-rose-surface-alt text-rose-text-muted border border-rose-border"
               >
-                Folder &bull; {{ item.childCount }} {{ item.childCount === 1 ? 'item' : 'items' }}
+                Folder &bull; {{ item.childCount }} {{ item.childCount === 1 ? "item" : "items" }}
               </span>
             </div>
 
@@ -252,13 +266,15 @@
         </div>
 
         <!-- Right: Badges & Action Buttons -->
-        <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-rose-border/50">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-rose-border/50"
+        >
           <!-- Days Remaining Badge -->
           <span
             class="px-2.5 py-1 rounded-full text-xs font-medium border"
             :class="countdownBadgeClass(item.daysRemaining)"
           >
-            {{ item.daysRemaining }} {{ item.daysRemaining === 1 ? 'day' : 'days' }} left
+            {{ item.daysRemaining }} {{ item.daysRemaining === 1 ? "day" : "days" }} left
           </span>
 
           <!-- Actions -->
@@ -353,9 +369,7 @@ const filteredItems = computed(() => {
   if (!query) {
     return trashStore.trashedItems;
   }
-  return trashStore.trashedItems.filter((item) =>
-    item.title.toLowerCase().includes(query)
-  );
+  return trashStore.trashedItems.filter((item) => item.title.toLowerCase().includes(query));
 });
 
 function goBack() {
@@ -449,7 +463,7 @@ async function handleEmptyTrash() {
   const count = trashStore.trashedCount;
   const ok = await confirm({
     title: "Empty Trash",
-    message: `Permanently delete all ${count} ${count === 1 ? 'item' : 'items'} in Trash? This cannot be undone.`,
+    message: `Permanently delete all ${count} ${count === 1 ? "item" : "items"} in Trash? This cannot be undone.`,
     confirmLabel: "Empty Trash",
   });
   if (ok) {

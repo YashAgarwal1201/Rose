@@ -116,11 +116,7 @@ const vFocus = {
     <!-- Unified "View ▾" Dropdown (Option 3: Works for both Desktop and Mobile, Edit & Read Mode) -->
     <div class="relative shrink-0">
       <!-- Backdrop to close dropdown on click outside -->
-      <div
-        v-if="isViewMenuOpen"
-        class="fixed inset-0 z-30"
-        @click="closeViewMenu"
-      ></div>
+      <div v-if="isViewMenuOpen" class="fixed inset-0 z-30" @click="closeViewMenu"></div>
 
       <button
         type="button"
@@ -153,7 +149,11 @@ const vFocus = {
             <button
               type="button"
               class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-colors"
-              :class="!isPageView ? 'bg-rose-surface text-rose-primary shadow-xs' : 'text-rose-text-muted hover:text-rose-text'"
+              :class="
+                !isPageView
+                  ? 'bg-rose-surface text-rose-primary shadow-xs'
+                  : 'text-rose-text-muted hover:text-rose-text'
+              "
               @click="selectContinuous"
             >
               <span>Continuous</span>
@@ -164,7 +164,11 @@ const vFocus = {
               data-testid="page-view-toggle-btn"
               :aria-pressed="isPageView"
               class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-colors"
-              :class="isPageView ? 'bg-rose-primary text-white shadow-xs' : 'text-rose-text-muted hover:text-rose-text'"
+              :class="
+                isPageView
+                  ? 'bg-rose-primary text-white shadow-xs'
+                  : 'text-rose-text-muted hover:text-rose-text'
+              "
               @click="emit('togglePageView')"
             >
               <FileTextIcon class="w-4 h-4" />
@@ -190,13 +194,17 @@ const vFocus = {
               <MinimizeIcon v-else class="w-4 h-4 text-rose-primary" />
               <span>{{ isFullWidth ? "Full width layout" : "Standard width (72ch)" }}</span>
             </span>
-            <span class="text-xs text-rose-text-muted font-medium">{{ isFullWidth ? "Wide" : "Centered" }}</span>
+            <span class="text-xs text-rose-text-muted font-medium">{{
+              isFullWidth ? "Wide" : "Centered"
+            }}</span>
           </button>
         </div>
 
         <!-- Zoom & Scale section (Page View only) -->
         <div v-if="isPageView" class="flex flex-col gap-2">
-          <div class="flex items-center justify-between text-xs font-semibold text-rose-text-muted uppercase tracking-wider">
+          <div
+            class="flex items-center justify-between text-xs font-semibold text-rose-text-muted uppercase tracking-wider"
+          >
             <span>Zoom & Scale</span>
             <span class="text-xs text-rose-text font-semibold select-none" aria-live="polite">
               {{ pageCount }} {{ pageCount === 1 ? "page" : "pages" }}
@@ -277,9 +285,7 @@ const vFocus = {
         :aria-pressed="savedPosition === pos"
         class="p-1 rounded transition-colors"
         :class="
-          savedPosition === pos
-            ? 'text-rose-primary'
-            : 'text-rose-text-muted hover:text-rose-text'
+          savedPosition === pos ? 'text-rose-primary' : 'text-rose-text-muted hover:text-rose-text'
         "
         @click="emit('setPosition', pos)"
       >

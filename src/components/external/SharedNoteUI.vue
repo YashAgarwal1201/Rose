@@ -26,12 +26,12 @@ const {
 
 const emit = defineEmits<{
   (
-    e: 'change',
+    e: "change",
     canvasJSON: Record<string, unknown>,
     backgroundColor: string,
     backgroundPattern: BackgroundPattern,
-    thumbnail: string
-  ): void
+    thumbnail: string,
+  ): void;
 }>();
 
 const { effectivePosition } = useToolbarPosition();
@@ -42,7 +42,7 @@ function handleCanvasChange(
   newBackgroundPattern: BackgroundPattern,
   thumbnail: string,
 ) {
-  emit('change', newCanvasJSON, newBackgroundColor, newBackgroundPattern, thumbnail);
+  emit("change", newCanvasJSON, newBackgroundColor, newBackgroundPattern, thumbnail);
 }
 </script>
 

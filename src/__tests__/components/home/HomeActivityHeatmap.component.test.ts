@@ -6,14 +6,10 @@ describe("HomeActivityHeatmap.vue", () => {
   it("renders weeks and labels correctly", async () => {
     expect.hasAssertions();
     const mockDate = new Date("2026-08-26T12:00:00Z");
-    const mockWeeks = [
-      [
-        { date: mockDate, count: 5, level: 2 as const, dateKey: "2026-08-26" }
-      ]
-    ];
+    const mockWeeks = [[{ date: mockDate, count: 5, level: 2 as const, dateKey: "2026-08-26" }]];
 
     const wrapper = mount(HomeActivityHeatmap, {
-      props: { weeks: mockWeeks }
+      props: { weeks: mockWeeks },
     });
 
     const cells = wrapper.findAll("div[title]");

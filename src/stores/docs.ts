@@ -19,7 +19,7 @@ export const useDocsStore = defineStore("docs", () => {
   async function createDoc(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled document";
     if (trimmed.includes("/")) {
-      throw new Error("Document title cannot contain \"/\".");
+      throw new Error('Document title cannot contain "/".');
     }
     const duplicate = docs.value.find(
       (doc) => doc.folderId === folderId && doc.title.toLowerCase() === trimmed.toLowerCase(),
@@ -58,10 +58,14 @@ export const useDocsStore = defineStore("docs", () => {
 
   async function getDoc(id: string): Promise<Doc | undefined> {
     const doc = await db.docs.get(id);
-    if (!doc) {return;}
+    if (!doc) {
+      return;
+    }
     if (doc.isVaulted && doc.contentJSON) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
       await decryptJSONField(vault.derivedKey, doc, "contentJSON");
     }
     return doc;
@@ -82,7 +86,7 @@ export const useDocsStore = defineStore("docs", () => {
     if (changes.title !== undefined) {
       const trimmed = changes.title.trim() || "Untitled document";
       if (trimmed.includes("/")) {
-        throw new Error("Document title cannot contain \"/\".");
+        throw new Error('Document title cannot contain "/".');
       }
       const duplicate = docs.value.find(
         (d) =>
@@ -102,8 +106,14 @@ export const useDocsStore = defineStore("docs", () => {
     }
     if (doc?.isVaulted && "contentJSON" in sanitized && sanitized.contentJSON) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
-      await encryptJSONField(vault.derivedKey, sanitized as Partial<Doc> & { iv: string | null }, "contentJSON");
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
+      await encryptJSONField(
+        vault.derivedKey,
+        sanitized as Partial<Doc> & { iv: string | null },
+        "contentJSON",
+      );
     }
     await db.docs.update(id, sanitized);
     if ("contentJSON" in changes) {
@@ -148,18 +158,20 @@ export const useDocsStore = defineStore("docs", () => {
       newIsVaulted = parent?.isVaulted ?? false;
     }
 
-    const updatePayload: Partial<Doc> = { 
-      folderId: newFolderId, 
-      title: titleToUse, 
+    const updatePayload: Partial<Doc> = {
+      folderId: newFolderId,
+      title: titleToUse,
       updatedAt: Date.now(),
-      isVaulted: newIsVaulted 
+      isVaulted: newIsVaulted,
     };
 
     const dbDoc = await db.docs.get(id);
     if (dbDoc && dbDoc.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
-      
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
+
       if (newIsVaulted) {
         if (dbDoc.contentJSON) {
           await encryptJSONField(vault.derivedKey, dbDoc, "contentJSON");
@@ -194,4 +206,3 @@ export const useDocsStore = defineStore("docs", () => {
     updateDoc,
   };
 });
-

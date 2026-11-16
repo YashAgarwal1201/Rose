@@ -148,7 +148,10 @@ db.version(10)
     todos: "id, listId, done, isVaulted",
   })
   .upgrade(async (tx) => {
-    const addTrashFields = (item: { trashedAt?: number | null; trashedByFolderId?: string | null }) => {
+    const addTrashFields = (item: {
+      trashedAt?: number | null;
+      trashedByFolderId?: string | null;
+    }) => {
       item.trashedAt = null;
       item.trashedByFolderId = null;
     };

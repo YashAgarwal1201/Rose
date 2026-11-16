@@ -19,7 +19,7 @@ const mockToggleViewMode = vi.fn(() => {
   mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
 });
 
-vi.mock(import('../../composables/explorer/useExplorerViewMode.ts'), () => ({
+vi.mock(import("../../composables/explorer/useExplorerViewMode.ts"), () => ({
   useExplorerViewMode: () => ({
     setSortKey: mockSetSortKey,
     sortDir: mockSortDir,
@@ -30,20 +30,32 @@ vi.mock(import('../../composables/explorer/useExplorerViewMode.ts'), () => ({
 }));
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
-vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
-  useConfirm: () => ({ confirm: mockConfirm }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useConfirm.ts"),
+  () =>
+    ({
+      useConfirm: () => ({ confirm: mockConfirm }),
+    }) as any,
+);
 
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
 
 const mockIsMobile = ref(false);
-vi.mock(import('@vueuse/core'), () => ({
-  useMediaQuery: vi.fn(() => mockIsMobile),
-} as any));
+vi.mock(
+  import("@vueuse/core"),
+  () =>
+    ({
+      useMediaQuery: vi.fn(() => mockIsMobile),
+    }) as any,
+);
 
-vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
+vi.mock(import("@dnd-kit/vue"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -56,13 +68,20 @@ vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
 const ITEMS = [
   { id: "f1", name: "Zebra", kind: "folder" as const, updatedAt: 300, createdAt: 100 },
   { id: "f2", name: "Alpha", kind: "folder" as const, updatedAt: 100, createdAt: 200 },
-  { id: "l1", name: "Work", kind: "todo" as const, updatedAt: 150, createdAt: 150, thumbnail: null },
+  {
+    id: "l1",
+    name: "Work",
+    kind: "todo" as const,
+    updatedAt: 150,
+    createdAt: 150,
+    thumbnail: null,
+  },
 ];
 
 function mountGrid(items = ITEMS) {
   return mount(MixedExplorerGrid, {
     props: { items, fileLabel: "list" },
-    global: { stubs: { ContextMenu: { template: '<div><slot/></div>' } } }
+    global: { stubs: { ContextMenu: { template: "<div><slot/></div>" } } },
   });
 }
 
@@ -85,7 +104,7 @@ describe("MixedExplorerGrid", () => {
       expect(wrapper.text()).toContain("Alpha");
       expect(wrapper.text()).toContain("Work");
     });
-    
+
     it("sorts items by name correctly", () => {
       const wrapper = mountGrid();
       const spans = wrapper
@@ -102,7 +121,7 @@ describe("MixedExplorerGrid", () => {
       const wrapper = mountGrid();
       const nodes = wrapper.findAll('[role="listitem"]');
       expect(nodes.length).toBeGreaterThan(0);
-      expect(nodes[0]?.classes()).not.toContain('touch-none');
+      expect(nodes[0]?.classes()).not.toContain("touch-none");
     });
 
     it("applies touch-none class when on a desktop device", () => {
@@ -110,7 +129,7 @@ describe("MixedExplorerGrid", () => {
       const wrapper = mountGrid();
       const nodes = wrapper.findAll('[role="listitem"]');
       expect(nodes.length).toBeGreaterThan(0);
-      expect(nodes[0]?.classes()).toContain('touch-none');
+      expect(nodes[0]?.classes()).toContain("touch-none");
     });
   });
 
@@ -122,8 +141,8 @@ describe("MixedExplorerGrid", () => {
         canceled: false,
         operation: {
           source: { id: "l1", data: { id: "l1", kind: "file" } },
-          target: { id: "f1", data: { id: "f1", kind: "folder" } }
-        }
+          target: { id: "f1", data: { id: "f1", kind: "folder" } },
+        },
       });
       expect(wrapper.emitted("moveItem")).toBeTruthy();
       expect(wrapper.emitted("moveItem")?.[0]).toStrictEqual(["file", "l1", "f1"]);
@@ -136,12 +155,12 @@ describe("MixedExplorerGrid", () => {
         canceled: true,
         operation: {
           source: { id: "l1" },
-          target: { id: "f1" }
-        }
+          target: { id: "f1" },
+        },
       });
       expect(wrapper.emitted("moveItem")).toBeFalsy();
     });
-    
+
     it("does not emit moveItem when moving out of folder (id = vault)", () => {
       const wrapper = mountGrid();
       const vm = wrapper.vm as any;
@@ -149,8 +168,8 @@ describe("MixedExplorerGrid", () => {
         canceled: false,
         operation: {
           source: { id: "f2", data: { id: "f2", kind: "folder" } },
-          target: { id: "vault", data: { id: "vault", kind: "folder" } }
-        }
+          target: { id: "vault", data: { id: "vault", kind: "folder" } },
+        },
       });
       expect(wrapper.emitted("moveItem")).toBeFalsy();
     });

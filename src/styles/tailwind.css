@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root, :host {
+:root,
+:host {
   /* Rose palette — light mode */
   --rose-primary: #b3405a;
   --rose-primary-hover: #96324a;
@@ -11,14 +12,15 @@
   --rose-border: #e6d3d7;
   --rose-text: #2b1a1e;
   --rose-text-muted: #7a6367;
-  
+
   /* Additional accents */
-  --rose-cream: #F5EFE6;
-  --rose-green: #527A59;
-  --rose-green-muted: #9BB89E;
+  --rose-cream: #f5efe6;
+  --rose-green: #527a59;
+  --rose-green-muted: #9bb89e;
 }
 
-.dark, :host(.dark) {
+.dark,
+:host(.dark) {
   /* Rose palette — dark mode */
   --rose-primary: #e8748d;
   --rose-primary-hover: #ef8fa3;
@@ -29,11 +31,11 @@
   --rose-border: #3d2b2f;
   --rose-text: #f3e6e8;
   --rose-text-muted: #b39ba0;
-  
+
   /* Additional accents */
-  --rose-cream: #EAE6DF;
-  --rose-green: #8EBA93;
-  --rose-green-muted: #4B634E;
+  --rose-cream: #eae6df;
+  --rose-green: #8eba93;
+  --rose-green-muted: #4b634e;
 }
 
 @theme {
@@ -46,11 +48,12 @@
   --color-rose-border: var(--rose-border);
   --color-rose-text: var(--rose-text);
   --color-rose-text-muted: var(--rose-text-muted);
-  
+
   --color-rose-cream: var(--rose-cream);
   --color-rose-green: var(--rose-green);
   --color-rose-green-muted: var(--rose-green-muted);
 
-  --font-content: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-content:
+    "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-heading: "Petrona", Georgia, Cambria, "Times New Roman", Times, serif;
 }

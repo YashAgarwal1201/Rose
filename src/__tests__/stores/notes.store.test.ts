@@ -6,11 +6,15 @@ import db from "../../db";
 import { useNotesStore } from "../../stores/notes";
 
 // Mock the activity store so note creation/update doesn't fail
-vi.mock(import('../../stores/activity'), () => ({
-  useActivityStore: () => ({
-    record: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("../../stores/activity"),
+  () =>
+    ({
+      useActivityStore: () => ({
+        record: vi.fn(),
+      }),
+    }) as any,
+);
 
 async function freshDb(): Promise<void> {
   db.close();
@@ -129,7 +133,7 @@ describe("notesStore", () => {
     it("rejects titles containing /", async () => {
       expect.hasAssertions();
       const store = useNotesStore();
-      await expect(store.createNote("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.createNote("A/B", null)).rejects.toThrow('cannot contain "/"');
     });
 
     it("throws on duplicate title within the same folder", async () => {
@@ -276,7 +280,9 @@ describe("notesStore", () => {
       expect.hasAssertions();
       const store = useNotesStore();
       const id = await store.createNote("NoteValid", null);
-      await expect(store.updateNote(id, { title: "Note/Invalid" })).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.updateNote(id, { title: "Note/Invalid" })).rejects.toThrow(
+        'cannot contain "/"',
+      );
     });
   });
 
@@ -361,4 +367,3 @@ describe("notesStore", () => {
     });
   });
 });
-

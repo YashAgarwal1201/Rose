@@ -3,13 +3,17 @@ import { mount } from "@vue/test-utils";
 import NoteToolbar from "@/components/notes/NoteToolbar.vue";
 
 // Mock the popover position composable
-vi.mock(import('@/composables/ui/usePopoverPosition'), () => ({
-  usePopoverPosition: () => ({
-    style: { top: "0px", left: "0px" },
-    open: vi.fn(),
-    close: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("@/composables/ui/usePopoverPosition"),
+  () =>
+    ({
+      usePopoverPosition: () => ({
+        style: { top: "0px", left: "0px" },
+        open: vi.fn(),
+        close: vi.fn(),
+      }),
+    }) as any,
+);
 
 describe("NoteToolbar.vue", () => {
   const defaultProps = {
@@ -61,7 +65,7 @@ describe("NoteToolbar.vue", () => {
     it("opens the shape popover and emits update:shapeTool", async () => {
       const wrapper = mountToolbar();
       await wrapper.find('button[title="Shapes"]').trigger("click");
-      const ellipseBtn = wrapper.findAll("button").find(b => b.text().includes("Ellipse"));
+      const ellipseBtn = wrapper.findAll("button").find((b) => b.text().includes("Ellipse"));
       await ellipseBtn?.trigger("click");
       expect(wrapper.emitted("update:shapeTool")?.[0]).toStrictEqual(["ellipse"]);
     });

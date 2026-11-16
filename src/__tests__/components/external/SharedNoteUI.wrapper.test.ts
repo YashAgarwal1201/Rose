@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, unmount } from "@/components/external/SharedNoteUI.ts";
 
 // Mock the Vue component
-vi.mock('@/components/external/SharedNoteUI.vue', () => ({
+vi.mock("@/components/external/SharedNoteUI.vue", () => ({
   default: {
     template: "<div id='mocked-note-ui'>{{ title }}</div>",
-    props: ["title", "canvasJSON", "backgroundColor", "backgroundPattern"]
-  }
+    props: ["title", "canvasJSON", "backgroundColor", "backgroundPattern"],
+  },
 }));
 
 describe("SharedNoteUI.ts Wrapper", () => {
@@ -17,9 +17,9 @@ describe("SharedNoteUI.ts Wrapper", () => {
     document.body.appendChild(container);
 
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,
@@ -54,8 +54,8 @@ describe("SharedNoteUI.ts Wrapper", () => {
     expect(container.innerHTML).toContain("Old Note Title");
 
     update({ title: "New Note Title" });
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(container.innerHTML).toContain("New Note Title");
   });
 
@@ -64,7 +64,7 @@ describe("SharedNoteUI.ts Wrapper", () => {
     expect(container.classList.contains("dark")).toBe(false);
 
     document.documentElement.classList.add("dark");
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(container.classList.contains("dark")).toBe(true);
   });

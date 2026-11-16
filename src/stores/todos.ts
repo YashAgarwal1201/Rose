@@ -14,26 +14,36 @@ export const useTodosStore = defineStore("todos", () => {
   const todos = ref<Todo[]>([]);
   const currentListId = ref<string | null>(null);
 
-  const sortedTodos = computed(() => todos.value.toSorted((a, b) => {
-    // 1. Status (Incomplete first)
-    if (a.done !== b.done) {return a.done ? 1 : -1;}
+  const sortedTodos = computed(() =>
+    todos.value.toSorted((a, b) => {
+      // 1. Status (Incomplete first)
+      if (a.done !== b.done) {
+        return a.done ? 1 : -1;
+      }
 
-    // 2. Priority (High > Medium > Low > None)
-    const priorityWeight: Record<string, number> = { high: 3, medium: 2, low: 1, null: 0 };
-    const weightA = priorityWeight[a.priority ?? 'null'] ?? 0;
-    const weightB = priorityWeight[b.priority ?? 'null'] ?? 0;
-    if (weightA !== weightB) {return weightB - weightA;}
+      // 2. Priority (High > Medium > Low > None)
+      const priorityWeight: Record<string, number> = { high: 3, medium: 2, low: 1, null: 0 };
+      const weightA = priorityWeight[a.priority ?? "null"] ?? 0;
+      const weightB = priorityWeight[b.priority ?? "null"] ?? 0;
+      if (weightA !== weightB) {
+        return weightB - weightA;
+      }
 
-    // 3. Due Date (Earliest first)
-    if (a.dueDate !== b.dueDate) {
-      if (!a.dueDate) {return 1;}
-      if (!b.dueDate) {return -1;}
-      return a.dueDate - b.dueDate;
-    }
+      // 3. Due Date (Earliest first)
+      if (a.dueDate !== b.dueDate) {
+        if (!a.dueDate) {
+          return 1;
+        }
+        if (!b.dueDate) {
+          return -1;
+        }
+        return a.dueDate - b.dueDate;
+      }
 
-    // 4. Creation Date (Newest first)
-    return b.createdAt - a.createdAt;
-  }));
+      // 4. Creation Date (Newest first)
+      return b.createdAt - a.createdAt;
+    }),
+  );
 
   async function loadTodoLists() {
     todoLists.value = (await db.todoLists.toArray()).filter((l) => !l.trashedAt);
@@ -42,7 +52,7 @@ export const useTodosStore = defineStore("todos", () => {
   async function createTodoList(name: string, folderId: string | null) {
     const trimmed = name.trim() || "Untitled list";
     if (trimmed.includes("/")) {
-      throw new Error("List name cannot contain \"/\".");
+      throw new Error('List name cannot contain "/".');
     }
     const duplicate = todoLists.value.find(
       (list) => list.folderId === folderId && list.name.toLowerCase() === trimmed.toLowerCase(),
@@ -81,7 +91,7 @@ export const useTodosStore = defineStore("todos", () => {
   async function renameTodoList(id: string, name: string) {
     const trimmed = name.trim();
     if (trimmed.includes("/")) {
-      throw new Error("List name cannot contain \"/\".");
+      throw new Error('List name cannot contain "/".');
     }
     const target = todoLists.value.find((list) => list.id === id);
     if (!target) {
@@ -136,8 +146,10 @@ export const useTodosStore = defineStore("todos", () => {
     const first = result[0];
     if (first && first.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
-      await Promise.all(result.map(t => decryptField(vault.derivedKey!, t, "title")));
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
+      await Promise.all(result.map((t) => decryptField(vault.derivedKey!, t, "title")));
     }
     if (currentListId.value === listId) {
       todos.value = result;
@@ -164,7 +176,9 @@ export const useTodosStore = defineStore("todos", () => {
 
     if (isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
       await encryptField(vault.derivedKey, todo, "title");
     }
 
@@ -196,8 +210,14 @@ export const useTodosStore = defineStore("todos", () => {
     const todoRecord = await db.todos.get(id);
     if (todoRecord?.isVaulted && sanitized.title) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
-      await encryptField(vault.derivedKey, sanitized as Partial<Todo> & { iv: string | null }, "title");
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
+      await encryptField(
+        vault.derivedKey,
+        sanitized as Partial<Todo> & { iv: string | null },
+        "title",
+      );
     }
     await db.todos.update(id, sanitized);
     await useActivityStore().record("todo_updated", id);
@@ -248,7 +268,9 @@ export const useTodosStore = defineStore("todos", () => {
     const dbList = await db.todoLists.get(id);
     if (dbList && dbList.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
 
       const childTodos = await db.todos.where("listId").equals(id).toArray();
       for (const todo of childTodos) {
@@ -265,11 +287,11 @@ export const useTodosStore = defineStore("todos", () => {
       }
     }
 
-    await db.todoLists.update(id, { 
-      folderId: newFolderId, 
-      name: nameToUse, 
+    await db.todoLists.update(id, {
+      folderId: newFolderId,
+      name: nameToUse,
       updatedAt: Date.now(),
-      isVaulted: newIsVaulted
+      isVaulted: newIsVaulted,
     });
     if (newFolderId) {
       await useFoldersStore().ensureFolderSupports(newFolderId, "todo");
@@ -298,4 +320,3 @@ export const useTodosStore = defineStore("todos", () => {
     updateTodo,
   };
 });
-

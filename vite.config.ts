@@ -85,14 +85,14 @@ export default defineConfig(({ command }) => {
         },
       }),
       federation({
-        name: 'rose_app',
-        filename: 'remoteEntry.js',
+        name: "rose_app",
+        filename: "remoteEntry.js",
         exposes: {
-          './SharedTodoUI': './src/components/external/SharedTodoUI.ts',
-          './SharedDocUI': './src/components/external/SharedDocUI.ts',
-          './SharedNoteUI': './src/components/external/SharedNoteUI.ts',
+          "./SharedTodoUI": "./src/components/external/SharedTodoUI.ts",
+          "./SharedDocUI": "./src/components/external/SharedDocUI.ts",
+          "./SharedNoteUI": "./src/components/external/SharedNoteUI.ts",
         },
-        shared: ['vue'],
+        shared: ["vue"],
       }),
     ],
     build: {

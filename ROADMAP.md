@@ -5,6 +5,7 @@ Development is organized by feature flows.
 ---
 
 ## Foundation & Architecture
+
 - [x] Scaffold Vue 3 + TS + Vite project (`npm create vue@latest`)
 - [x] Install core libraries (dexie, fabric, tiptap, tailwind)
 - [x] Install testing tools (Vitest, Playwright, Testing Library)
@@ -28,6 +29,7 @@ Development is organized by feature flows.
 - [ ] Performance check: large numbers of todos/notes/docs, IndexedDB query performance
 
 ## Folders & Explorer
+
 - [x] Design Dexie schema for `folders` table
 - [x] Folder tree component (nested folders, create/rename/delete/move)
 - [x] Basic in-feature search/filter (by title, done/not-done)
@@ -43,8 +45,8 @@ Development is organized by feature flows.
 - [x] Unified Files view (`FilesView.vue`, `MixedExplorerGrid.vue`) supporting mixed items (todos, notes, docs) in folders
 - [x] Drag & drop system migration to `@dnd-kit/vue` for smooth card and tree node dragging
 
-
 ## Todos
+
 - [x] Design Dexie schema for `todos` table
 - [x] Pinia store wrapping Dexie CRUD (create/read/update/delete/reorder)
 - [x] Todo list view (per folder, with sub-folder navigation)
@@ -56,6 +58,7 @@ Development is organized by feature flows.
 - [x] **Checkpoint: Rose is a usable todo app on its own**
 
 ## Notes (Sketching/Handwriting)
+
 - [x] Dexie schema for `notes` table (folderId, title, canvasJSON, thumbnail, timestamps, `lastOpenedAt`)
 - [x] Fabric.js canvas component (`NoteCanvas.vue`, `useHandwritingCanvas.ts`, using `perfect-freehand` for stroke rendering)
 - [x] Pointer event handling: `pointerType` detection (pen/touch/mouse), touch suppressed while pen is active
@@ -68,6 +71,7 @@ Development is organized by feature flows.
 - [x] Unit/component tests for note store logic and canvas save/load round-trip
 
 ## Docs
+
 - [x] Dexie schema for `docs` table (folderId, title, contentJSON, timestamps)
 - [x] TipTap editor component with StarterKit extensions (bold, italic, headings, lists, etc.)
 - [x] Save/load document content to/from Dexie
@@ -81,6 +85,7 @@ Development is organized by feature flows.
 - [x] Mode toggle redesign (Approach B): dedicated Read Mode action in `DocToolbar.vue` during edit mode; distraction-free canvas with Edit Mode action in header during read mode
 
 ## Global UI & App State
+
 - [x] Dexie `db.version(5)`: add `settings` table (single row, `id: 1`) — `username`, `showActivityChart`, `onboardingCompleted`, `onboardingStep`, `createdAt`
 - [x] `src/db/types.ts`: `AppSettings` interface
 - [x] New `stores/ui.ts` — app-level UI state
@@ -90,6 +95,7 @@ Development is organized by feature flows.
 - [x] Per-page browser tab titles — route `meta.title` + global `afterEach` baseline, refined per-item via `useDocumentTitle.ts` on detail/folder views
 
 ## Onboarding
+
 - [x] Dedicated `/onboarding` route, gated by router guard on `settings.onboardingCompleted`
 - [x] Hydrate `settings` store from Dexie before the router resolves the first route
 - [x] Step 1 — Welcome (`WelcomeStep.vue`)
@@ -102,6 +108,7 @@ Development is organized by feature flows.
 - [x] Clarify and keep distinct: "has completed onboarding" vs. "has any content data"
 
 ## Home Page
+
 - [x] New `HomeView.vue`, is now the `/` route
 - [x] Greeting + date, using `settings.username`
 - [x] Global search bar
@@ -115,6 +122,7 @@ Development is organized by feature flows.
 - [x] "Due Soon" widget (`HomeDueSoonWidget.vue`) displaying upcoming tasks directly on the dashboard with priority indicators, relative time formatting (`formatDueDate`), and instant completion checkbox toggling
 
 ## Settings & Data Management
+
 - [x] New `SettingsView.vue` + `/settings` route
 - [x] Profile section — username edit
 - [x] Appearance section — theme
@@ -130,6 +138,7 @@ Development is organized by feature flows.
 - [ ] About section (version, tech stack, keyboard shortcuts) inside Settings — this info currently still only lives in `MenuOverlay.vue`, never migrated in
 
 ## Secure Vault & Privacy
+
 - [x] Zero-knowledge client-side encryption using PBKDF2 (100k iterations) and AES-GCM 256-bit
 - [x] Dedicated "Secure Vault" root directory with auto-seeding and repair logic
 - [x] Inactivity auto-lock (5 minutes) with memory clearing of derived keys
@@ -137,6 +146,7 @@ Development is organized by feature flows.
 - [x] Transparent item encryption on moving into vault / decryption on moving out
 
 ## Trash & Soft Deletion
+
 - [x] Dexie schema extension: `trashedAt: number | null` and `trashedByFolderId: string | null` across `folders`, `todoLists`, `docs`, and `notes`
 - [x] Dedicated Trash store (`src/stores/trash.ts`) managing soft deletion, restoration, and permanent purge
 - [x] Dedicated `/trash` route and responsive view (`TrashView.vue`) with full-width layout, cards/list view toggle, and info popover
@@ -146,12 +156,14 @@ Development is organized by feature flows.
 - [x] Strict exclusion of trashed items from Home recents, search results, folder counts, and activity metrics
 
 ## Microfrontend & Module Federation
+
 - [x] Vite Module Federation configuration (`@originjs/vite-plugin-federation`) exposing standalone components
 - [x] Shared UI wrappers: `SharedTodoUI.vue`, `SharedDocUI.vue`, and `SharedNoteUI.vue` for external orchestrators and host apps
 - [x] Dedicated federation build verification tests (`src/__tests__/build/federation.build.test.ts`)
 - [x] Backwards-compatible legacy data import pipeline (`importData.ts`) supporting external JSON schemas into Dexie stores
 
 ## Backlog / Ideas
+
 - [x] Drag-and-drop reordering across folders
 - [ ] Tags in addition to folders
 - [x] Keyboard shortcuts (new item, search, toggle theme)

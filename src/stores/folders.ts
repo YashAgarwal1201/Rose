@@ -17,8 +17,8 @@ export const useFoldersStore = defineStore("folders", () => {
     if (!migrated) {
       const all = await db.folders.toArray();
       const updates = all
-        .filter(f => f.type !== "mixed")
-        .map(f => db.folders.update(f.id, { type: "mixed" }));
+        .filter((f) => f.type !== "mixed")
+        .map((f) => db.folders.update(f.id, { type: "mixed" }));
       if (updates.length > 0) {
         await Promise.all(updates);
         console.log(`Migrated ${updates.length} existing folders to 'mixed' type`);
@@ -48,7 +48,7 @@ export const useFoldersStore = defineStore("folders", () => {
 
     const allActiveFolders = (await db.folders.toArray()).filter((f) => !f.trashedAt);
     if (type) {
-      folders.value = allActiveFolders.filter(f => f.type === type || f.type === "mixed");
+      folders.value = allActiveFolders.filter((f) => f.type === type || f.type === "mixed");
       lastLoadedType.value = type;
     } else {
       folders.value = allActiveFolders;
@@ -56,37 +56,45 @@ export const useFoldersStore = defineStore("folders", () => {
     }
   }
 
-  async function ensureFolderSupports(folderId: string | null, requiredType: FeatureType | "mixed") {
+  async function ensureFolderSupports(
+    folderId: string | null,
+    requiredType: FeatureType | "mixed",
+  ) {
     let cursor = folderId;
     let changed = false;
-    
+
     // We need to fetch from DB directly in case folders.value is currently filtered
     // and doesn't contain the folder we are trying to upgrade.
     while (cursor) {
       const folder = await db.folders.get(cursor);
-      if (!folder) {break;}
-      
+      if (!folder) {
+        break;
+      }
+
       if (folder.type !== requiredType && folder.type !== "mixed") {
         await db.folders.update(cursor, { type: "mixed", updatedAt: Date.now() });
         changed = true;
       }
       cursor = folder.parentId;
     }
-    
+
     if (changed) {
       await reloadCurrent();
     }
   }
 
-  async function createFolder(name: string, parentId: string | null, _type: FeatureType | "mixed" = "mixed") {
+  async function createFolder(
+    name: string,
+    parentId: string | null,
+    _type: FeatureType | "mixed" = "mixed",
+  ) {
     const trimmed = name.trim() || "Untitled folder";
     if (trimmed.includes("/")) {
-      throw new Error("Folder name cannot contain \"/\".");
+      throw new Error('Folder name cannot contain "/".');
     }
     const duplicate = folders.value.find(
       (folder) =>
-        folder.parentId === parentId &&
-        folder.name.toLowerCase() === trimmed.toLowerCase(),
+        folder.parentId === parentId && folder.name.toLowerCase() === trimmed.toLowerCase(),
     );
     if (duplicate) {
       throw new Error(`A folder named "${trimmed}" already exists here.`);
@@ -131,7 +139,7 @@ export const useFoldersStore = defineStore("folders", () => {
     }
     const trimmed = name.trim();
     if (trimmed.includes("/")) {
-      throw new Error("Folder name cannot contain \"/\".");
+      throw new Error('Folder name cannot contain "/".');
     }
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
@@ -209,7 +217,12 @@ export const useFoldersStore = defineStore("folders", () => {
       await setFolderVaultedState(id, newIsVaulted);
     }
 
-    await db.folders.update(id, { name: nameToUse, parentId: newParentId, updatedAt: Date.now(), isVaulted: newIsVaulted });
+    await db.folders.update(id, {
+      name: nameToUse,
+      parentId: newParentId,
+      updatedAt: Date.now(),
+      isVaulted: newIsVaulted,
+    });
     if (newParentId) {
       await ensureFolderSupports(newParentId, "mixed");
     }
@@ -218,7 +231,9 @@ export const useFoldersStore = defineStore("folders", () => {
 
   async function setFolderVaultedState(folderId: string, isVaulted: boolean) {
     const vaultStore = useVaultStore();
-    if (!vaultStore.derivedKey) {throw new Error("Vault is locked");}
+    if (!vaultStore.derivedKey) {
+      throw new Error("Vault is locked");
+    }
 
     const allFoldersToUpdate = new Set<string>();
     const queue = [folderId];
@@ -237,11 +252,16 @@ export const useFoldersStore = defineStore("folders", () => {
     }
 
     // Docs
-    const docs = await db.docs.where("folderId").anyOf([folderId, ...folderIds]).toArray();
+    const docs = await db.docs
+      .where("folderId")
+      .anyOf([folderId, ...folderIds])
+      .toArray();
     for (const doc of docs) {
       doc.isVaulted = isVaulted;
       if (isVaulted) {
-        if (doc.contentJSON) {await encryptJSONField(vaultStore.derivedKey, doc, "contentJSON");}
+        if (doc.contentJSON) {
+          await encryptJSONField(vaultStore.derivedKey, doc, "contentJSON");
+        }
       } else {
         if (doc.contentJSON) {
           await decryptJSONField(vaultStore.derivedKey, doc, "contentJSON");
@@ -249,31 +269,51 @@ export const useFoldersStore = defineStore("folders", () => {
         }
       }
     }
-    if (docs.length > 0) {await db.docs.bulkPut(docs);}
+    if (docs.length > 0) {
+      await db.docs.bulkPut(docs);
+    }
 
     // Notes
-    const notes = await db.notes.where("folderId").anyOf([folderId, ...folderIds]).toArray();
+    const notes = await db.notes
+      .where("folderId")
+      .anyOf([folderId, ...folderIds])
+      .toArray();
     for (const note of notes) {
       note.isVaulted = isVaulted;
       if (isVaulted) {
-        if (note.canvasJSON) {await encryptJSONField(vaultStore.derivedKey, note, "canvasJSON");}
-        if (note.thumbnail) {await encryptField(vaultStore.derivedKey, note, "thumbnail");}
+        if (note.canvasJSON) {
+          await encryptJSONField(vaultStore.derivedKey, note, "canvasJSON");
+        }
+        if (note.thumbnail) {
+          await encryptField(vaultStore.derivedKey, note, "thumbnail");
+        }
       } else {
-        if (note.canvasJSON) {await decryptJSONField(vaultStore.derivedKey, note, "canvasJSON");}
-        if (note.thumbnail) {await decryptField(vaultStore.derivedKey, note, "thumbnail");}
+        if (note.canvasJSON) {
+          await decryptJSONField(vaultStore.derivedKey, note, "canvasJSON");
+        }
+        if (note.thumbnail) {
+          await decryptField(vaultStore.derivedKey, note, "thumbnail");
+        }
         note.iv = null;
       }
     }
-    if (notes.length > 0) {await db.notes.bulkPut(notes);}
+    if (notes.length > 0) {
+      await db.notes.bulkPut(notes);
+    }
 
     // TodoLists & Todos
-    const lists = await db.todoLists.where("folderId").anyOf([folderId, ...folderIds]).toArray();
+    const lists = await db.todoLists
+      .where("folderId")
+      .anyOf([folderId, ...folderIds])
+      .toArray();
     for (const list of lists) {
       list.isVaulted = isVaulted;
     }
-    if (lists.length > 0) {await db.todoLists.bulkPut(lists);}
+    if (lists.length > 0) {
+      await db.todoLists.bulkPut(lists);
+    }
 
-    const listIds = lists.map(l => l.id);
+    const listIds = lists.map((l) => l.id);
     if (listIds.length > 0) {
       const todosList = await db.todos.where("listId").anyOf(listIds).toArray();
       for (const todo of todosList) {
@@ -285,9 +325,20 @@ export const useFoldersStore = defineStore("folders", () => {
           todo.iv = null;
         }
       }
-      if (todosList.length > 0) {await db.todos.bulkPut(todosList);}
+      if (todosList.length > 0) {
+        await db.todos.bulkPut(todosList);
+      }
     }
   }
 
-  return { createFolder, deleteFolder, ensureFolderSupports, folders, isDescendantOf, loadFolders, moveFolder, renameFolder };
+  return {
+    createFolder,
+    deleteFolder,
+    ensureFolderSupports,
+    folders,
+    isDescendantOf,
+    loadFolders,
+    moveFolder,
+    renameFolder,
+  };
 });

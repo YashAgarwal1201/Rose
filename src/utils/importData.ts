@@ -1,13 +1,5 @@
 import db from "@/db";
-import type {
-  ActivityEntry,
-  AppSettings,
-  Doc,
-  Folder,
-  Note,
-  Todo,
-  TodoList,
-} from "@/db/types";
+import type { ActivityEntry, AppSettings, Doc, Folder, Note, Todo, TodoList } from "@/db/types";
 import type { ExportPayload } from "./exportData";
 
 export type ImportMode = "merge" | "replace";
@@ -79,7 +71,7 @@ export function validatePayload(raw: unknown): ExportPayload {
 
   if (!SUPPORTED_VERSIONS.includes(obj.version)) {
     throw new Error(
-      `Unsupported backup version ${obj.version}. Supported: ${SUPPORTED_VERSIONS.join(", ")}.`
+      `Unsupported backup version ${obj.version}. Supported: ${SUPPORTED_VERSIONS.join(", ")}.`,
     );
   }
 
@@ -120,7 +112,7 @@ export function summarisePayload(payload: ExportPayload): ImportSummary {
  */
 export async function importData(
   payload: ExportPayload,
-  options: ImportOptions
+  options: ImportOptions,
 ): Promise<ImportResult> {
   // Vue's `ref` deep-wraps parsed JSON in Proxy objects.
   // IndexedDB's structured-clone algorithm cannot handle Proxies, so we strip
@@ -132,15 +124,7 @@ export async function importData(
 
   await db.transaction(
     "rw",
-    [
-      db.folders,
-      db.todoLists,
-      db.todos,
-      db.notes,
-      db.docs,
-      db.settings,
-      db.activity,
-    ],
+    [db.folders, db.todoLists, db.todos, db.notes, db.docs, db.settings, db.activity],
     async () => {
       // Determine which tables should be cleared in replace mode
       if (mode === "replace") {
@@ -148,20 +132,27 @@ export async function importData(
         if (options.notes || options.docs || options.todos) {
           tablesToClear.push(db.folders.clear());
         }
-        if (options.notes) {tablesToClear.push(db.notes.clear());}
-        if (options.docs) {tablesToClear.push(db.docs.clear());}
+        if (options.notes) {
+          tablesToClear.push(db.notes.clear());
+        }
+        if (options.docs) {
+          tablesToClear.push(db.docs.clear());
+        }
         if (options.todos) {
           tablesToClear.push(db.todoLists.clear());
           tablesToClear.push(db.todos.clear());
         }
-        if (options.settings) {tablesToClear.push(db.settings.clear());}
-        if (options.activity) {tablesToClear.push(db.activity.clear());}
+        if (options.settings) {
+          tablesToClear.push(db.settings.clear());
+        }
+        if (options.activity) {
+          tablesToClear.push(db.activity.clear());
+        }
         await Promise.all(tablesToClear);
       }
 
       // Folders must always be imported alongside their content types
-      const needsFolders =
-        options.notes || options.docs || options.todos;
+      const needsFolders = options.notes || options.docs || options.todos;
 
       const isLegacyVault = rawPayload.version < 9;
       const isLegacyPattern = rawPayload.version < 8;
@@ -180,7 +171,10 @@ export async function importData(
       if (options.notes && data.notes?.length) {
         const notes = data.notes.map((n) => ({
           ...n,
-          backgroundPattern: (isLegacyPattern || isLegacyVault) ? (n.backgroundPattern ?? "solid") : n.backgroundPattern,
+          backgroundPattern:
+            isLegacyPattern || isLegacyVault
+              ? (n.backgroundPattern ?? "solid")
+              : n.backgroundPattern,
           isVaulted: isLegacyVault ? (n.isVaulted ?? false) : n.isVaulted,
           iv: isLegacyVault ? (n.iv ?? null) : n.iv,
           trashedAt: n.trashedAt ?? null,
@@ -226,7 +220,7 @@ export async function importData(
       if (options.activity && data.activity?.length) {
         await db.activity.bulkPut(data.activity as ActivityEntry[]);
       }
-    }
+    },
   );
 
   return {

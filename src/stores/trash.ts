@@ -55,7 +55,10 @@ export const useTrashStore = defineStore("trash", () => {
     return Math.max(0, 30 - daysSinceTrashed);
   }
 
-  function buildOriginalFolderPath(folderId: string | null, folderMap: Map<string, Folder>): string[] {
+  function buildOriginalFolderPath(
+    folderId: string | null,
+    folderMap: Map<string, Folder>,
+  ): string[] {
     const path: string[] = [];
     let cursor = folderId;
     const visited = new Set<string>();
@@ -87,7 +90,7 @@ export const useTrashStore = defineStore("trash", () => {
       if (item.trashedByFolderId) {
         childCountMap.set(
           item.trashedByFolderId,
-          (childCountMap.get(item.trashedByFolderId) ?? 0) + 1
+          (childCountMap.get(item.trashedByFolderId) ?? 0) + 1,
         );
       }
     };
@@ -204,9 +207,7 @@ export const useTrashStore = defineStore("trash", () => {
 
       while (queue.length > 0) {
         const parentId = queue.shift()!;
-        const children = allFolders.filter(
-          (f) => f.parentId === parentId && !f.trashedAt
-        );
+        const children = allFolders.filter((f) => f.parentId === parentId && !f.trashedAt);
         for (const child of children) {
           descendantFolderIds.push(child.id);
           queue.push(child.id);
@@ -297,7 +298,8 @@ export const useTrashStore = defineStore("trash", () => {
       return;
     }
 
-    let targetFolderId = kind === "folder" ? (item as Folder).parentId : (item as Doc | Note | TodoList).folderId;
+    let targetFolderId =
+      kind === "folder" ? (item as Folder).parentId : (item as Doc | Note | TodoList).folderId;
     let isOrphan = false;
 
     if (targetFolderId !== null) {
@@ -316,22 +318,22 @@ export const useTrashStore = defineStore("trash", () => {
     const siblingNames = new Set<string>();
     if (kind === "folder") {
       const activeFolders = (await db.folders.toArray()).filter(
-        (f) => !f.trashedAt && f.parentId === targetFolderId && f.id !== id
+        (f) => !f.trashedAt && f.parentId === targetFolderId && f.id !== id,
       );
       activeFolders.forEach((f) => siblingNames.add(f.name.toLowerCase()));
     } else if (kind === "doc") {
       const activeDocs = (await db.docs.toArray()).filter(
-        (d) => !d.trashedAt && d.folderId === targetFolderId && d.id !== id
+        (d) => !d.trashedAt && d.folderId === targetFolderId && d.id !== id,
       );
       activeDocs.forEach((d) => siblingNames.add(d.title.toLowerCase()));
     } else if (kind === "note") {
       const activeNotes = (await db.notes.toArray()).filter(
-        (n) => !n.trashedAt && n.folderId === targetFolderId && n.id !== id
+        (n) => !n.trashedAt && n.folderId === targetFolderId && n.id !== id,
       );
       activeNotes.forEach((n) => siblingNames.add(n.title.toLowerCase()));
     } else if (kind === "todoList") {
       const activeLists = (await db.todoLists.toArray()).filter(
-        (l) => !l.trashedAt && l.folderId === targetFolderId && l.id !== id
+        (l) => !l.trashedAt && l.folderId === targetFolderId && l.id !== id,
       );
       activeLists.forEach((l) => siblingNames.add(l.name.toLowerCase()));
     }
@@ -360,10 +362,22 @@ export const useTrashStore = defineStore("trash", () => {
 
       // Restore all cascaded items where trashedByFolderId === id
       await Promise.all([
-        db.folders.where("trashedByFolderId").equals(id).modify({ trashedAt: null, trashedByFolderId: null }),
-        db.docs.where("trashedByFolderId").equals(id).modify({ trashedAt: null, trashedByFolderId: null }),
-        db.notes.where("trashedByFolderId").equals(id).modify({ trashedAt: null, trashedByFolderId: null }),
-        db.todoLists.where("trashedByFolderId").equals(id).modify({ trashedAt: null, trashedByFolderId: null }),
+        db.folders
+          .where("trashedByFolderId")
+          .equals(id)
+          .modify({ trashedAt: null, trashedByFolderId: null }),
+        db.docs
+          .where("trashedByFolderId")
+          .equals(id)
+          .modify({ trashedAt: null, trashedByFolderId: null }),
+        db.notes
+          .where("trashedByFolderId")
+          .equals(id)
+          .modify({ trashedAt: null, trashedByFolderId: null }),
+        db.todoLists
+          .where("trashedByFolderId")
+          .equals(id)
+          .modify({ trashedAt: null, trashedByFolderId: null }),
       ]);
     } else if (kind === "doc") {
       await db.docs.update(id, {
@@ -418,10 +432,16 @@ export const useTrashStore = defineStore("trash", () => {
       }
 
       await Promise.all([
-        cascadedFolders.length > 0 ? db.folders.bulkDelete(cascadedFolders.map((f) => f.id)) : Promise.resolve(),
+        cascadedFolders.length > 0
+          ? db.folders.bulkDelete(cascadedFolders.map((f) => f.id))
+          : Promise.resolve(),
         cascadedListIds.length > 0 ? db.todoLists.bulkDelete(cascadedListIds) : Promise.resolve(),
-        cascadedDocs.length > 0 ? db.docs.bulkDelete(cascadedDocs.map((d) => d.id)) : Promise.resolve(),
-        cascadedNotes.length > 0 ? db.notes.bulkDelete(cascadedNotes.map((n) => n.id)) : Promise.resolve(),
+        cascadedDocs.length > 0
+          ? db.docs.bulkDelete(cascadedDocs.map((d) => d.id))
+          : Promise.resolve(),
+        cascadedNotes.length > 0
+          ? db.notes.bulkDelete(cascadedNotes.map((n) => n.id))
+          : Promise.resolve(),
         db.folders.delete(id),
       ]);
     } else if (kind === "doc") {
@@ -457,9 +477,13 @@ export const useTrashStore = defineStore("trash", () => {
     }
 
     await Promise.all([
-      trashedFolders.length > 0 ? db.folders.bulkDelete(trashedFolders.map((f) => f.id)) : Promise.resolve(),
+      trashedFolders.length > 0
+        ? db.folders.bulkDelete(trashedFolders.map((f) => f.id))
+        : Promise.resolve(),
       trashedDocs.length > 0 ? db.docs.bulkDelete(trashedDocs.map((d) => d.id)) : Promise.resolve(),
-      trashedNotes.length > 0 ? db.notes.bulkDelete(trashedNotes.map((n) => n.id)) : Promise.resolve(),
+      trashedNotes.length > 0
+        ? db.notes.bulkDelete(trashedNotes.map((n) => n.id))
+        : Promise.resolve(),
       trashedListIds.length > 0 ? db.todoLists.bulkDelete(trashedListIds) : Promise.resolve(),
     ]);
 
@@ -478,11 +502,15 @@ export const useTrashStore = defineStore("trash", () => {
     ]);
 
     const expiredFolderIds = new Set(
-      allFolders.filter((f) => typeof f.trashedAt === "number" && f.trashedAt < cutoff).map((f) => f.id)
+      allFolders
+        .filter((f) => typeof f.trashedAt === "number" && f.trashedAt < cutoff)
+        .map((f) => f.id),
     );
 
     const expiredLists = allLists.filter(
-      (l) => (typeof l.trashedAt === "number" && l.trashedAt < cutoff) || (l.trashedByFolderId ? expiredFolderIds.has(l.trashedByFolderId) : false)
+      (l) =>
+        (typeof l.trashedAt === "number" && l.trashedAt < cutoff) ||
+        (l.trashedByFolderId ? expiredFolderIds.has(l.trashedByFolderId) : false),
     );
     const expiredListIds = expiredLists.map((l) => l.id);
 
@@ -491,19 +519,29 @@ export const useTrashStore = defineStore("trash", () => {
     }
 
     const expiredFolders = allFolders.filter(
-      (f) => (typeof f.trashedAt === "number" && f.trashedAt < cutoff) || (f.trashedByFolderId ? expiredFolderIds.has(f.trashedByFolderId) : false)
+      (f) =>
+        (typeof f.trashedAt === "number" && f.trashedAt < cutoff) ||
+        (f.trashedByFolderId ? expiredFolderIds.has(f.trashedByFolderId) : false),
     );
     const expiredDocs = allDocs.filter(
-      (d) => (typeof d.trashedAt === "number" && d.trashedAt < cutoff) || (d.trashedByFolderId ? expiredFolderIds.has(d.trashedByFolderId) : false)
+      (d) =>
+        (typeof d.trashedAt === "number" && d.trashedAt < cutoff) ||
+        (d.trashedByFolderId ? expiredFolderIds.has(d.trashedByFolderId) : false),
     );
     const expiredNotes = allNotes.filter(
-      (n) => (typeof n.trashedAt === "number" && n.trashedAt < cutoff) || (n.trashedByFolderId ? expiredFolderIds.has(n.trashedByFolderId) : false)
+      (n) =>
+        (typeof n.trashedAt === "number" && n.trashedAt < cutoff) ||
+        (n.trashedByFolderId ? expiredFolderIds.has(n.trashedByFolderId) : false),
     );
 
     await Promise.all([
-      expiredFolders.length > 0 ? db.folders.bulkDelete(expiredFolders.map((f) => f.id)) : Promise.resolve(),
+      expiredFolders.length > 0
+        ? db.folders.bulkDelete(expiredFolders.map((f) => f.id))
+        : Promise.resolve(),
       expiredDocs.length > 0 ? db.docs.bulkDelete(expiredDocs.map((d) => d.id)) : Promise.resolve(),
-      expiredNotes.length > 0 ? db.notes.bulkDelete(expiredNotes.map((n) => n.id)) : Promise.resolve(),
+      expiredNotes.length > 0
+        ? db.notes.bulkDelete(expiredNotes.map((n) => n.id))
+        : Promise.resolve(),
       expiredListIds.length > 0 ? db.todoLists.bulkDelete(expiredListIds) : Promise.resolve(),
     ]);
 

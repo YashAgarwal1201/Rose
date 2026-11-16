@@ -54,14 +54,8 @@ const emit = defineEmits<{
   toggleReadMode: [];
 }>();
 
-
-
-
-
 const tableRowCount = ref(3);
 const tableColCount = ref(3);
-
-
 
 const isTableInsertOpen = ref(false);
 const isColorPickerOpen = ref(false);
@@ -276,7 +270,13 @@ defineExpose({ toggleExportMenu });
 <template>
   <div ref="rootRef" :class="rootClasses" role="toolbar" aria-label="Formatting toolbar">
     <!-- Backdrop: closes whichever popover is open on outside click -->
-    <div v-if="isAnyPopoverOpen" class="fixed inset-0 z-30" aria-hidden="true" tabindex="-1" @click="closeAllPopovers"></div>
+    <div
+      v-if="isAnyPopoverOpen"
+      class="fixed inset-0 z-30"
+      aria-hidden="true"
+      tabindex="-1"
+      @click="closeAllPopovers"
+    ></div>
 
     <div ref="scrollRef" :class="scrollClasses">
       <!-- Group: History -->
@@ -441,10 +441,20 @@ defineExpose({ toggleExportMenu });
       <div :class="dividerClass"></div>
 
       <!-- Group: Insert -->
-      <button :class="btnClass(editor.isActive('link'))" title="Link" aria-label="Link" @click="emit('setLink')">
+      <button
+        :class="btnClass(editor.isActive('link'))"
+        title="Link"
+        aria-label="Link"
+        @click="emit('setLink')"
+      >
         <LinkIcon class="w-4 h-4" />
       </button>
-      <button :class="btnClass(false)" title="Image" aria-label="Image" @click="emit('triggerImagePick')">
+      <button
+        :class="btnClass(false)"
+        title="Image"
+        aria-label="Image"
+        @click="emit('triggerImagePick')"
+      >
         <ImageIcon class="w-4 h-4" />
       </button>
 

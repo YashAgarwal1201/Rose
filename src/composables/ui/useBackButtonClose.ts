@@ -5,7 +5,7 @@ export function useBackButtonClose(
   isOpen: Ref<boolean>,
   hashName: string,
   close: () => void,
-  open?: () => void
+  open?: () => void,
 ) {
   let router: ReturnType<typeof useRouter> | null = null;
   let route: ReturnType<typeof useRoute> | null = null;
@@ -25,7 +25,9 @@ export function useBackButtonClose(
 
   // Watch the open state of the modal
   watch(isOpen, async (newVal) => {
-    if (isInternalChange) {return;}
+    if (isInternalChange) {
+      return;
+    }
 
     if (newVal) {
       // Modal opened: Push hash to URL
@@ -51,7 +53,9 @@ export function useBackButtonClose(
   watch(
     () => route.hash,
     (newHash) => {
-      if (isInternalChange) {return;}
+      if (isInternalChange) {
+        return;
+      }
 
       if (isOpen.value && newHash !== `#${hashName}`) {
         // Navigated away (e.g. Back button)
@@ -80,6 +84,6 @@ export function useBackButtonClose(
           }, 50);
         }
       }
-    }
+    },
   );
 }

@@ -4,8 +4,8 @@ import ToastContainer from "@/components/ui/ToastContainer.vue";
 import { useToast } from "@/composables/ui/useToast";
 import { ref } from "vue";
 
-vi.mock(import('@/composables/ui/useToast'), () => ({
-  useToast: vi.fn()
+vi.mock(import("@/composables/ui/useToast"), () => ({
+  useToast: vi.fn(),
 }));
 
 describe("ToastContainer.vue", () => {
@@ -19,16 +19,22 @@ describe("ToastContainer.vue", () => {
     vi.mocked(useToast).mockReturnValue({
       toasts: ref([
         { id: 1, message: "Success msg", type: "success" },
-        { id: 2, message: "Error msg", type: "error" }
+        { id: 2, message: "Error msg", type: "error" },
       ] as any),
       dismissToast,
-      showToast: vi.fn()
+      showToast: vi.fn(),
     });
 
     const wrapper = mount(ToastContainer, {
       global: {
-        stubs: { Teleport: true, TransitionGroup: false, XIcon: true, CheckCircleIcon: true, XCircleIcon: true }
-      }
+        stubs: {
+          Teleport: true,
+          TransitionGroup: false,
+          XIcon: true,
+          CheckCircleIcon: true,
+          XCircleIcon: true,
+        },
+      },
     });
 
     const textNodes = wrapper.findAll("p");

@@ -10,7 +10,11 @@ const emit = defineEmits<{ createFolder: []; createFile: [] }>();
 const fabOpen = ref(false);
 const fabContainerRef = ref<HTMLElement | null>(null);
 
-const { activate, deactivate } = useFocusTrap(fabContainerRef, { escapeDeactivates: false, returnFocusOnDeactivate: false, fallbackFocus: () => fabContainerRef.value || document.body });
+const { activate, deactivate } = useFocusTrap(fabContainerRef, {
+  escapeDeactivates: false,
+  returnFocusOnDeactivate: false,
+  fallbackFocus: () => fabContainerRef.value || document.body,
+});
 watch(fabOpen, (isOpen) => {
   if (isOpen) {
     nextTick().then(() => activate());
@@ -48,8 +52,11 @@ function handleFileClick() {
   </div>
 
   <!-- Mobile: speed-dial FAB, fixed above bottom nav -->
-  <div ref="fabContainerRef" class="mr-1 md:hidden absolute right-4 bottom-4 z-30 flex flex-col items-end gap-3"
-    @keydown.escape="fabOpen = false">
+  <div
+    ref="fabContainerRef"
+    class="mr-1 md:hidden absolute right-4 bottom-4 z-30 flex flex-col items-end gap-3"
+    @keydown.escape="fabOpen = false"
+  >
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 translate-y-2 scale-95"
@@ -102,5 +109,11 @@ function handleFileClick() {
   </div>
 
   <!-- Backdrop to close FAB on outside tap -->
-  <div v-if="fabOpen" class="md:hidden fixed inset-0 z-20" aria-hidden="true" tabindex="-1" @click="fabOpen = false"></div>
+  <div
+    v-if="fabOpen"
+    class="md:hidden fixed inset-0 z-20"
+    aria-hidden="true"
+    tabindex="-1"
+    @click="fabOpen = false"
+  ></div>
 </template>

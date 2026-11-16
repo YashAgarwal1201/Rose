@@ -1,7 +1,7 @@
 <!-- src/components/explorer/ExplorerDnDNode.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useDraggable, useDroppable } from '@dnd-kit/vue';
+import { ref } from "vue";
+import { useDraggable, useDroppable } from "@dnd-kit/vue";
 
 const props = defineProps<{
   id: string;
@@ -31,10 +31,14 @@ const { isDropTarget } = useDroppable({
 </script>
 
 <template>
-  <component :is="as || 'div'" ref="el" :class="[
-    isDropTarget && dropTargetClass ? dropTargetClass : '',
-    isDragging && draggingClass ? draggingClass : ''
-  ]">
+  <component
+    :is="as || 'div'"
+    ref="el"
+    :class="[
+      isDropTarget && dropTargetClass ? dropTargetClass : '',
+      isDragging && draggingClass ? draggingClass : '',
+    ]"
+  >
     <slot :is-dragging="isDragging" :is-drop-target="isDropTarget" />
   </component>
 </template>

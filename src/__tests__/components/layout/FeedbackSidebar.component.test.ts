@@ -12,15 +12,15 @@ describe("FeedbackSidebar.vue", () => {
     const wrapper = mount(FeedbackSidebar, {
       props: { isOpen: true },
       global: {
-        stubs: { Teleport: true }
-      }
+        stubs: { Teleport: true },
+      },
     });
 
     expect(wrapper.find("h3").text()).toBe("Let's connect");
 
     const inputs = wrapper.findAll("input");
     const textarea = wrapper.find("textarea");
-    
+
     // Set valid form values
     await inputs[0]?.setValue("John Doe");
     await inputs[1]?.setValue("john@example.com");
@@ -28,7 +28,7 @@ describe("FeedbackSidebar.vue", () => {
 
     const form = wrapper.find("form");
     await form.trigger("submit");
-    
+
     // Wait for validation and the 600ms network simulation timeout
     await new Promise((r) => setTimeout(r, 700));
 
@@ -40,7 +40,7 @@ describe("FeedbackSidebar.vue", () => {
     expect.hasAssertions();
     const wrapper = mount(FeedbackSidebar, {
       props: { isOpen: false },
-      global: { stubs: { Teleport: true } }
+      global: { stubs: { Teleport: true } },
     });
 
     expect(wrapper.find("h3").exists()).toBe(false);

@@ -24,6 +24,7 @@ The tests are organized by concern to map closely to the architecture in the `sr
 ## Naming Conventions
 
 We use specific file suffixes to easily identify the type and scope of each test:
+
 - `*.component.test.ts` — Vue components and UI views.
 - `*.store.test.ts` — Pinia stores and state logic.
 - `*.unit.test.ts` — Pure utilities and helper functions.

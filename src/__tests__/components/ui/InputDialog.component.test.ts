@@ -5,15 +5,19 @@ import { useInput } from "@/composables/ui/useInput";
 import { ref } from "vue";
 import { createPinia } from "pinia";
 
-vi.mock(import('@/composables/ui/useInput'), () => ({
-  useInput: vi.fn()
+vi.mock(import("@/composables/ui/useInput"), () => ({
+  useInput: vi.fn(),
 }));
-vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
-  useBackButtonClose: vi.fn()
+vi.mock(import("@/composables/ui/useBackButtonClose"), () => ({
+  useBackButtonClose: vi.fn(),
 }));
-vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
-  useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-} as any));
+vi.mock(
+  import("@vueuse/integrations/useFocusTrap"),
+  () =>
+    ({
+      useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() }),
+    }) as any,
+);
 
 describe("InputDialog.vue", () => {
   beforeEach(() => {
@@ -25,7 +29,7 @@ describe("InputDialog.vue", () => {
     const handleConfirm = vi.fn();
     const handleCancel = vi.fn();
     const inputValue = ref("test-val");
-    
+
     vi.mocked(useInput).mockReturnValue({
       isOpen: ref(true),
       options: ref({
@@ -36,18 +40,18 @@ describe("InputDialog.vue", () => {
       inputValue,
       handleConfirm,
       handleCancel,
-      requestInput: vi.fn()
+      requestInput: vi.fn(),
     });
 
     const wrapper = mount(InputDialog, {
       global: {
         plugins: [createPinia()],
-        stubs: { Teleport: true }
-      }
+        stubs: { Teleport: true },
+      },
     });
 
     expect(wrapper.find("h3").text()).toBe("Test Title");
-    
+
     const input = wrapper.find("input");
     expect(input.exists()).toBe(true);
     expect(input.element.value).toBe("test-val");

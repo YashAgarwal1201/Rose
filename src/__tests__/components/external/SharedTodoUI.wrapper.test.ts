@@ -2,11 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, unmount } from "@/components/external/SharedTodoUI.ts";
 
 // Mock the Vue component
-vi.mock('@/components/external/SharedTodoUI.vue', () => ({
+vi.mock("@/components/external/SharedTodoUI.vue", () => ({
   default: {
-    template: "<div id='mocked-todo-ui'><span v-for='item in items' :key='item.id'>{{ item.title }}</span></div>",
-    props: ["items"]
-  }
+    template:
+      "<div id='mocked-todo-ui'><span v-for='item in items' :key='item.id'>{{ item.title }}</span></div>",
+    props: ["items"],
+  },
 }));
 
 describe("SharedTodoUI.ts Wrapper", () => {
@@ -17,9 +18,9 @@ describe("SharedTodoUI.ts Wrapper", () => {
     document.body.appendChild(container);
 
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,
@@ -54,8 +55,8 @@ describe("SharedTodoUI.ts Wrapper", () => {
     expect(container.innerHTML).toContain("Old Todo");
 
     update({ items: [{ id: "1", title: "New Todo", done: false }] });
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(container.innerHTML).toContain("New Todo");
     expect(container.innerHTML).not.toContain("Old Todo");
   });
@@ -65,13 +66,15 @@ describe("SharedTodoUI.ts Wrapper", () => {
     expect(container.classList.contains("dark")).toBe(false);
 
     document.documentElement.classList.add("dark");
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(container.classList.contains("dark")).toBe(true);
   });
 
   it("returns a scoped unmount function for isolated cleanup", () => {
-    const { unmount: unmountInstance } = mount(container, { items: [{ id: "1", title: "Isolated Todo", done: false }] });
+    const { unmount: unmountInstance } = mount(container, {
+      items: [{ id: "1", title: "Isolated Todo", done: false }],
+    });
     expect(container.innerHTML).toContain("Isolated Todo");
 
     unmountInstance();

@@ -1,16 +1,24 @@
 <!-- src/components/home/HomeDueSoonWidget.vue -->
 <template>
-  <section v-if="items.length > 0" class="mt-8 rounded-2xl border border-rose-border bg-rose-surface/40 p-4 sm:p-5 shadow-xs" data-testid="home-due-soon-widget">
+  <section
+    v-if="items.length > 0"
+    class="mt-8 rounded-2xl border border-rose-border bg-rose-surface/40 p-4 sm:p-5 shadow-xs"
+    data-testid="home-due-soon-widget"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-rose-primary/10 text-rose-primary flex items-center justify-center shrink-0">
+        <div
+          class="w-8 h-8 rounded-lg bg-rose-primary/10 text-rose-primary flex items-center justify-center shrink-0"
+        >
           <ClockIcon :size="18" />
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h2 class="text-base sm:text-lg font-bold text-rose-text">Due Soon</h2>
-            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-primary/10 text-rose-primary">
+            <span
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-primary/10 text-rose-primary"
+            >
               {{ totalCount ?? items.length }}
             </span>
           </div>
@@ -48,13 +56,17 @@
             class="w-2 h-2 rounded-full mt-1.5 shrink-0"
             :class="{
               'bg-red-500 ring-2 ring-red-500/20': getDueInfo(item.dueDate).urgency === 'overdue',
-              'bg-amber-500 ring-2 ring-amber-500/20': getDueInfo(item.dueDate).urgency === 'today' || getDueInfo(item.dueDate).urgency === 'tomorrow',
+              'bg-amber-500 ring-2 ring-amber-500/20':
+                getDueInfo(item.dueDate).urgency === 'today' ||
+                getDueInfo(item.dueDate).urgency === 'tomorrow',
               'bg-rose-primary/50': getDueInfo(item.dueDate).urgency === 'soon',
             }"
           ></span>
 
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-rose-text group-hover:text-rose-primary transition-colors truncate">
+            <p
+              class="text-sm font-semibold text-rose-text group-hover:text-rose-primary transition-colors truncate"
+            >
               {{ item.title }}
             </p>
             <p class="text-xs text-rose-text-muted flex items-center gap-1.5 mt-0.5 truncate">
@@ -84,17 +96,25 @@
               'bg-red-500/15 text-red-500 dark:text-red-400 border border-red-500/25':
                 getDueInfo(item.dueDate).urgency === 'overdue',
               'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25':
-                getDueInfo(item.dueDate).urgency === 'today' || getDueInfo(item.dueDate).urgency === 'tomorrow',
+                getDueInfo(item.dueDate).urgency === 'today' ||
+                getDueInfo(item.dueDate).urgency === 'tomorrow',
               'bg-rose-surface-alt text-rose-text-muted border border-rose-border':
                 getDueInfo(item.dueDate).urgency === 'soon',
             }"
           >
-            <AlertCircleIcon v-if="getDueInfo(item.dueDate).urgency === 'overdue'" :size="12" class="shrink-0" />
+            <AlertCircleIcon
+              v-if="getDueInfo(item.dueDate).urgency === 'overdue'"
+              :size="12"
+              class="shrink-0"
+            />
             <CalendarIcon v-else :size="12" class="shrink-0" />
             <span>{{ getDueInfo(item.dueDate).label }}</span>
           </span>
 
-          <ArrowRight :size="14" class="text-rose-text-muted opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block" />
+          <ArrowRight
+            :size="14"
+            class="text-rose-text-muted opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"
+          />
         </div>
       </div>
     </div>

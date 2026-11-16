@@ -9,19 +9,19 @@ const state = vi.hoisted(() => ({
   dragOperation: { source: null } as any,
 }));
 
-vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
+vi.mock(import("@dnd-kit/vue"), async (importOriginal) => {
   const actual = await importOriginal();
-  const vue = await import('vue');
-  
+  const vue = await import("vue");
+
   state.activeRef = vue.ref(false);
-  
+
   return {
     ...actual,
     useDragOverlay: vi.fn(() => ({ active: state.activeRef })),
     useDragOperation: vi.fn(() => state.dragOperation),
     DragOverlay: {
-      template: '<div><slot v-if="$attrs.active !== false" /></div>'
-    }
+      template: '<div><slot v-if="$attrs.active !== false" /></div>',
+    },
   } as any;
 });
 
@@ -30,8 +30,8 @@ function mountOverlay(props = {}) {
     props: {
       fileIcon: ListIcon,
       fileLabel: "list",
-      ...props
-    }
+      ...props,
+    },
   });
 }
 
@@ -39,7 +39,7 @@ describe("ExplorerDragOverlay", () => {
   beforeEach(() => {
     state.activeRef.value = false;
     state.dragOperation = {
-      source: null
+      source: null,
     };
   });
 
@@ -53,11 +53,11 @@ describe("ExplorerDragOverlay", () => {
   it("renders the ghost overlay when active", async () => {
     state.activeRef.value = true;
     state.dragOperation.source = {
-      data: { name: "Test File", kind: "file", id: "1" }
+      data: { name: "Test File", kind: "file", id: "1" },
     };
     const wrapper = mountOverlay();
     await wrapper.vm.$nextTick();
-    
+
     // Using string matching to verify it rendered something meaningful
     expect(wrapper.text()).toContain("Test File");
   });
@@ -65,9 +65,9 @@ describe("ExplorerDragOverlay", () => {
   it("renders the correct name for folders", async () => {
     state.activeRef.value = true;
     state.dragOperation.source = {
-      data: { name: "My Folder", kind: "folder", id: "f1" }
+      data: { name: "My Folder", kind: "folder", id: "f1" },
     };
-    
+
     const wrapper = mountOverlay();
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain("My Folder");

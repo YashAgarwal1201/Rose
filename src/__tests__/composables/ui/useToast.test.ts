@@ -51,7 +51,12 @@ describe("useToast", () => {
       showToast("Error", "error");
       showToast("Warning", "warning");
       showToast("Info", "info");
-      expect(toasts.value.map((t) => t.type)).toStrictEqual(["success", "error", "warning", "info"]);
+      expect(toasts.value.map((t) => t.type)).toStrictEqual([
+        "success",
+        "error",
+        "warning",
+        "info",
+      ]);
     });
   });
 
@@ -97,7 +102,7 @@ describe("useToast", () => {
       expect.hasAssertions();
       const { showToast, dismissToast, toasts } = useToast();
       showToast("To dismiss", "info");
-      const {id} = toasts.value[0]!;
+      const { id } = toasts.value[0]!;
       dismissToast(id);
       expect(toasts.value).toHaveLength(0);
     });
@@ -106,7 +111,7 @@ describe("useToast", () => {
       expect.hasAssertions();
       const { showToast, dismissToast, toasts } = useToast();
       showToast("Dismissed early", "info", 3000);
-      const {id} = toasts.value[0]!;
+      const { id } = toasts.value[0]!;
       dismissToast(id);
       // Advancing past the original duration should be a no-op
       vi.advanceTimersByTime(3000);

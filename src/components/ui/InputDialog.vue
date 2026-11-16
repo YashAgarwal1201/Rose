@@ -22,13 +22,17 @@
           :aria-labelledby="options.title ? 'input-dialog-title' : undefined"
           class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40"
         >
-          <h3 v-if="options.title" id="input-dialog-title" class="text-xl font-semibold text-rose-text mb-2">
+          <h3
+            v-if="options.title"
+            id="input-dialog-title"
+            class="text-xl font-semibold text-rose-text mb-2"
+          >
             {{ options.title }}
           </h3>
           <p v-if="options.message" class="text-base text-rose-text-muted mb-4">
             {{ options.message }}
           </p>
-          
+
           <input
             ref="inputRef"
             v-model="inputValue"
@@ -72,7 +76,7 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const dialogRef = ref<HTMLElement | null>(null);
 
 const { activate, deactivate } = useFocusTrap(dialogRef, { escapeDeactivates: false });
-watch(dialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
+watch(dialogRef, (el) => (el ? nextTick().then(() => activate()) : deactivate()));
 
 useBackButtonClose(isOpen, "input", handleCancel);
 

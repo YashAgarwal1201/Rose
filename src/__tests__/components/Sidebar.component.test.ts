@@ -5,7 +5,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { createMemoryHistory, createRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 
-
 function createTestRouter() {
   return createRouter({
     history: createMemoryHistory(),

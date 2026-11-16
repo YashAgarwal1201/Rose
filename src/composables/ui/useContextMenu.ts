@@ -1,4 +1,4 @@
-import { type ObjectDirective, ref, type Ref } from 'vue';
+import { type ObjectDirective, ref, type Ref } from "vue";
 
 export interface ContextMenuOptions<TItem> {
   onOpen?: (item: TItem) => void;
@@ -73,7 +73,9 @@ export const vLongPress: ObjectDirective<HTMLElement, (e: PointerEvent | MouseEv
 
     element.longPressHandlers = {
       pointerdown(e: PointerEvent) {
-        if (e.pointerType !== 'touch') {return;}
+        if (e.pointerType !== "touch") {
+          return;
+        }
         clear();
         startX = e.clientX;
         startY = e.clientY;
@@ -83,16 +85,18 @@ export const vLongPress: ObjectDirective<HTMLElement, (e: PointerEvent | MouseEv
             navigator.vibrate(50);
           }
           // Prevent the browser's native context menu from popping up after our long press
-          el.addEventListener('contextmenu', preventDefaultOnce, { capture: true, once: true });
+          el.addEventListener("contextmenu", preventDefaultOnce, { capture: true, once: true });
 
           // Cancel any pending drag-and-drop operations (like dnd-kit) now that context menu is opening
-          el.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
+          el.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true }));
 
           handler(e);
         }, 500);
       },
       pointermove(e: PointerEvent) {
-        if (e.pointerType !== 'touch' || !timer) {return;}
+        if (e.pointerType !== "touch" || !timer) {
+          return;
+        }
         if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
           clear();
         }
@@ -105,26 +109,26 @@ export const vLongPress: ObjectDirective<HTMLElement, (e: PointerEvent | MouseEv
         // We handle that with preventDefaultOnce above, but just in case:
         e.preventDefault();
         // If it was a mouse right-click, handle it
-        if ((e as PointerEvent).pointerType !== 'touch') {
+        if ((e as PointerEvent).pointerType !== "touch") {
           handler(e);
         }
-      }
+      },
     };
 
-    el.addEventListener('pointerdown', element.longPressHandlers.pointerdown);
-    el.addEventListener('pointermove', element.longPressHandlers.pointermove);
-    el.addEventListener('pointerup', element.longPressHandlers.pointerup);
-    el.addEventListener('pointercancel', element.longPressHandlers.pointercancel);
-    el.addEventListener('contextmenu', element.longPressHandlers.contextmenu);
+    el.addEventListener("pointerdown", element.longPressHandlers.pointerdown);
+    el.addEventListener("pointermove", element.longPressHandlers.pointermove);
+    el.addEventListener("pointerup", element.longPressHandlers.pointerup);
+    el.addEventListener("pointercancel", element.longPressHandlers.pointercancel);
+    el.addEventListener("contextmenu", element.longPressHandlers.contextmenu);
   },
   unmounted(el) {
     const element = el as LongPressElement;
     if (element.longPressHandlers) {
-      el.removeEventListener('pointerdown', element.longPressHandlers.pointerdown);
-      el.removeEventListener('pointermove', element.longPressHandlers.pointermove);
-      el.removeEventListener('pointerup', element.longPressHandlers.pointerup);
-      el.removeEventListener('pointercancel', element.longPressHandlers.pointercancel);
-      el.removeEventListener('contextmenu', element.longPressHandlers.contextmenu);
+      el.removeEventListener("pointerdown", element.longPressHandlers.pointerdown);
+      el.removeEventListener("pointermove", element.longPressHandlers.pointermove);
+      el.removeEventListener("pointerup", element.longPressHandlers.pointerup);
+      el.removeEventListener("pointercancel", element.longPressHandlers.pointercancel);
+      el.removeEventListener("contextmenu", element.longPressHandlers.contextmenu);
     }
-  }
+  },
 };

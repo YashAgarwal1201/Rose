@@ -79,13 +79,17 @@ export function useHomeSummary() {
       db.notes.toArray(),
     ]);
 
-    folders.value = folderRows.filter(f => !f.isVaulted && f.id !== "vault" && (f.trashedAt ?? null) === null);
-    todoLists.value = listRows.filter(l => !l.isVaulted && (l.trashedAt ?? null) === null);
-    docs.value = docRows.filter(d => !d.isVaulted && (d.trashedAt ?? null) === null);
-    notes.value = noteRows.filter(n => !n.isVaulted && (n.trashedAt ?? null) === null);
-    todos.value = todoRows.filter(t => !t.isVaulted);
-    const activeListIds = new Set(todoLists.value.map(l => l.id));
-    openTodoCount.value = todos.value.filter((todo) => !todo.done && activeListIds.has(todo.listId)).length;
+    folders.value = folderRows.filter(
+      (f) => !f.isVaulted && f.id !== "vault" && (f.trashedAt ?? null) === null,
+    );
+    todoLists.value = listRows.filter((l) => !l.isVaulted && (l.trashedAt ?? null) === null);
+    docs.value = docRows.filter((d) => !d.isVaulted && (d.trashedAt ?? null) === null);
+    notes.value = noteRows.filter((n) => !n.isVaulted && (n.trashedAt ?? null) === null);
+    todos.value = todoRows.filter((t) => !t.isVaulted);
+    const activeListIds = new Set(todoLists.value.map((l) => l.id));
+    openTodoCount.value = todos.value.filter(
+      (todo) => !todo.done && activeListIds.has(todo.listId),
+    ).length;
     isLoaded.value = true;
   }
 
@@ -201,7 +205,10 @@ export function useHomeSummary() {
       current.getFullYear(),
       current.getMonth(),
       current.getDate() + 3,
-      23, 59, 59, 999
+      23,
+      59,
+      59,
+      999,
     ).getTime();
 
     const listMap = new Map(todoLists.value.map((list) => [list.id, list]));
@@ -239,7 +246,10 @@ export function useHomeSummary() {
       current.getFullYear(),
       current.getMonth(),
       current.getDate() + 3,
-      23, 59, 59, 999
+      23,
+      59,
+      59,
+      999,
     ).getTime();
 
     const listMap = new Map(todoLists.value.map((list) => [list.id, list]));

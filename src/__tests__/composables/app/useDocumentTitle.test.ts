@@ -13,7 +13,7 @@ describe("useDocumentTitle", () => {
     expect.hasAssertions();
     const source = ref<string | null>(null);
     useDocumentTitle(source);
-    
+
     expect(document.title).toBe(defaultTitle);
   });
 
@@ -21,7 +21,7 @@ describe("useDocumentTitle", () => {
     expect.hasAssertions();
     const source = ref<string | undefined>(undefined);
     useDocumentTitle(source);
-    
+
     expect(document.title).toBe(defaultTitle);
   });
 
@@ -29,7 +29,7 @@ describe("useDocumentTitle", () => {
     expect.hasAssertions();
     const source = ref<string>("My Folder");
     useDocumentTitle(source);
-    
+
     expect(document.title).toBe(`My Folder · ${defaultTitle}`);
   });
 
@@ -37,20 +37,20 @@ describe("useDocumentTitle", () => {
     expect.hasAssertions();
     const source = ref<string | null>(null);
     useDocumentTitle(source);
-    
+
     expect(document.title).toBe(defaultTitle);
-    
+
     source.value = "New Document";
     // watch is sync/pre by default depending on flush, but we can await nextTick if needed.
     // In Vue 3, if flush is not specified, it's 'pre'. But changes to refs are sometimes batched.
     // However, the test environment usually applies synchronously or we can await Promise.resolve()
     await Promise.resolve();
-    
+
     expect(document.title).toBe(`New Document · ${defaultTitle}`);
-    
+
     source.value = null;
     await Promise.resolve();
-    
+
     expect(document.title).toBe(defaultTitle);
   });
 });

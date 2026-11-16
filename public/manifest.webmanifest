@@ -32,18 +32,14 @@
       "short_name": "Notes",
       "description": "Open your handwritten notes canvas",
       "url": "/notes/folder",
-      "icons": [
-        { "src": "/pencil-icon.svg", "sizes": "any", "type": "image/svg+xml" }
-      ]
+      "icons": [{ "src": "/pencil-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Docs",
       "short_name": "Docs",
       "description": "Go to your documents workspace",
       "url": "/docs/folder",
-      "icons": [
-        { "src": "/document-icon.svg", "sizes": "any", "type": "image/svg+xml" }
-      ]
+      "icons": [{ "src": "/document-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }

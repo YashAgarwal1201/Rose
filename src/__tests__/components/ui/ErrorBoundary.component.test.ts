@@ -16,8 +16,8 @@ describe("ErrorBoundary.vue", () => {
     expect.hasAssertions();
     const wrapper = mount(ErrorBoundary, {
       slots: {
-        default: "<div class='child-content'>Safe Content</div>"
-      }
+        default: "<div class='child-content'>Safe Content</div>",
+      },
     });
 
     expect(wrapper.text()).toContain("Safe Content");
@@ -32,16 +32,16 @@ describe("ErrorBoundary.vue", () => {
           throw new Error("Test setup error");
         });
         return () => null;
-      }
+      },
     });
 
     const wrapper = mount(ErrorBoundary, {
       slots: {
-        default: ThrowingChild
+        default: ThrowingChild,
       },
       global: {
-        stubs: { AlertTriangleIcon: true }
-      }
+        stubs: { AlertTriangleIcon: true },
+      },
     });
 
     await nextTick(); // wait for onMounted error to bubble up and ErrorBoundary to react
@@ -53,13 +53,13 @@ describe("ErrorBoundary.vue", () => {
 
     // Click retry should attempt to re-render (which will re-throw if the child still throws,
     // but in vue-test-utils, simply checking if hasError is reset is enough).
-    // Let's replace the child with a safe one on retry by changing a ref, 
+    // Let's replace the child with a safe one on retry by changing a ref,
     // or just checking that clicking retry resets the state.
     // However, since the slot is fixed in this mount, clicking retry will just re-mount ThrowingChild and throw again immediately.
     // So let's just verify the retry button exists and triggers the reset.
     const retryButton = wrapper.find("button");
     expect(retryButton.text()).toBe("Retry");
-    
+
     // We can directly test the component method if we want, or just verify the button
     await retryButton.trigger("click");
     // Since it immediately re-renders and re-throws, it might still show the error UI,

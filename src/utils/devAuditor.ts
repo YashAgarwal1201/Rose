@@ -41,7 +41,9 @@ function runAudit(routePath: string): void {
   // 1. PERFORMANCE (0-100)
   // ==========================================
   let perfScore = 100;
-  const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  const navEntry = performance.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
 
   let ttfb = 50;
   let domReady = 200;
@@ -271,7 +273,9 @@ function runAudit(routePath: string): void {
   }
 
   // Input Labels
-  const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+  const inputs = Array.from(
+    document.querySelectorAll('input:not([type="hidden"]), select, textarea'),
+  );
   const unlabelledInputs = inputs.filter((el) => {
     const id = el.getAttribute("id");
     const hasLabel = id ? Boolean(document.querySelector(`label[for="${id}"]`)) : false;
@@ -392,7 +396,10 @@ function runAudit(routePath: string): void {
     });
   }
 
-  const metaDesc = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim();
+  const metaDesc = document
+    .querySelector('meta[name="description"]')
+    ?.getAttribute("content")
+    ?.trim();
   if (!metaDesc) {
     seoScore -= 25;
     details.push({
@@ -519,7 +526,9 @@ function runAudit(routePath: string): void {
   const passed = details.filter((d) => d.status === "Pass");
 
   if (issues.length > 0) {
-    console.group(`⚠️ Action Items (${issues.length} issue${issues.length > 1 ? "s" : ""} to reach 100%):`);
+    console.group(
+      `⚠️ Action Items (${issues.length} issue${issues.length > 1 ? "s" : ""} to reach 100%):`,
+    );
     console.table(
       issues.map((i) => ({
         Category: i.category,

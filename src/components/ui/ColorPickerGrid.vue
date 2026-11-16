@@ -9,7 +9,7 @@ defineProps<{
 
 const emit = defineEmits<{
   "update:modelValue": [string];
-  "close": [];
+  close: [];
 }>();
 
 const COLORS = [
@@ -18,13 +18,13 @@ const COLORS = [
   "#cbd5e1", // Slate 300
   "#64748b", // Slate 500
   "#1a1a1a", // Almost Black
-  
+
   "#ef4444", // Red
   "#f97316", // Orange
   "#eab308", // Yellow
   "#22c55e", // Green
   "#14b8a6", // Teal
-  
+
   "#0ea5e9", // Sky
   "#3b82f6", // Blue
   "#6366f1", // Indigo
@@ -48,7 +48,9 @@ function handleCustomColorChange(e: Event) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 p-2 w-48 bg-rose-surface rounded-lg border border-rose-border shadow-lg">
+  <div
+    class="flex flex-col gap-2 p-2 w-48 bg-rose-surface rounded-lg border border-rose-border shadow-lg"
+  >
     <div class="grid grid-cols-5 gap-1.5">
       <button
         v-for="color in COLORS"
@@ -56,12 +58,18 @@ function handleCustomColorChange(e: Event) {
         type="button"
         class="relative w-7 h-7 rounded-full border shadow-sm transition-transform hover:scale-110 flex items-center justify-center"
         :class="[
-          (modelValue || '').toLowerCase() === color.toLowerCase() ? 'border-rose-primary ring-2 ring-rose-primary/30' : 'border-rose-border',
+          (modelValue || '').toLowerCase() === color.toLowerCase()
+            ? 'border-rose-primary ring-2 ring-rose-primary/30'
+            : 'border-rose-border',
         ]"
         :style="{ backgroundColor: color }"
         @click="selectColor(color)"
       >
-        <CheckIcon v-if="(modelValue || '').toLowerCase() === color.toLowerCase()" class="w-4 h-4 text-white drop-shadow-md" :class="color === '#ffffff' ? 'text-black' : ''" />
+        <CheckIcon
+          v-if="(modelValue || '').toLowerCase() === color.toLowerCase()"
+          class="w-4 h-4 text-white drop-shadow-md"
+          :class="color === '#ffffff' ? 'text-black' : ''"
+        />
       </button>
 
       <!-- Custom Color Picker -->

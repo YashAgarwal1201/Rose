@@ -61,7 +61,7 @@ describe("todosStore", () => {
       await freshDb();
       setActivePinia(createPinia());
       const store = useTodosStore();
-      await expect(store.createTodoList("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.createTodoList("A/B", null)).rejects.toThrow('cannot contain "/"');
     });
 
     it("throws on duplicate name within the same folder", async () => {
@@ -132,7 +132,9 @@ describe("todosStore", () => {
       setActivePinia(createPinia());
       const store = useTodosStore();
       const listId = await store.createTodoList("ValidList", null);
-      await expect(store.renameTodoList(listId, "Invalid/List")).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.renameTodoList(listId, "Invalid/List")).rejects.toThrow(
+        'cannot contain "/"',
+      );
     });
   });
 
@@ -492,4 +494,3 @@ describe("todosStore", () => {
     });
   });
 });
-

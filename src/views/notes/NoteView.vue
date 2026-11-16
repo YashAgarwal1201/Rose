@@ -31,7 +31,9 @@ const notesStore = useNotesStore();
 const foldersStore = useFoldersStore();
 const { showToast } = useToast();
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
+const segments = computed(() =>
+  Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : [],
+);
 const currentNote = ref<Note | undefined>(undefined);
 useDocumentTitle(() => currentNote.value?.title || "Note");
 const isVaultLocked = ref(false);
@@ -39,7 +41,7 @@ const isRenaming = ref(false);
 const renameValue = ref("");
 
 const vFocus = {
-  mounted: (el: HTMLElement) => el.focus()
+  mounted: (el: HTMLElement) => el.focus(),
 };
 
 const { effectivePosition, savedPosition, isMobile, setPosition } = useToolbarPosition();
@@ -49,12 +51,18 @@ const isInfoOpen = ref(false);
 let activeLoadToken = 0;
 
 const noteSize = computed(() => {
-  if (!currentNote.value) { return "0 KB"; }
+  if (!currentNote.value) {
+    return "0 KB";
+  }
   const jsonStr = currentNote.value.canvasJSON ? JSON.stringify(currentNote.value.canvasJSON) : "";
   const thumbStr = currentNote.value.thumbnail || "";
   const bytes = jsonStr.length + thumbStr.length;
-  if (bytes < 1024) { return `${bytes} B`; }
-  if (bytes < 1024 * 1024) { return `${(bytes / 1024).toFixed(1)} KB`; }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 });
 
@@ -144,7 +152,9 @@ async function loadNote() {
   isVaultLocked.value = false;
   try {
     const fullNote = await notesStore.getNote(match.id);
-    if (!fullNote) { throw new Error("Note not found in db"); }
+    if (!fullNote) {
+      throw new Error("Note not found in db");
+    }
     currentNote.value = fullNote;
     notesStore.touchNote(fullNote.id);
   } catch (error: unknown) {
@@ -207,13 +217,18 @@ function cancelRenameTitle() {
 async function handleCanvasChange(
   canvasJSON: Record<string, unknown>,
   backgroundColor: string,
-  backgroundPattern: import('@/db/types').BackgroundPattern,
+  backgroundPattern: import("@/db/types").BackgroundPattern,
   thumbnail: string,
 ) {
   if (!currentNote.value) {
     return;
   }
-  await notesStore.updateNote(currentNote.value.id, { canvasJSON, backgroundColor, backgroundPattern, thumbnail });
+  await notesStore.updateNote(currentNote.value.id, {
+    canvasJSON,
+    backgroundColor,
+    backgroundPattern,
+    thumbnail,
+  });
 }
 
 onMounted(loadNote);
@@ -225,18 +240,36 @@ watch(() => pathMatch, loadNote);
     <VaultAuthView v-if="isVaultLocked" @unlocked="loadNote" />
     <template v-else-if="currentNote">
       <Teleport to="body">
-        <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-          enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200"
-          leave-from-class="opacity-100" leave-to-class="opacity-0">
-          <div v-if="isInfoOpen" role="dialog" aria-modal="true" aria-labelledby="info-dialog-title"
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition-opacity duration-200"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="isInfoOpen"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="info-dialog-title"
             class="fixed inset-0 z-210 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
-            @click.self="isInfoOpen = false" @keydown.escape="isInfoOpen = false">
-            <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border">
+            @click.self="isInfoOpen = false"
+            @keydown.escape="isInfoOpen = false"
+          >
+            <div
+              class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+            >
               <div class="flex items-center justify-between mb-4">
-                <h3 id="info-dialog-title" class="text-lg font-semibold text-rose-text">Note properties</h3>
-                <button type="button" aria-label="Close properties"
+                <h3 id="info-dialog-title" class="text-lg font-semibold text-rose-text">
+                  Note properties
+                </h3>
+                <button
+                  type="button"
+                  aria-label="Close properties"
                   class="text-rose-text-muted hover:text-rose-text focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded p-0.5"
-                  @click="isInfoOpen = false">
+                  @click="isInfoOpen = false"
+                >
                   <XIcon class="w-5 h-5" />
                 </button>
               </div>
@@ -244,12 +277,14 @@ watch(() => pathMatch, loadNote);
               <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
                   <dt class="text-rose-text-muted">Created</dt>
-                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.createdAt ?? 0).toLocaleString() }}
+                  <dd class="text-rose-text font-medium">
+                    {{ new Date(currentNote?.createdAt ?? 0).toLocaleString() }}
                   </dd>
                 </div>
                 <div class="flex justify-between">
                   <dt class="text-rose-text-muted">Last modified</dt>
-                  <dd class="text-rose-text font-medium">{{ new Date(currentNote?.updatedAt ?? 0).toLocaleString() }}
+                  <dd class="text-rose-text font-medium">
+                    {{ new Date(currentNote?.updatedAt ?? 0).toLocaleString() }}
                   </dd>
                 </div>
                 <div class="flex justify-between">
@@ -261,7 +296,8 @@ watch(() => pathMatch, loadNote);
               <div class="mt-6 pt-4 border-t border-rose-border">
                 <h4 class="text-sm font-medium text-rose-text mb-2">Touch controls</h4>
                 <p class="text-sm text-rose-text-muted">
-                  Use 2 fingers to pan and scroll the canvas on touch devices. Single finger is reserved for drawing.
+                  Use 2 fingers to pan and scroll the canvas on touch devices. Single finger is
+                  reserved for drawing.
                 </p>
               </div>
             </div>
@@ -270,21 +306,33 @@ watch(() => pathMatch, loadNote);
       </Teleport>
 
       <div class="flex items-center gap-2 px-4 pt-4 pb-2 md:px-6 shrink-0 relative z-20">
-        <button class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
-          @click="goBack" aria-label="Back to files">
+        <button
+          class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
+          @click="goBack"
+          aria-label="Back to files"
+        >
           <ArrowLeftIcon class="w-4 h-4" />
         </button>
 
         <div class="flex items-center gap-2 flex-1 min-w-0 ml-2 group">
-          <input v-if="isRenaming" v-model="renameValue" type="text" v-focus aria-label="Note title"
+          <input
+            v-if="isRenaming"
+            v-model="renameValue"
+            type="text"
+            v-focus
+            aria-label="Note title"
             class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
-            @keyup.enter="confirmRenameTitle" @keyup.escape="cancelRenameTitle" @blur="confirmRenameTitle" />
+            @keyup.enter="confirmRenameTitle"
+            @keyup.escape="cancelRenameTitle"
+            @blur="confirmRenameTitle"
+          />
           <template v-else>
             <h1 class="text-xl font-bold text-rose-text truncate">{{ currentNote?.title }}</h1>
             <button
               class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
               aria-label="Rename note"
-              @click="startRenameTitle">
+              @click="startRenameTitle"
+            >
               <PencilIcon class="w-4 h-4" />
             </button>
           </template>
@@ -295,11 +343,18 @@ watch(() => pathMatch, loadNote);
         </span>
 
         <div v-if="!isMobile" class="flex items-center gap-0.5 ml-2 shrink-0">
-          <button v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]" :key="pos"
-            :title="`Toolbar ${pos}`" class="p-1 rounded transition-colors" :class="savedPosition === pos
-              ? 'text-rose-primary'
-              : 'text-rose-text-muted hover:text-rose-text'
-              " @click="setPosition(pos)">
+          <button
+            v-for="pos in ['top', 'left', 'right', 'bottom'] as ToolbarPosition[]"
+            :key="pos"
+            :title="`Toolbar ${pos}`"
+            class="p-1 rounded transition-colors"
+            :class="
+              savedPosition === pos
+                ? 'text-rose-primary'
+                : 'text-rose-text-muted hover:text-rose-text'
+            "
+            @click="setPosition(pos)"
+          >
             <PanelTopIcon v-if="pos === 'top'" class="w-4 h-4" />
             <PanelBottomIcon v-else-if="pos === 'bottom'" class="w-4 h-4" />
             <PanelLeftIcon v-else-if="pos === 'left'" class="w-4 h-4" />
@@ -310,7 +365,9 @@ watch(() => pathMatch, loadNote);
         <div class="relative ml-1">
           <button
             class="p-1.5 text-rose-text-muted hover:text-rose-text hover:bg-rose-surface-alt rounded-md transition-colors"
-            title="Note information" @click="isInfoOpen = true">
+            title="Note information"
+            @click="isInfoOpen = true"
+          >
             <InfoIcon class="w-4.5 h-4.5" />
           </button>
         </div>
@@ -318,10 +375,16 @@ watch(() => pathMatch, loadNote);
 
       <div class="flex-1 min-h-0 bg-rose-surface md:mt-2 lg:mt-2 overflow-hidden relative">
         <ErrorBoundary>
-          <NoteCanvas v-if="currentNote" :key="currentNote.id" :initial-canvas-json="currentNote.canvasJSON"
+          <NoteCanvas
+            v-if="currentNote"
+            :key="currentNote.id"
+            :initial-canvas-json="currentNote.canvasJSON"
             :initial-background-color="currentNote.backgroundColor"
-            :initial-background-pattern="currentNote.backgroundPattern" :toolbar-position="effectivePosition"
-            :note-title="currentNote.title" @change="handleCanvasChange" />
+            :initial-background-pattern="currentNote.backgroundPattern"
+            :toolbar-position="effectivePosition"
+            :note-title="currentNote.title"
+            @change="handleCanvasChange"
+          />
         </ErrorBoundary>
       </div>
     </template>

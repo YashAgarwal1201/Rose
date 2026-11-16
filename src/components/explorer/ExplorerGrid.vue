@@ -81,7 +81,7 @@ const creatingType = ref<"folder" | "file" | null>(null);
 const newName = ref("");
 
 const vFocus = {
-  mounted: (el: HTMLElement) => el.focus()
+  mounted: (el: HTMLElement) => el.focus(),
 };
 
 const renamingId = ref<string | null>(null);
@@ -232,7 +232,6 @@ function handleOpen(item: DisplayItem) {
   }
 }
 
-
 function handleDelete(item: DisplayItem, event: Event) {
   if (item.kind === "folder") {
     handleDeleteFolder(item.id, item.name, event);
@@ -248,7 +247,9 @@ function isRenaming(item: DisplayItem) {
 const contextMenu = useContextMenu<DisplayItem>();
 
 function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent | HTMLElement) {
-  if (item.isNew || isRenaming(item)) {return;}
+  if (item.isNew || isRenaming(item)) {
+    return;
+  }
   contextMenu.open(item, event);
 }
 
@@ -256,14 +257,18 @@ const mockEvent = { stopPropagation: () => {} } as Event;
 
 function handleMenuRename() {
   const item = contextMenu.activeItem.value;
-  if (!item) {return;}
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   startRename({ currentName: item.name, event: mockEvent, id: item.id, kind: item.kind });
 }
 
 function handleMenuDelete() {
   const item = contextMenu.activeItem.value;
-  if (!item) {return;}
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   handleDelete(item, mockEvent);
 }
@@ -388,14 +393,13 @@ defineExpose({ startCreate });
           @keyup.escape="cancelRename"
           @blur="confirmRename"
         />
-        <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
-          item.name
-        }}</span>
-
-        <div
-          v-if="!item.isNew"
-          class="flex items-center gap-1 shrink-0 relative z-10"
+        <span
+          v-else
+          class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none"
+          >{{ item.name }}</span
         >
+
+        <div v-if="!item.isNew" class="flex items-center gap-1 shrink-0 relative z-10">
           <button
             type="button"
             aria-label="More options"
@@ -429,96 +433,106 @@ defineExpose({ startCreate });
           role="listitem"
           v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)"
         >
-        <button
-          v-if="!item.isNew && !isRenaming(item)"
-          type="button"
-          class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
-          :aria-label="'Open ' + item.name"
-          @click="handleOpen(item)"
-        ></button>
+          <button
+            v-if="!item.isNew && !isRenaming(item)"
+            type="button"
+            class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0"
+            :aria-label="'Open ' + item.name"
+            @click="handleOpen(item)"
+          ></button>
 
-        <img
-          v-if="item.kind === 'file' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
-          :src="item.thumbnail"
-          class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
-          alt=""
-        />
-        <component
-          v-else
-          :is="item.kind === 'folder' ? FolderIcon : fileIcon"
-          class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
-          :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
-        />
+          <img
+            v-if="
+              item.kind === 'file' && item.thumbnail && item.thumbnail.startsWith('data:image/')
+            "
+            :src="item.thumbnail"
+            class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
+            alt=""
+          />
+          <component
+            v-else
+            :is="item.kind === 'folder' ? FolderIcon : fileIcon"
+            class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
+            :class="item.kind === 'folder' ? 'text-rose-primary' : 'text-rose-text-muted'"
+          />
 
-        <input
-          v-if="item.isNew"
-          v-model="newName"
-          ref="newItemInputRef"
-          type="text"
-          v-focus
-          aria-label="New item name"
-          :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
-          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-          @click.stop
-          @keyup.enter="confirmCreate"
-          @keyup.escape="cancelCreate"
-          @blur="confirmCreate"
-        />
-        <input
-          v-else-if="isRenaming(item)"
-          v-model="renamingName"
-          type="text"
-          v-focus
-          aria-label="Rename item"
-          class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-          @click.stop
-          @keyup.enter="confirmRename"
-          @keyup.escape="cancelRename"
-          @blur="confirmRename"
-        />
-        <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
-          <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
-          <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 capitalize">
-            {{ item.kind === "folder" ? "Folder" : fileLabel }}
-            <template v-if="item.itemCount !== undefined"> &bull; {{ item.itemCount }} item{{ item.itemCount === 1 ? '' : 's' }}</template>
-            <template v-if="item.updatedAt"> &bull; {{ formatRelativeTime(item.updatedAt) }}</template>
-          </span>
-        </div>
-
-        <template v-if="!item.isNew">
-          <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-            {{ item.kind === "folder" ? "Folder" : fileLabel }}
-          </span>
-          <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden md:block">
-            {{ item.itemCount ?? "—" }}
-          </span>
-          <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-            {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
-          </span>
-          <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-            {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
-          </span>
-          <div
-            class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10"
-          >
-            <button
-              type="button"
-              aria-label="More options"
-              class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-              @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
-            >
-              <MoreVerticalIcon class="w-4 h-4" />
-            </button>
+          <input
+            v-if="item.isNew"
+            v-model="newName"
+            ref="newItemInputRef"
+            type="text"
+            v-focus
+            aria-label="New item name"
+            :placeholder="item.kind === 'folder' ? 'Folder name' : `${fileLabel} name`"
+            class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+            @click.stop
+            @keyup.enter="confirmCreate"
+            @keyup.escape="cancelCreate"
+            @blur="confirmCreate"
+          />
+          <input
+            v-else-if="isRenaming(item)"
+            v-model="renamingName"
+            type="text"
+            v-focus
+            aria-label="Rename item"
+            class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+            @click.stop
+            @keyup.enter="confirmRename"
+            @keyup.escape="cancelRename"
+            @blur="confirmRename"
+          />
+          <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
+            <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
+            <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 capitalize">
+              {{ item.kind === "folder" ? "Folder" : fileLabel }}
+              <template v-if="item.itemCount !== undefined">
+                &bull; {{ item.itemCount }} item{{ item.itemCount === 1 ? "" : "s" }}</template
+              >
+              <template v-if="item.updatedAt">
+                &bull; {{ formatRelativeTime(item.updatedAt) }}</template
+              >
+            </span>
           </div>
-        </template>
-        <template v-else>
-          <span class="w-16 shrink-0 hidden lg:block"></span>
-          <span class="w-20 shrink-0 hidden md:block"></span>
-          <span class="w-28 shrink-0 hidden lg:block"></span>
-          <span class="w-32 shrink-0 hidden lg:block"></span>
-          <div class="w-14 shrink-0"></div>
-        </template>
-      </div>
+
+          <template v-if="!item.isNew">
+            <span
+              class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+            >
+              {{ item.kind === "folder" ? "Folder" : fileLabel }}
+            </span>
+            <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden md:block">
+              {{ item.itemCount ?? "—" }}
+            </span>
+            <span
+              class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+            >
+              {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
+            </span>
+            <span
+              class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+            >
+              {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
+            </span>
+            <div class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10">
+              <button
+                type="button"
+                aria-label="More options"
+                class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+                @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
+              >
+                <MoreVerticalIcon class="w-4 h-4" />
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <span class="w-16 shrink-0 hidden lg:block"></span>
+            <span class="w-20 shrink-0 hidden md:block"></span>
+            <span class="w-28 shrink-0 hidden lg:block"></span>
+            <span class="w-32 shrink-0 hidden lg:block"></span>
+            <div class="w-14 shrink-0"></div>
+          </template>
+        </div>
       </div>
     </div>
   </div>

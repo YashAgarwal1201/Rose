@@ -16,15 +16,15 @@ describe("useContextMenu", () => {
     expect.hasAssertions();
     const onOpen = vi.fn();
     const { open, isOpen, activeItem, x, y } = useContextMenu({ onOpen });
-    
+
     const mockEvent = new MouseEvent("contextmenu", {
       clientX: 100,
       clientY: 200,
     });
-    
+
     const item = { id: 1, name: "Test Item" };
     open(item, mockEvent);
-    
+
     expect(isOpen.value).toBe(true);
     expect(activeItem.value).toStrictEqual(item);
     expect(x.value).toBe(100);
@@ -35,15 +35,15 @@ describe("useContextMenu", () => {
   it("opens with HTMLElement and sets coordinates based on bounding rect", () => {
     expect.hasAssertions();
     const { open, isOpen, x, y } = useContextMenu();
-    
+
     const mockElement = document.createElement("button");
     mockElement.getBoundingClientRect = vi.fn().mockReturnValue({
       right: 150,
       bottom: 250,
     });
-    
+
     open("test-item", mockElement);
-    
+
     expect(isOpen.value).toBe(true);
     expect(x.value).toBe(150);
     expect(y.value).toBe(250);
@@ -53,12 +53,12 @@ describe("useContextMenu", () => {
     expect.hasAssertions();
     const onClose = vi.fn();
     const { open, close, isOpen, activeItem } = useContextMenu({ onClose });
-    
+
     open("test-item", new MouseEvent("click"));
     expect(isOpen.value).toBe(true);
-    
+
     close();
-    
+
     expect(isOpen.value).toBe(false);
     expect(activeItem.value).toBeNull();
     expect(onClose).toHaveBeenCalledWith();
@@ -77,26 +77,30 @@ describe("vLongPress", () => {
     return mount(
       {
         template: '<div v-long-press="handler" class="test-div"></div>',
-        props: ['handler'],
+        props: ["handler"],
       },
       {
         global: { directives: { longPress: vLongPress } },
         props: { handler },
-      }
+      },
     );
   }
 
   it("triggers handler and dispatches pointercancel after 500ms of holding still", async () => {
     const handler = vi.fn();
     const wrapper = mountDirective(handler);
-    
+
     // Listen for pointercancel
     let cancelFired = false;
     wrapper.element.addEventListener("pointercancel", () => {
       cancelFired = true;
     });
 
-    const pointerDownEvent = new PointerEvent("pointerdown", { pointerType: "touch", clientX: 10, clientY: 10 });
+    const pointerDownEvent = new PointerEvent("pointerdown", {
+      pointerType: "touch",
+      clientX: 10,
+      clientY: 10,
+    });
     wrapper.element.dispatchEvent(pointerDownEvent);
 
     vi.advanceTimersByTime(499);
@@ -112,11 +116,19 @@ describe("vLongPress", () => {
     const handler = vi.fn();
     const wrapper = mountDirective(handler);
 
-    const pointerDownEvent = new PointerEvent("pointerdown", { pointerType: "touch", clientX: 10, clientY: 10 });
+    const pointerDownEvent = new PointerEvent("pointerdown", {
+      pointerType: "touch",
+      clientX: 10,
+      clientY: 10,
+    });
     wrapper.element.dispatchEvent(pointerDownEvent);
 
     // Move more than 10px
-    const pointerMoveEvent = new PointerEvent("pointermove", { pointerType: "touch", clientX: 25, clientY: 10 });
+    const pointerMoveEvent = new PointerEvent("pointermove", {
+      pointerType: "touch",
+      clientX: 25,
+      clientY: 10,
+    });
     wrapper.element.dispatchEvent(pointerMoveEvent);
 
     vi.advanceTimersByTime(600);
@@ -127,7 +139,11 @@ describe("vLongPress", () => {
     const handler = vi.fn();
     const wrapper = mountDirective(handler);
 
-    const pointerDownEvent = new PointerEvent("pointerdown", { pointerType: "mouse", clientX: 10, clientY: 10 });
+    const pointerDownEvent = new PointerEvent("pointerdown", {
+      pointerType: "mouse",
+      clientX: 10,
+      clientY: 10,
+    });
     wrapper.element.dispatchEvent(pointerDownEvent);
 
     vi.advanceTimersByTime(600);

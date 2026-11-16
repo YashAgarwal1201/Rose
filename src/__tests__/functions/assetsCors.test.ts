@@ -11,7 +11,9 @@ describe("Cloudflare Pages Function: assets CORS", () => {
 
     it("allows same-origin requests", () => {
       expect(isAllowedOrigin("https://rosejournal.pages.dev", selfUrl)).toBeTruthy();
-      expect(isAllowedOrigin("https://custom-rose.com", "https://custom-rose.com/assets/index.js")).toBeTruthy();
+      expect(
+        isAllowedOrigin("https://custom-rose.com", "https://custom-rose.com/assets/index.js"),
+      ).toBeTruthy();
     });
 
     it("allows local development origins on any port", () => {
@@ -62,18 +64,22 @@ describe("Cloudflare Pages Function: assets CORS", () => {
         headers.set("Origin", options.origin);
       }
 
-      const request = new Request(options.url || "https://rosejournal.pages.dev/assets/remoteEntry.js", {
-        method,
-        headers,
-      });
+      const request = new Request(
+        options.url || "https://rosejournal.pages.dev/assets/remoteEntry.js",
+        {
+          method,
+          headers,
+        },
+      );
 
-      const next = vi.fn<() => Promise<Response>>(async () => (
-        options.nextResponse ||
-        new Response("console.log('remote module');", {
-          status: 200,
-          headers: { "Content-Type": "application/javascript" },
-        })
-      ));
+      const next = vi.fn<() => Promise<Response>>(
+        async () =>
+          options.nextResponse ||
+          new Response("console.log('remote module');", {
+            status: 200,
+            headers: { "Content-Type": "application/javascript" },
+          }),
+      );
 
       return {
         context: {

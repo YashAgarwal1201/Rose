@@ -3,20 +3,24 @@ import { mount } from "@vue/test-utils";
 import SharedTodoUI, { type TodoItem } from "@/components/external/SharedTodoUI.vue";
 
 // Mock the context menu to prevent errors during rendering
-vi.mock(import('@/composables/ui/useContextMenu'), () => ({
-  useContextMenu: () => ({
-    isOpen: { value: false },
-    x: { value: 0 },
-    y: { value: 0 },
-    activeItem: { value: null },
-    open: vi.fn(),
-    close: vi.fn(),
-  }),
-  vLongPress: {
-    mounted: vi.fn(),
-    unmounted: vi.fn()
-  }
-} as any));
+vi.mock(
+  import("@/composables/ui/useContextMenu"),
+  () =>
+    ({
+      useContextMenu: () => ({
+        isOpen: { value: false },
+        x: { value: 0 },
+        y: { value: 0 },
+        activeItem: { value: null },
+        open: vi.fn(),
+        close: vi.fn(),
+      }),
+      vLongPress: {
+        mounted: vi.fn(),
+        unmounted: vi.fn(),
+      },
+    }) as any,
+);
 
 describe("SharedTodoUI.vue", () => {
   it("renders correctly with empty items", () => {
