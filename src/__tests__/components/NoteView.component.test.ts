@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { flushPromises, mount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import NoteView from "@/views/notes/NoteView.vue";
 import { createPinia, setActivePinia } from "pinia";
 import db from "../../db";
-import { useFoldersStore } from "../../stores/folders";
-import { useNotesStore } from "../../stores/notes";
 import "fake-indexeddb/auto";
 import { nextTick, ref } from "vue";
 

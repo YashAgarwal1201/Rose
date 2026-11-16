@@ -22,6 +22,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 import VaultAuthView from "@/components/ui/VaultAuthView.vue";
 import { type ToolbarPosition, useToolbarPosition } from "@/composables/ui/useToolbarPosition.ts";
 import { getErrorMessage } from "@/utils/error";
+import { useDocumentTitle } from "@/composables/app/useDocumentTitle.ts";
 
 const { pathMatch } = defineProps<{ pathMatch?: string | string[] }>();
 
@@ -32,6 +33,7 @@ const { showToast } = useToast();
 
 const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
 const currentNote = ref<Note | undefined>(undefined);
+useDocumentTitle(() => currentNote.value?.title || "Note");
 const isVaultLocked = ref(false);
 const isRenaming = ref(false);
 const renameValue = ref("");
@@ -269,18 +271,19 @@ watch(() => pathMatch, loadNote);
 
       <div class="flex items-center gap-2 px-4 pt-4 pb-2 md:px-6 shrink-0 relative z-20">
         <button class="flex items-center gap-1.5 text-sm text-rose-text-muted hover:text-rose-text transition-colors"
-          @click="goBack">
+          @click="goBack" aria-label="Back to files">
           <ArrowLeftIcon class="w-4 h-4" />
         </button>
 
         <div class="flex items-center gap-2 flex-1 min-w-0 ml-2 group">
-          <input v-if="isRenaming" v-model="renameValue" type="text" v-focus
+          <input v-if="isRenaming" v-model="renameValue" type="text" v-focus aria-label="Note title"
             class="text-xl font-bold bg-transparent border-b-2 border-rose-primary text-rose-text focus:outline-none min-w-0 flex-1"
             @keyup.enter="confirmRenameTitle" @keyup.escape="cancelRenameTitle" @blur="confirmRenameTitle" />
           <template v-else>
             <h1 class="text-xl font-bold text-rose-text truncate">{{ currentNote?.title }}</h1>
             <button
               class="opacity-0 group-hover:opacity-100 text-rose-text-muted hover:text-rose-primary transition-opacity shrink-0"
+              aria-label="Rename note"
               @click="startRenameTitle">
               <PencilIcon class="w-4 h-4" />
             </button>

@@ -2,7 +2,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { ref } from "vue";
-import { ListIcon } from "@lucide/vue";
 import MixedExplorerGrid from "@/components/explorer/MixedExplorerGrid.vue";
 
 const mockViewMode = ref<"grid" | "list">("grid");

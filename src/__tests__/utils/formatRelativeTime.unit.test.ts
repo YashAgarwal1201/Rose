@@ -20,7 +20,7 @@ function future(ms: number): number {
 describe("formatRelativeTime", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(1700000000000);
+    vi.setSystemTime(1_700_000_000_000);
   });
 
   afterEach(() => {

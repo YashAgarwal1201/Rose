@@ -10,26 +10,24 @@ vi.mock(import('perfect-freehand'), () => ({
 // Partially mock fabric
 vi.mock(import('fabric'), () => (
   {
-    Canvas: vi.fn().mockImplementation(() => {
-      return {
-        add: vi.fn(),
-        remove: vi.fn(),
-        requestRenderAll: vi.fn(),
-        setActiveObject: vi.fn(),
-        clearContext: vi.fn(),
-        getScenePoint: vi.fn().mockReturnValue({ x: 0, y: 0 }),
-        getObjects: vi.fn().mockReturnValue([]),
-        getHeight: vi.fn().mockReturnValue(1000),
-        setDimensions: vi.fn(),
-        forEachObject: vi.fn(),
-        discardActiveObject: vi.fn(),
-        getVpCenter: vi.fn().mockReturnValue({ x: 100, y: 100 }),
-        sendObjectToBack: vi.fn(),
-        upperCanvasEl: document.createElement("canvas"),
-        contextTop: {},
-      };
-    }),
-    Path: vi.fn().mockImplementation(() => ({ getBoundingRect: () => ({ top: 0, height: 100 }) })),
+    Canvas: vi.fn(() => ({
+      add: vi.fn(),
+      remove: vi.fn(),
+      requestRenderAll: vi.fn(),
+      setActiveObject: vi.fn(),
+      clearContext: vi.fn(),
+      getScenePoint: vi.fn().mockReturnValue({ x: 0, y: 0 }),
+      getObjects: vi.fn().mockReturnValue([]),
+      getHeight: vi.fn().mockReturnValue(1000),
+      setDimensions: vi.fn(),
+      forEachObject: vi.fn(),
+      discardActiveObject: vi.fn(),
+      getVpCenter: vi.fn().mockReturnValue({ x: 100, y: 100 }),
+      sendObjectToBack: vi.fn(),
+      upperCanvasEl: document.createElement("canvas"),
+      contextTop: {},
+    })),
+    Path: vi.fn().mockReturnValue({ getBoundingRect: () => ({ top: 0, height: 100 }) }),
     Rect: vi.fn(),
     Ellipse: vi.fn(),
     Line: vi.fn(),
@@ -61,8 +59,6 @@ describe("useHandwritingCanvas", () => {
     // We don't know exactly what it returns yet without seeing the bottom of the file.
     // But typically it returns tool, penTool, shapeTool, canUndo, etc.
     expect(composable).toBeDefined();
-    if ("tool" in composable) {
-      expect((composable as any).tool.value).toBe("pen");
-    }
+    expect((composable as any).tool.value).toBe("pen");
   });
 });

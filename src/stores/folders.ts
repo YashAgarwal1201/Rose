@@ -3,8 +3,6 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import db from "@/db";
 import type { FeatureType, Folder } from "@/db/types";
-import { useTodosStore } from "./todos";
-import { useDocsStore } from "./docs";
 import { useActivityStore } from "./activity";
 import { useVaultStore } from "./vault";
 import { useTrashStore } from "./trash";
@@ -82,6 +80,9 @@ export const useFoldersStore = defineStore("folders", () => {
 
   async function createFolder(name: string, parentId: string | null, _type: FeatureType | "mixed" = "mixed") {
     const trimmed = name.trim() || "Untitled folder";
+    if (trimmed.includes("/")) {
+      throw new Error("Folder name cannot contain \"/\".");
+    }
     const duplicate = folders.value.find(
       (folder) =>
         folder.parentId === parentId &&
@@ -129,6 +130,9 @@ export const useFoldersStore = defineStore("folders", () => {
       throw new Error("Secure Vault cannot be renamed.");
     }
     const trimmed = name.trim();
+    if (trimmed.includes("/")) {
+      throw new Error("Folder name cannot contain \"/\".");
+    }
     const target = folders.value.find((folder) => folder.id === id);
     if (!target) {
       return;
@@ -145,20 +149,6 @@ export const useFoldersStore = defineStore("folders", () => {
     }
     await db.folders.update(id, { name: trimmed, updatedAt: Date.now() });
     await reloadCurrent();
-  }
-
-  function collectDescendantIds(id: string): string[] {
-    const result: string[] = [];
-    const queue = [id];
-    while (queue.length > 0) {
-      const currentId = queue.shift();
-      const children = folders.value.filter((folder) => folder.parentId === currentId);
-      for (const child of children) {
-        result.push(child.id);
-        queue.push(child.id);
-      }
-    }
-    return result;
   }
 
   async function deleteFolder(id: string) {

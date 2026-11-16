@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import InputDialog from "@/components/ui/InputDialog.vue";
 import { useInput } from "@/composables/ui/useInput";
-import { nextTick, ref } from "vue";
+import { ref } from "vue";
 import { createPinia } from "pinia";
 
 vi.mock(import('@/composables/ui/useInput'), () => ({

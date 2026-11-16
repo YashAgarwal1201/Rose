@@ -71,6 +71,14 @@ describe("foldersStore", () => {
       expect(rows.find(f => f.id !== "vault")?.name).toBe("Saved");
     });
 
+    it("rejects folder names containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      await expect(store.createFolder("A/B", null, "todo")).rejects.toThrow("cannot contain \"/\"");
+    });
+
     it("throws when a duplicate name exists under the same parent", async () => {
       expect.hasAssertions();
       await freshDb();
@@ -144,6 +152,15 @@ describe("foldersStore", () => {
       await store.createFolder("Foo", null, "todo");
       const barId = await store.createFolder("Bar", null, "todo");
       await expect(store.renameFolder(barId, "Foo")).rejects.toThrow("already exists");
+    });
+
+    it("rejects renaming a folder with a name containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useFoldersStore();
+      const folderId = await store.createFolder("ValidFolder", null, "todo");
+      await expect(store.renameFolder(folderId, "Invalid/Folder")).rejects.toThrow("cannot contain \"/\"");
     });
 
     it("does nothing when the folder id does not exist", async () => {

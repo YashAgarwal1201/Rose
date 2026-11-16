@@ -61,8 +61,8 @@ describe("NoteToolbar.vue", () => {
     it("opens the shape popover and emits update:shapeTool", async () => {
       const wrapper = mountToolbar();
       await wrapper.find('button[title="Shapes"]').trigger("click");
-      const ellipseBtn = wrapper.findAll("button").filter(b => b.text().includes("Ellipse"));
-      await ellipseBtn[0]?.trigger("click");
+      const ellipseBtn = wrapper.findAll("button").find(b => b.text().includes("Ellipse"));
+      await ellipseBtn?.trigger("click");
       expect(wrapper.emitted("update:shapeTool")?.[0]).toStrictEqual(["ellipse"]);
     });
 

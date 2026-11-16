@@ -56,6 +56,14 @@ describe("todosStore", () => {
       expect(store.todoLists[0]?.folderId).toBe("folder-abc");
     });
 
+    it("rejects list names containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      await expect(store.createTodoList("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+    });
+
     it("throws on duplicate name within the same folder", async () => {
       expect.hasAssertions();
       await freshDb();
@@ -116,6 +124,15 @@ describe("todosStore", () => {
       await store.createTodoList("Taken", null);
       const otherId = await store.createTodoList("Other", null);
       await expect(store.renameTodoList(otherId, "Taken")).rejects.toThrow("already exists");
+    });
+
+    it("rejects renaming to a name containing /", async () => {
+      expect.hasAssertions();
+      await freshDb();
+      setActivePinia(createPinia());
+      const store = useTodosStore();
+      const listId = await store.createTodoList("ValidList", null);
+      await expect(store.renameTodoList(listId, "Invalid/List")).rejects.toThrow("cannot contain \"/\"");
     });
   });
 

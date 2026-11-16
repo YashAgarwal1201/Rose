@@ -114,10 +114,13 @@ onUnmounted(() => {
 
 <template>
   <nav
+    aria-label="Breadcrumb"
     class="flex items-center gap-0.5 text-sm mb-4 px-2 py-1.5 rounded-lg bg-rose-surface-alt/60 overflow-x-auto whitespace-nowrap no-scrollbar"
   >
     <button
-      class="flex items-center gap-1 px-2 py-1 rounded-md text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors shrink-0"
+      type="button"
+      aria-label="Root folder"
+      class="flex items-center gap-1 px-2 py-1 rounded-md text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
       :class="dragOverCrumbId === null ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''"
       @dragover="handleDragOver(null, $event)"
       @dragleave="handleDragLeave(null)"
@@ -129,10 +132,14 @@ onUnmounted(() => {
 
     <!-- Small screens: collapsed view, entire trail is one tappable trigger -->
     <template v-if="crumbs.length > 0">
-      <div
+      <button
         v-if="crumbs.length > 1"
         ref="triggerRef"
-        class="flex items-center gap-0.5 sm:hidden cursor-pointer rounded-md hover:bg-rose-surface px-1 py-1 -mx-1 transition-colors"
+        type="button"
+        aria-haspopup="true"
+        :aria-expanded="isPopoverOpen"
+        aria-label="Show collapsed breadcrumb trail"
+        class="flex items-center gap-0.5 sm:hidden cursor-pointer rounded-md hover:bg-rose-surface px-1 py-1 -mx-1 transition-colors border-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
         @click="togglePopover"
       >
         <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
@@ -147,7 +154,7 @@ onUnmounted(() => {
         >
           {{ crumbs[crumbs.length - 1]?.name }}
         </span>
-      </div>
+      </button>
       <div v-else class="flex items-center gap-0.5 sm:hidden">
         <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
         <span
@@ -163,7 +170,9 @@ onUnmounted(() => {
       <div class="hidden sm:flex items-center gap-0.5">
         <ChevronRightIcon class="w-3.5 h-3.5 text-rose-text-muted/50 shrink-0" />
         <button
-          class="px-2 py-1 rounded-md truncate max-w-32 md:max-w-40 shrink-0 transition-colors"
+          type="button"
+          :aria-current="index === crumbs.length - 1 ? 'page' : undefined"
+          class="px-2 py-1 rounded-md truncate max-w-32 md:max-w-40 shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
           :class="[
             index === crumbs.length - 1
               ? 'bg-rose-surface-alt text-rose-text font-medium'

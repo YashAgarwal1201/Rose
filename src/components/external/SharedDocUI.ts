@@ -1,15 +1,32 @@
 import SharedDocUI from './SharedDocUI.vue';
 import { type App, createApp, h, reactive } from 'vue';
 
-let app: App | null = null;
-let observer: MutationObserver | null = null;
+export interface MountedComponent {
+  app: App;
+  update: (newProps: Record<string, unknown>) => void;
+  unmount: () => void;
+}
 
-export function mount(el: HTMLElement, initialProps: Record<string, any>) {
+interface ComponentInstance {
+  app: App;
+  unmount: () => void;
+}
+
+const instances = new Map<HTMLElement, ComponentInstance>();
+
+export function mount(el: HTMLElement, initialProps: Record<string, unknown> = {}): MountedComponent {
+  if (instances.has(el)) {
+    instances.get(el)?.unmount();
+  }
+
+  const mediaQuery = typeof globalThis.matchMedia === 'function'
+    ? globalThis.matchMedia('(prefers-color-scheme: dark)')
+    : null;
+
   const syncDarkMode = () => {
     const html = document.documentElement;
-    const {body} = document;
+    const { body } = document;
 
-    // Check multiple common ways host apps signal dark mode
     const isDark =
       html.classList.contains('dark') ||
       body.classList.contains('dark') ||
@@ -17,40 +34,52 @@ export function mount(el: HTMLElement, initialProps: Record<string, any>) {
       html.getAttribute('data-mode') === 'dark' ||
       html.getAttribute('theme') === 'dark' ||
       html.style.colorScheme === 'dark' ||
-      globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
+      Boolean(mediaQuery?.matches);
 
     el.classList.toggle('dark', isDark);
   };
 
   syncDarkMode();
-  observer = new MutationObserver(syncDarkMode);
+  const observer = new MutationObserver(syncDarkMode);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-mode', 'theme', 'style'] });
-  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  globalThis.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncDarkMode);
+  if (document.body) {
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+  mediaQuery?.addEventListener?.('change', syncDarkMode);
 
   const state = reactive({ ...initialProps });
 
-  app = createApp({
+  const app = createApp({
     render: () => h(SharedDocUI, state)
   });
   app.mount(el);
 
+  const unmountInstance = () => {
+    observer.disconnect();
+    mediaQuery?.removeEventListener?.('change', syncDarkMode);
+    app.unmount();
+    el.classList.remove('dark');
+    instances.delete(el);
+  };
+
+  instances.set(el, { app, unmount: unmountInstance });
+
   return {
     app,
-    update: (newProps: Record<string, any>) => {
+    update: (newProps: Record<string, unknown>) => {
       Object.assign(state, newProps);
-    }
+    },
+    unmount: unmountInstance
   };
 }
 
-export function unmount() {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-  if (app) {
-    app.unmount();
-    app = null;
+export function unmount(el?: HTMLElement) {
+  if (el) {
+    instances.get(el)?.unmount();
+  } else {
+    for (const instance of instances.values()) {
+      instance.unmount();
+    }
   }
 }
 

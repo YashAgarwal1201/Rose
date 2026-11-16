@@ -216,14 +216,14 @@ export function useHomeSummary() {
         }
         return t.dueDate <= endOfWindow;
       })
-      .sort((a, b) => (a.dueDate ?? 0) - (b.dueDate ?? 0))
+      .toSorted((a, b) => (a.dueDate ?? 0) - (b.dueDate ?? 0))
       .slice(0, 5)
       .map((t) => {
         const list = listMap.get(t.listId)!;
         return {
           id: t.id,
           listId: t.listId,
-          title: t.title || (t as any).text || "Untitled",
+          title: t.title || (t as { text?: string }).text || "Untitled",
           dueDate: t.dueDate!,
           priority: t.priority ?? null,
           listName: list.name,

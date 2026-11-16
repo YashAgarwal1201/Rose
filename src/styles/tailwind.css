@@ -51,6 +51,6 @@
   --color-rose-green: var(--rose-green);
   --color-rose-green-muted: var(--rose-green-muted);
 
-  --font-content: "Manrope", sans-serif;
-  --font-heading: "Petrona", serif;
+  --font-content: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: "Petrona", Georgia, Cambria, "Times New Roman", Times, serif;
 }

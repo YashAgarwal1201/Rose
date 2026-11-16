@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { CheckIcon, PlusIcon } from "@lucide/vue";
 
-const props = defineProps<{
+defineProps<{
   modelValue: string;
   defaultColor: string;
 }>();

@@ -6,8 +6,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { IDBFactory } from "fake-indexeddb";
 import { ref } from "vue";
 import db from "../../db";
-import { useDocsStore } from "../../stores/docs";
-import { useFoldersStore } from "../../stores/folders";
 import DocView from "@/views/docs/DocView.vue";
 
 // \u2500\u2500\u2500 Fake TipTap editor \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -28,8 +26,8 @@ const chainMethods = [
 ];
 function makeChain() {
   const chain: Record<string, unknown> = {};
-  chainMethods.forEach((m) => {
-    chain[m] = vi.fn(() => chain);
+  chainMethods.forEach((method) => {
+    chain[method] = vi.fn(() => chain);
   });
   chain.run = vi.fn(() => true);
   return chain;
@@ -37,7 +35,13 @@ function makeChain() {
 
 function makeFakeEditor() {
   return {
-    commands: { setContent: vi.fn(), focus: vi.fn() },
+    commands: {
+      setContent: vi.fn(),
+      focus: vi.fn(),
+      enablePagination: vi.fn(),
+      disablePagination: vi.fn(),
+    },
+    storage: { PaginationPlus: { pageCount: 1 } },
     chain: vi.fn(() => makeChain()),
     isActive: vi.fn(() => false),
     getAttributes: vi.fn(() => ({})),
@@ -59,17 +63,19 @@ function makeFakeEditor() {
 
 let fakeEditor: ReturnType<typeof makeFakeEditor>;
 
-vi.mock(import('@tiptap/vue-3'), () => ({
-  useEditor: () => ref(fakeEditor),
-  EditorContent: { template: "<div data-testid='editor-content' />" },
-} as any));
+vi.mock(
+  import("@tiptap/vue-3"),
+  () =>
+    ({
+      useEditor: () => ref(fakeEditor),
+      EditorContent: { template: "<div data-testid='editor-content' />" },
+    }) as any,
+);
 
-const { mockIsMobile, taskItemOptionsHolder } = vi.hoisted(() => {
-  return {
-    mockIsMobile: { value: false },
-    taskItemOptionsHolder: { current: null as any },
-  };
-});
+const { mockIsMobile, taskItemOptionsHolder } = vi.hoisted(() => ({
+  mockIsMobile: { value: false },
+  taskItemOptionsHolder: { current: null as any },
+}));
 
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 function extensionStub(name: string): Record<string, unknown> {
@@ -78,9 +84,12 @@ function extensionStub(name: string): Record<string, unknown> {
   ext.extend = vi.fn(() => extensionStub(name));
   return ext;
 }
-vi.mock(import('@tiptap/starter-kit'), () => ({ default: extensionStub("starterKit") } as any));
-vi.mock(import('@tiptap/extension-task-list'), () => ({ default: extensionStub("taskList") } as any));
-vi.mock(import('@tiptap/extension-task-item'), () => {
+vi.mock(import("@tiptap/starter-kit"), () => ({ default: extensionStub("starterKit") }) as any);
+vi.mock(
+  import("@tiptap/extension-task-list"),
+  () => ({ default: extensionStub("taskList") }) as any,
+);
+vi.mock(import("@tiptap/extension-task-item"), () => {
   const stub: any = {
     name: "taskItem",
     configure: vi.fn((opts: any) => {
@@ -91,72 +100,126 @@ vi.mock(import('@tiptap/extension-task-item'), () => {
   };
   return { default: stub } as any;
 });
-vi.mock(import('@tiptap/extension-link'), () => ({ default: extensionStub("link") } as any));
-vi.mock(import('@tiptap/extension-image'), () => ({ default: extensionStub("image") } as any));
-vi.mock(import('@tiptap/extension-placeholder'), () => ({ default: extensionStub("placeholder") } as any));
-vi.mock(import('@tiptap/extension-text-align'), () => ({ default: extensionStub("textAlign") } as any));
-vi.mock(import('@tiptap/extension-text-style'), () => ({
-  TextStyle: extensionStub("textStyle"),
-  Color: extensionStub("color"),
-} as any));
-vi.mock(import('@tiptap/extension-highlight'), () => ({ Highlight: extensionStub("highlight") } as any));
-vi.mock(import('@tiptap/extension-underline'), () => ({ default: extensionStub("underline") } as any));
-vi.mock(import('@tiptap/extension-subscript'), () => ({ default: extensionStub("subscript") } as any));
-vi.mock(import('@tiptap/extension-superscript'), () => ({ default: extensionStub("superscript") } as any));
-vi.mock(import('@tiptap/extension-table'), () => ({
-  Table: extensionStub("table"),
-  TableCell: extensionStub("tableCell"),
-  TableHeader: extensionStub("tableHeader"),
-  TableRow: extensionStub("tableRow"),
-} as any));
-vi.mock(import('@tiptap/pm/tables'), () => ({
-  TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
-} as any));
-vi.mock(import('@tiptap/markdown'), () => ({ Markdown: extensionStub("markdown") } as any));
+vi.mock(import("@tiptap/extension-link"), () => ({ default: extensionStub("link") }) as any);
+vi.mock(import("@tiptap/extension-image"), () => ({ default: extensionStub("image") }) as any);
+vi.mock(
+  import("@tiptap/extension-placeholder"),
+  () => ({ default: extensionStub("placeholder") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-text-align"),
+  () => ({ default: extensionStub("textAlign") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-text-style"),
+  () =>
+    ({
+      TextStyle: extensionStub("textStyle"),
+      Color: extensionStub("color"),
+    }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-highlight"),
+  () => ({ Highlight: extensionStub("highlight") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-underline"),
+  () => ({ default: extensionStub("underline") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-subscript"),
+  () => ({ default: extensionStub("subscript") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-superscript"),
+  () => ({ default: extensionStub("superscript") }) as any,
+);
+vi.mock(
+  import("@tiptap/extension-table"),
+  () =>
+    ({
+      Table: extensionStub("table"),
+      TableCell: extensionStub("tableCell"),
+      TableHeader: extensionStub("tableHeader"),
+      TableRow: extensionStub("tableRow"),
+    }) as any,
+);
+vi.mock(
+  import("@tiptap/pm/tables"),
+  () =>
+    ({
+      TableMap: { get: vi.fn(() => ({ height: 0, width: 0 })) },
+    }) as any,
+);
+vi.mock(import("@tiptap/markdown"), () => ({ Markdown: extensionStub("markdown") }) as any);
 
 // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-} as any));
-vi.mock(import('@/composables/docs/useDocExport.ts'), () => ({
-  useDocExport: () => ({
-    exportAsHtml: vi.fn(),
-    exportAsMarkdown: vi.fn(),
-    exportAsText: vi.fn(),
-    exportAsPdf: vi.fn(),
-  }),
-} as any));
-vi.mock(import('@/composables/ui/useToolbarPosition.ts'), () => ({
-  useToolbarPosition: () => ({
-    effectivePosition: ref("top"),
-    savedPosition: ref("top"),
-    isVertical: ref(false),
-    isMobile: mockIsMobile,
-    setPosition: vi.fn(),
-  }),
-} as any));
-vi.mock(import('@/composables/ui/usePopoverPosition.ts'), () => ({
-  usePopoverPosition: () => ({
-    style: ref({}),
-    open: vi.fn(),
-    close: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/docs/useDocExport.ts"),
+  () =>
+    ({
+      useDocExport: () => ({
+        exportAsHtml: vi.fn(),
+        exportAsMarkdown: vi.fn(),
+        exportAsText: vi.fn(),
+        exportAsPdf: vi.fn(),
+      }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/ui/useToolbarPosition.ts"),
+  () =>
+    ({
+      useToolbarPosition: () => ({
+        effectivePosition: ref("top"),
+        savedPosition: ref("top"),
+        isVertical: ref(false),
+        isMobile: mockIsMobile,
+        setPosition: vi.fn(),
+      }),
+    }) as any,
+);
+vi.mock(
+  import("@/composables/ui/usePopoverPosition.ts"),
+  () =>
+    ({
+      usePopoverPosition: () => ({
+        style: ref({}),
+        open: vi.fn(),
+        close: vi.fn(),
+      }),
+    }) as any,
+);
 // debounce runs immediately in tests instead of waiting AUTOSAVE_DELAY_MS
-vi.mock(import('../../utils/debounce'), () => ({
-  debounce:
-    (fn: (...args: unknown[]) => unknown) => {
-      const debounced = (...args: unknown[]) => fn(...args);
-      debounced.flush = vi.fn();
-      return debounced;
-    },
-} as any));
-vi.mock(import('@/components/docs/DocToolbar.vue'), () => ({
-  default: {
-    template: "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
-    emits: ["toggleReadMode"],
-  },
-} as any));
+vi.mock(
+  import("../../utils/debounce"),
+  () =>
+    ({
+      debounce: (fn: (...args: unknown[]) => unknown) => {
+        const debounced = (...args: unknown[]) => fn(...args);
+        debounced.flush = vi.fn();
+        return debounced;
+      },
+    }) as any,
+);
+vi.mock(
+  import("@/components/docs/DocToolbar.vue"),
+  () =>
+    ({
+      default: {
+        template:
+          "<div data-testid='doc-toolbar'><button data-testid='mode-toggle-btn' @click=\"$emit('toggleReadMode')\">Read mode</button></div>",
+        emits: ["toggleReadMode"],
+      },
+    }) as any,
+);
 
 // \u2500\u2500\u2500 Router factory \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const routerStub = { template: "<div />" };
@@ -195,7 +258,7 @@ async function mountDocView(pathMatch: string[] = []) {
     global: { plugins: [router, pinia] },
   });
   await flushPromises();
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise((resolve) => setTimeout(resolve, 50));
   await flushPromises();
   return { wrapper, router };
 }
@@ -203,6 +266,7 @@ async function mountDocView(pathMatch: string[] = []) {
 // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 describe("DocView", () => {
   beforeEach(async () => {
+    localStorage.clear();
     mockIsMobile.value = false;
     fakeEditor = makeFakeEditor();
     await freshDb();
@@ -222,7 +286,7 @@ describe("DocView", () => {
       expect(router.currentRoute.value.path).toBe("/docs");
     });
 
-    it.skip("redirects to the resolved folder when the doc name doesn't match any doc", async () => {
+    it("redirects to the resolved folder when the doc name doesn't match any doc", async () => {
       expect.hasAssertions();
       await db.folders.add({
         id: "folder-redirect-1",
@@ -242,7 +306,7 @@ describe("DocView", () => {
 
   // \u2500\u2500 loadDoc: success \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   describe("loadDoc success", () => {
-    it.skip("renders the doc title when the doc resolves at the root level", async () => {
+    it("renders the doc title when the doc resolves at the root level", async () => {
       expect.hasAssertions();
       await db.docs.add({
         id: "doc-1",
@@ -259,7 +323,7 @@ describe("DocView", () => {
       expect(wrapper.find("h1").text()).toBe("My Doc");
     });
 
-    it.skip("resolves a doc nested inside a folder path", async () => {
+    it("resolves a doc nested inside a folder path", async () => {
       expect.hasAssertions();
       await db.folders.add({
         id: "folder-nested-1",
@@ -286,7 +350,7 @@ describe("DocView", () => {
       expect(wrapper.find("h1").text()).toBe("Nested Doc");
     });
 
-    it.skip("calls editor.commands.setContent with the doc's stored content", async () => {
+    it("calls editor.commands.setContent with the doc's stored content", async () => {
       expect.hasAssertions();
       const content = { type: "doc", content: [{ type: "paragraph" }] };
       await db.docs.add({
@@ -325,7 +389,7 @@ describe("DocView", () => {
 
   // \u2500\u2500 goBack \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   describe("goBack", () => {
-    it.skip("navigates to the doc's containing folder when a doc is loaded", async () => {
+    it("navigates to the doc's containing folder when a doc is loaded", async () => {
       expect.hasAssertions();
       await db.folders.add({
         id: "folder-2",
@@ -358,7 +422,7 @@ describe("DocView", () => {
 
   // \u2500\u2500 rename title \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   describe("rename title", () => {
-    it.skip("enters rename mode and shows an input pre-filled with the current title", async () => {
+    it("enters rename mode and shows an input pre-filled with the current title", async () => {
       expect.hasAssertions();
       await db.docs.add({
         id: "doc-6",
@@ -379,7 +443,7 @@ describe("DocView", () => {
       expect((input.element as HTMLInputElement).value).toBe("Rename Me");
     });
 
-    it.skip("commits the new title to the DB and exits rename mode on enter", async () => {
+    it("commits the new title to the DB and exits rename mode on enter", async () => {
       expect.hasAssertions();
       await db.docs.add({
         id: "doc-7",
@@ -431,7 +495,7 @@ describe("DocView", () => {
 
   // \u2500\u2500 rendering \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   describe("rendering", () => {
-    it.skip("shows the saved-at timestamp label once a doc is loaded", async () => {
+    it("shows the saved-at timestamp label once a doc is loaded", async () => {
       expect.hasAssertions();
       await db.docs.add({
         id: "doc-9",
@@ -550,7 +614,7 @@ describe("DocView", () => {
     it("configures TaskItem with working onReadOnlyChecked callback", async () => {
       expect.hasAssertions();
       expect(taskItemOptionsHolder.current).toBeDefined();
-      expect(typeof (taskItemOptionsHolder.current as any)?.onReadOnlyChecked).toBe("function");
+      expect((taskItemOptionsHolder.current as any)?.onReadOnlyChecked).toBeTypeOf("function");
 
       await db.docs.add({
         id: "doc-read-task",
@@ -566,7 +630,7 @@ describe("DocView", () => {
       await mountDocView(["Task Doc"]);
 
       const dummyNode = { attrs: { checked: false } } as any;
-      fakeEditor.state.doc.descendants = vi.fn((cb: (n: any, pos: number) => boolean | void) => {
+      fakeEditor.state.doc.descendants = vi.fn((cb: (node: any, pos: number) => boolean | void) => {
         cb(dummyNode, 5);
       }) as any;
 
@@ -587,6 +651,209 @@ describe("DocView", () => {
   });
 
   // \u2500\u2500 unmount \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  describe("page view (A4)", () => {
+    it("renders the page view toggle button and toggles page view state", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-page-view",
+        title: "Page View Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Page View Doc"]);
+      const toggleBtn = wrapper.find("[data-testid='page-view-toggle-btn']");
+      expect(toggleBtn.exists()).toBe(true);
+      expect(toggleBtn.attributes("aria-pressed")).toBe("false");
+      expect(wrapper.find(".page-view-desk").exists()).toBe(false);
+
+      // Toggle Page View ON
+      await toggleBtn.trigger("click");
+      await flushPromises();
+
+      expect(toggleBtn.attributes("aria-pressed")).toBe("true");
+      expect(wrapper.find(".page-view-desk").exists()).toBe(true);
+      expect(wrapper.find(".page-view-sheet").exists()).toBe(true);
+      expect(wrapper.find(".page-view-content").exists()).toBe(true);
+
+      // Toggle Page View OFF
+      await toggleBtn.trigger("click");
+      await flushPromises();
+
+      expect(toggleBtn.attributes("aria-pressed")).toBe("false");
+      expect(wrapper.find(".page-view-desk").exists()).toBe(false);
+      expect(wrapper.find(".page-view-sheet").exists()).toBe(false);
+    });
+
+    it("renders and toggles full-width mode in continuous view on desktop", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-full-width",
+        title: "Full Width Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Full Width Doc"]);
+      const fullWidthBtn = wrapper.find("[data-testid='full-width-toggle-btn']");
+      expect(fullWidthBtn.exists()).toBe(true);
+      expect(fullWidthBtn.attributes("aria-pressed")).toBe("false");
+      expect(wrapper.find(".continuous-full-width").exists()).toBe(false);
+
+      // Toggle Full Width ON
+      await fullWidthBtn.trigger("click");
+      await flushPromises();
+
+      expect(fullWidthBtn.attributes("aria-pressed")).toBe("true");
+      expect(wrapper.find(".continuous-full-width").exists()).toBe(true);
+
+      // Toggle Full Width OFF
+      await fullWidthBtn.trigger("click");
+      await flushPromises();
+
+      expect(fullWidthBtn.attributes("aria-pressed")).toBe("false");
+      expect(wrapper.find(".continuous-full-width").exists()).toBe(false);
+    });
+
+    it("renders zoom controls and cycles zoom in page view", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-zoom-view",
+        title: "Zoom Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Zoom Doc"]);
+      const toggleBtn = wrapper.find("[data-testid='page-view-toggle-btn']");
+      await toggleBtn.trigger("click");
+      await flushPromises();
+
+      const zoomBtn = wrapper.find("[data-testid='zoom-level-btn']");
+      expect(zoomBtn.exists()).toBe(true);
+      expect(zoomBtn.text()).toBe("Fit");
+
+      // Cycle zoom from Fit to 100%
+      await zoomBtn.trigger("click");
+      await flushPromises();
+      expect(zoomBtn.text()).toBe("100%");
+
+      // Cycle zoom from 100% to 125%
+      await zoomBtn.trigger("click");
+      await flushPromises();
+      expect(zoomBtn.text()).toBe("125%");
+    });
+
+    it("announces view mode and zoom changes to screen readers via aria-live", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-a11y-announcements",
+        title: "A11y Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["A11y Doc"]);
+      const liveRegion = wrapper.find("[aria-live='polite']");
+      expect(liveRegion.exists()).toBe(true);
+
+      const toggleBtn = wrapper.find("[data-testid='page-view-toggle-btn']");
+      await toggleBtn.trigger("click");
+      await flushPromises();
+      expect(liveRegion.text()).toContain("Switched to Page View");
+
+      await toggleBtn.trigger("click");
+      await flushPromises();
+      expect(liveRegion.text()).toContain("Switched to Continuous View");
+    });
+
+    it("toggles page view and full width using keyboard shortcuts", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-shortcuts",
+        title: "Shortcuts Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Shortcuts Doc"]);
+
+      // Ctrl + Alt + P -> toggle Page View ON
+      const pEvent = new KeyboardEvent("keydown", { key: "p", ctrlKey: true, altKey: true });
+      globalThis.dispatchEvent(pEvent);
+      await flushPromises();
+      expect(wrapper.find(".page-view-desk").exists()).toBe(true);
+
+      // Ctrl + Alt + P -> toggle Page View OFF
+      globalThis.dispatchEvent(pEvent);
+      await flushPromises();
+      expect(wrapper.find(".page-view-desk").exists()).toBe(false);
+
+      // Ctrl + Alt + F -> toggle Full Width ON
+      const fEvent = new KeyboardEvent("keydown", { key: "f", ctrlKey: true, altKey: true });
+      globalThis.dispatchEvent(fEvent);
+      await flushPromises();
+      expect(wrapper.find(".continuous-full-width").exists()).toBe(true);
+    });
+
+    it("provides accessible attributes on view controls and toolbar position buttons", async () => {
+      expect.hasAssertions();
+      await db.docs.add({
+        id: "doc-a11y-controls",
+        title: "Controls A11y Doc",
+        folderId: null,
+        contentJSON: null,
+        lastOpenedAt: null,
+        createdAt: 1,
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      });
+      const { wrapper } = await mountDocView(["Controls A11y Doc"]);
+
+      // Verify layout controls toolbar role
+      const layoutToolbar = wrapper.find(
+        "[role='toolbar'][aria-label='Document layout and view controls']",
+      );
+      expect(layoutToolbar.exists()).toBe(true);
+
+      // Verify position buttons have accessible labels
+      const posButtons = layoutToolbar.findAll("button[aria-label^='Place toolbar at']");
+      expect(posButtons.length).toBe(4);
+
+      // Switch to page view to inspect zoom controls
+      const toggleBtn = wrapper.find("[data-testid='page-view-toggle-btn']");
+      await toggleBtn.trigger("click");
+      await flushPromises();
+
+      const zoomGroup = wrapper.find("[role='group'][aria-label='Zoom controls']");
+      expect(zoomGroup.exists()).toBe(true);
+
+      const zoomBtn = wrapper.find("[data-testid='zoom-level-btn']");
+      expect(zoomBtn.attributes("aria-label")).toContain("Zoom level:");
+    });
+  });
+
   describe("onBeforeUnmount", () => {
     it("destroys the editor instance when the component unmounts", async () => {
       expect.hasAssertions();

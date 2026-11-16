@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import SharedTodoUI from "@/components/external/SharedTodoUI.vue";
-import type { TodoItem } from "@/components/external/SharedTodoUI.vue";
+import SharedTodoUI, { type TodoItem } from "@/components/external/SharedTodoUI.vue";
 
 // Mock the context menu to prevent errors during rendering
 vi.mock(import('@/composables/ui/useContextMenu'), () => ({
@@ -51,7 +50,7 @@ describe("SharedTodoUI.vue", () => {
     const emitted = wrapper.emitted("change");
     expect(emitted).toBeTruthy();
     const newItems = emitted![0]![0] as TodoItem[];
-    expect(newItems.length).toBe(1);
+    expect(newItems).toHaveLength(1);
     expect(newItems[0]?.title).toBe("New Task");
     expect(newItems[0]?.done).toBe(false);
   });

@@ -6,7 +6,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import Navbar from "@/components/layout/Navbar.vue";
 
 
-function createTestRouter(initialRoute = "/") {
+function createTestRouter() {
   return createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -17,7 +17,7 @@ function createTestRouter(initialRoute = "/") {
 }
 
 async function mountNavbar(routePath = "/") {
-  const router = createTestRouter(routePath);
+  const router = createTestRouter();
   await router.push(routePath);
   await router.isReady();
 

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
 import { useConfirm } from "@/composables/ui/useConfirm";
-import { nextTick, ref } from "vue";
+import { ref } from "vue";
 import { createPinia } from "pinia";
 
 vi.mock(import('@/composables/ui/useConfirm'), () => (

@@ -3,7 +3,6 @@ import { mount } from "@vue/test-utils";
 import ImportModal from "@/components/settings/ImportModal.vue";
 import { createPinia } from "pinia";
 import * as importDataModule from "@/utils/importData";
-import { useSettingsStore } from "@/stores/settings";
 
 vi.mock(import('@/composables/ui/useToast'), () => ({
   useToast: () => ({ showToast: vi.fn() })

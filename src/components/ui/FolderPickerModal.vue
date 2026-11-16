@@ -1,8 +1,9 @@
 <!-- src/components/ui/FolderPickerModal.vue -->
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { ChevronDownIcon, ChevronRightIcon, FolderIcon, HardDriveIcon, SearchIcon, XIcon } from "@lucide/vue";
 import { useFoldersStore } from "@/stores/folders";
+import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import type { ItemKind } from "@/components/explorer/MixedExplorerGrid.vue";
 
 export interface ItemDescriptor {
@@ -33,6 +34,9 @@ const isVaultMove = computed(() => {
   return props.itemsToMove.every((i) => i.isVaulted);
 });
 
+const modalRef = ref<HTMLElement | null>(null);
+const { activate, deactivate } = useFocusTrap(modalRef, { escapeDeactivates: false });
+
 // Reset selection when modal opens
 watch(
   () => props.isOpen,
@@ -44,6 +48,9 @@ watch(
         (f) => f.parentId === null && (isVaultMove.value ? f.isVaulted : !f.isVaulted)
       );
       expanded.value = new Set(rootFolders.map((f) => f.id));
+      nextTick().then(() => activate());
+    } else {
+      deactivate();
     }
   },
   { immediate: true },
@@ -160,6 +167,7 @@ const modalTitle = computed(() => {
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
       @click.self="emit('close')" @keydown.escape="emit('close')">
       <div
+        ref="modalRef"
         class="bg-rose-surface border border-rose-border rounded-xl shadow-2xl w-full max-w-md flex flex-col max-h-[85vh] overflow-hidden"
         role="dialog" aria-modal="true" :aria-label="modalTitle">
         <!-- Header -->
@@ -178,6 +186,7 @@ const modalTitle = computed(() => {
             <SearchIcon
               class="w-4 h-4 text-rose-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input v-model="searchQuery" type="text" placeholder="Search destination folder..."
+              aria-label="Search destination folder"
               class="w-full pl-9 pr-3 py-2 rounded-lg bg-rose-surface-alt border border-rose-border text-sm text-rose-text placeholder:text-rose-text-muted focus:outline-none focus:ring-2 focus:ring-rose-primary" />
           </div>
         </div>

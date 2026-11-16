@@ -41,6 +41,9 @@ export const useTodosStore = defineStore("todos", () => {
 
   async function createTodoList(name: string, folderId: string | null) {
     const trimmed = name.trim() || "Untitled list";
+    if (trimmed.includes("/")) {
+      throw new Error("List name cannot contain \"/\".");
+    }
     const duplicate = todoLists.value.find(
       (list) => list.folderId === folderId && list.name.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -77,6 +80,9 @@ export const useTodosStore = defineStore("todos", () => {
 
   async function renameTodoList(id: string, name: string) {
     const trimmed = name.trim();
+    if (trimmed.includes("/")) {
+      throw new Error("List name cannot contain \"/\".");
+    }
     const target = todoLists.value.find((list) => list.id === id);
     if (!target) {
       return;

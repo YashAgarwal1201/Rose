@@ -5,7 +5,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/vue';
 
 const props = defineProps<{
   id: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   isDraggable?: boolean;
   isDroppable?: boolean;
   dropTargetClass?: string;

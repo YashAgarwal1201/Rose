@@ -20,6 +20,9 @@ export const useNotesStore = defineStore("notes", () => {
   }
   async function createNote(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled";
+    if (trimmed.includes("/")) {
+      throw new Error("Note title cannot contain \"/\".");
+    }
     const duplicate = notes.value.find(
       (note) => note.folderId === folderId && note.title.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -82,6 +85,23 @@ export const useNotesStore = defineStore("notes", () => {
     const note = await db.notes.get(id);
     if (!note || note.trashedAt) {
       return;
+    }
+
+    if (changes.title !== undefined) {
+      const trimmed = changes.title.trim() || "Untitled";
+      if (trimmed.includes("/")) {
+        throw new Error("Note title cannot contain \"/\".");
+      }
+      const duplicate = notes.value.find(
+        (n) =>
+          n.id !== id &&
+          n.folderId === note.folderId &&
+          n.title.toLowerCase() === trimmed.toLowerCase(),
+      );
+      if (duplicate) {
+        throw new Error(`A note named "${trimmed}" already exists here.`);
+      }
+      changes = { ...changes, title: trimmed };
     }
 
     const sanitized: Partial<Note> = { ...changes, updatedAt: Date.now() };

@@ -17,9 +17,12 @@
         @keydown.escape="handleCancel"
       >
         <div
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="options.title ? 'input-dialog-title' : undefined"
           class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-green/40"
         >
-          <h3 v-if="options.title" class="text-xl font-semibold text-rose-text mb-2">
+          <h3 v-if="options.title" id="input-dialog-title" class="text-xl font-semibold text-rose-text mb-2">
             {{ options.title }}
           </h3>
           <p v-if="options.message" class="text-base text-rose-text-muted mb-4">
@@ -30,6 +33,7 @@
             ref="inputRef"
             v-model="inputValue"
             type="text"
+            :aria-label="options.title || options.placeholder || 'Input text'"
             :placeholder="options.placeholder || ''"
             class="w-full px-3 py-2 bg-rose-bg border border-rose-border rounded-md text-rose-text focus:outline-none focus:border-rose-primary mb-6"
             @keyup.enter="handleConfirm"

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, unmount } from "@/components/external/SharedTodoUI.ts";
 
 // Mock the Vue component
@@ -68,5 +68,35 @@ describe("SharedTodoUI.ts Wrapper", () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(container.classList.contains("dark")).toBe(true);
+  });
+
+  it("returns a scoped unmount function for isolated cleanup", () => {
+    const { unmount: unmountInstance } = mount(container, { items: [{ id: "1", title: "Isolated Todo", done: false }] });
+    expect(container.innerHTML).toContain("Isolated Todo");
+
+    unmountInstance();
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("supports multiple instances without collisions", () => {
+    const container2 = document.createElement("div");
+    document.body.appendChild(container2);
+
+    const inst1 = mount(container, { items: [{ id: "1", title: "Instance 1", done: false }] });
+    const inst2 = mount(container2, { items: [{ id: "2", title: "Instance 2", done: false }] });
+
+    expect(container.innerHTML).toContain("Instance 1");
+    expect(container2.innerHTML).toContain("Instance 2");
+
+    inst1.unmount();
+    expect(container.innerHTML).toBe("");
+    expect(container2.innerHTML).toContain("Instance 2");
+
+    inst2.unmount();
+    expect(container2.innerHTML).toBe("");
+
+    if (container2.parentNode) {
+      container2.parentNode.removeChild(container2);
+    }
   });
 });

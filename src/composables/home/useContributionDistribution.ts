@@ -1,7 +1,6 @@
 // src/composables/useContributionDistribution.ts
 import { computed, ref } from "vue";
 import { useActivityStore } from "@/stores/activity";
-import { useSettingsStore } from "@/stores/settings";
 import type { ActivityAction, FeatureType } from "@/db/types";
 
 export interface DistributionSegment {
@@ -35,7 +34,6 @@ const AXIS_ORDER: FeatureType[] = ["todo", "doc", "note"];
 
 export function useContributionDistribution() {
   const activityStore = useActivityStore();
-  const settingsStore = useSettingsStore();
   const rawCounts = ref<Record<FeatureType, number>>({ doc: 0, note: 0, todo: 0 });
   const isLoaded = ref(false);
 

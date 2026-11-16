@@ -18,6 +18,9 @@ export const useDocsStore = defineStore("docs", () => {
 
   async function createDoc(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled document";
+    if (trimmed.includes("/")) {
+      throw new Error("Document title cannot contain \"/\".");
+    }
     const duplicate = docs.value.find(
       (doc) => doc.folderId === folderId && doc.title.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -74,6 +77,23 @@ export const useDocsStore = defineStore("docs", () => {
     const doc = await db.docs.get(id);
     if (!doc || doc.trashedAt) {
       return;
+    }
+
+    if (changes.title !== undefined) {
+      const trimmed = changes.title.trim() || "Untitled document";
+      if (trimmed.includes("/")) {
+        throw new Error("Document title cannot contain \"/\".");
+      }
+      const duplicate = docs.value.find(
+        (d) =>
+          d.id !== id &&
+          d.folderId === doc.folderId &&
+          d.title.toLowerCase() === trimmed.toLowerCase(),
+      );
+      if (duplicate) {
+        throw new Error(`A document named "${trimmed}" already exists here.`);
+      }
+      changes = { ...changes, title: trimmed };
     }
 
     const sanitized: Partial<Doc> = { ...changes, updatedAt: Date.now() };

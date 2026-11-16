@@ -66,12 +66,36 @@ const { exportAsPng, exportAsJpeg, exportAsSvg } = useNoteExport(
 const toolbarRef = ref<InstanceType<typeof NoteToolbar> | null>(null);
 const { showToast } = useToast();
 
+const rootContainerRef = ref<HTMLElement | null>(null);
+const scrollContainerRef = ref<HTMLElement | null>(null);
+
+function handlePointerDown() {
+  if (rootContainerRef.value && !rootContainerRef.value.contains(document.activeElement)) {
+    scrollContainerRef.value?.focus();
+  }
+}
+
+function shouldHandleCanvasShortcut(): boolean {
+  if (!rootContainerRef.value) { return false; }
+  const active = document.activeElement;
+  if (active && rootContainerRef.value.contains(active)) {
+    return true;
+  }
+  if (document.body.classList.contains("rose-standalone")) {
+    const tag = active?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+    return true;
+  }
+  return false;
+}
+
 useKeyboardShortcuts([
   // Ctrl + S → Save note immediately
   {
     key: "s",
     ctrl: true,
     handler: () => {
+      if (!shouldHandleCanvasShortcut()) { return false; }
       saveNow();
       showToast("Note saved", "info", TOAST_AUTO_DISMISS_MS);
     },
@@ -81,6 +105,7 @@ useKeyboardShortcuts([
     key: "z",
     ctrl: true,
     handler: () => {
+      if (!shouldHandleCanvasShortcut()) { return false; }
       if (canUndo.value) {
         undo();
       } else {
@@ -95,6 +120,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
+      if (!shouldHandleCanvasShortcut()) { return false; }
       if (canRedo.value) {
         redo();
       } else {
@@ -108,6 +134,7 @@ useKeyboardShortcuts([
     key: "y",
     ctrl: true,
     handler: () => {
+      if (!shouldHandleCanvasShortcut()) { return false; }
       if (canRedo.value) {
         redo();
       } else {
@@ -122,6 +149,7 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
+      if (!shouldHandleCanvasShortcut()) { return false; }
       toolbarRef.value?.toggleExportMenu();
     },
   },
@@ -215,7 +243,7 @@ async function handleImageSelected(event: Event) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <div ref="rootContainerRef" class="flex flex-col h-full overflow-hidden" @pointerdown="handlePointerDown">
     <!-- Body: toolbar + editor, direction depends on position -->
     <div class="flex flex-1 min-h-0"
       :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'">
@@ -228,7 +256,7 @@ async function handleImageSelected(event: Event) {
         @undo="undo" @redo="redo" @add-text="addText" @triggerImagePick="triggerImagePick" @export-as-png="exportAsPng"
         @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg" @add-shape="(shape) => addShape(shape, penColor)" />
       
-      <div class="note-canvas__scroll flex-1 relative min-h-0 min-w-0" style="overflow: auto;">
+      <div ref="scrollContainerRef" tabindex="-1" class="note-canvas__scroll flex-1 relative min-h-0 min-w-0 focus:outline-none" style="overflow: auto;">
         <canvas ref="canvasEl" />
       </div>
 
