@@ -15,7 +15,9 @@ const dragOverCrumbId = ref<string | null | undefined>(undefined);
 
 function handleDragOver(crumbId: string | null, event: DragEvent) {
   // Prevent dropping onto the vault crumb (use "Move to Secure Vault" context menu instead)
-  if (crumbId === "vault") { return; }
+  if (crumbId === "vault") {
+    return;
+  }
   event.preventDefault();
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = "move";
@@ -32,13 +34,23 @@ function handleDragLeave(crumbId: string | null) {
 function handleDrop(targetFolderId: string | null, event: DragEvent) {
   dragOverCrumbId.value = undefined;
   // Prevent dropping onto the vault folder (use "Move to Secure Vault" context menu instead)
-  if (targetFolderId === "vault") { return; }
+  if (targetFolderId === "vault") {
+    return;
+  }
   event.preventDefault();
   const raw = event.dataTransfer?.getData("application/json");
-  if (!raw) { return; }
+  if (!raw) {
+    return;
+  }
   try {
-    const data = JSON.parse(raw) as { id: string; kind: "folder" | "doc" | "note" | "todo"; name: string };
-    if (data.id === "vault") { return; }
+    const data = JSON.parse(raw) as {
+      id: string;
+      kind: "folder" | "doc" | "note" | "todo";
+      name: string;
+    };
+    if (data.id === "vault") {
+      return;
+    }
     emit("moveItem", data.kind, data.id, targetFolderId);
   } catch {
     // ignore
@@ -58,7 +70,9 @@ async function openPopover() {
 }
 
 function positionPopover() {
-  if (!triggerRef.value) {return;}
+  if (!triggerRef.value) {
+    return;
+  }
   const rect = triggerRef.value.getBoundingClientRect();
   popoverStyle.value = {
     left: `${rect.left}px`,
@@ -91,11 +105,15 @@ function handleOutsideClick(event: MouseEvent) {
 }
 
 function handleEscape(event: KeyboardEvent) {
-  if (event.key === "Escape") {isPopoverOpen.value = false;}
+  if (event.key === "Escape") {
+    isPopoverOpen.value = false;
+  }
 }
 
 function handleReposition() {
-  if (isPopoverOpen.value) {positionPopover();}
+  if (isPopoverOpen.value) {
+    positionPopover();
+  }
 }
 
 onMounted(() => {
@@ -177,7 +195,7 @@ onUnmounted(() => {
             index === crumbs.length - 1
               ? 'bg-rose-surface-alt text-rose-text font-medium'
               : 'text-rose-text-muted hover:bg-rose-surface hover:text-rose-text',
-            dragOverCrumbId === crumb.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : ''
+            dragOverCrumbId === crumb.id ? 'ring-2 ring-rose-primary bg-rose-primary/10!' : '',
           ]"
           @dragover="handleDragOver(crumb.id, $event)"
           @dragleave="handleDragLeave(crumb.id)"
@@ -188,7 +206,6 @@ onUnmounted(() => {
         </button>
       </div>
     </template>
-
   </nav>
 
   <!-- Popover teleported to body so it's never clipped by the nav's overflow-x-auto -->

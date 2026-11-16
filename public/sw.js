@@ -28,13 +28,19 @@ self.addEventListener("activate", (event) => {
 // ── Fetch: cache-first for precached assets, network-first for the rest ─────
 self.addEventListener("fetch", (event) => {
   // Only handle GET requests; skip non-http(s) schemes (chrome-extension, etc.)
-  if (event.request.method !== "GET") {return;}
+  if (event.request.method !== "GET") {
+    return;
+  }
   const url = new URL(event.request.url);
-  if (!["http:", "https:"].includes(url.protocol)) {return;}
+  if (!["http:", "https:"].includes(url.protocol)) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) {return cached;}
+      if (cached) {
+        return cached;
+      }
 
       // Not in cache — fetch from network, cache successful responses
       return fetch(event.request)
@@ -58,5 +64,7 @@ self.addEventListener("fetch", (event) => {
 
 // ── Message: force update from the app UI ───────────────────────────────────
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "SKIP_WAITING") {self.skipWaiting();}
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });

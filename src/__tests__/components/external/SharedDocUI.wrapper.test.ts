@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, unmount } from "@/components/external/SharedDocUI.ts";
 
 // Mock the Vue component so we don't have to render Tiptap in the wrapper test
-vi.mock('@/components/external/SharedDocUI.vue', () => ({
+vi.mock("@/components/external/SharedDocUI.vue", () => ({
   default: {
     template: "<div id='mocked-doc-ui'>{{ title }}</div>",
-    props: ["title", "contentJSON"]
-  }
+    props: ["title", "contentJSON"],
+  },
 }));
 
 describe("SharedDocUI.ts Wrapper", () => {
@@ -17,9 +17,9 @@ describe("SharedDocUI.ts Wrapper", () => {
     document.body.appendChild(container);
 
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,
@@ -54,15 +54,15 @@ describe("SharedDocUI.ts Wrapper", () => {
     expect(container.innerHTML).toContain("Old Title");
 
     update({ title: "New Title" });
-    
+
     // Wait for Vue's next tick
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(container.innerHTML).toContain("New Title");
   });
 
   it("syncs dark mode from documentElement class", async () => {
     mount(container, {});
-    
+
     // It shouldn't be dark initially
     expect(container.classList.contains("dark")).toBe(false);
 
@@ -70,7 +70,7 @@ describe("SharedDocUI.ts Wrapper", () => {
     document.documentElement.classList.add("dark");
 
     // Give MutationObserver a moment to fire
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(container.classList.contains("dark")).toBe(true);
   });

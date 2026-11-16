@@ -156,9 +156,7 @@ const {
         :style="color.value ? { backgroundColor: color.value } : {}"
         :title="color.label"
         :aria-label="
-          color.value
-            ? `Set cell background to ${color.label}`
-            : 'Clear cell background color'
+          color.value ? `Set cell background to ${color.label}` : 'Clear cell background color'
         "
         @click="applyCellBackground(color.value)"
       >

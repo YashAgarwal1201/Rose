@@ -4,27 +4,39 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import FolderTree from "@/components/explorer/FolderTree.vue";
 
-vi.mock(import('../../stores/folders'), () => ({
-  useFoldersStore: () => ({
-    folders: [
-      { id: "f1", name: "Alpha", parentId: null, type: "todo", createdAt: 1, updatedAt: 1 },
-      { id: "f2", name: "Beta", parentId: null, type: "todo", createdAt: 2, updatedAt: 2 },
-      { id: "f3", name: "Child", parentId: "f1", type: "todo", createdAt: 3, updatedAt: 3 },
-    ],
-    createFolder: vi.fn(),
-    deleteFolder: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("../../stores/folders"),
+  () =>
+    ({
+      useFoldersStore: () => ({
+        folders: [
+          { id: "f1", name: "Alpha", parentId: null, type: "todo", createdAt: 1, updatedAt: 1 },
+          { id: "f2", name: "Beta", parentId: null, type: "todo", createdAt: 2, updatedAt: 2 },
+          { id: "f3", name: "Child", parentId: "f1", type: "todo", createdAt: 3, updatedAt: 3 },
+        ],
+        createFolder: vi.fn(),
+        deleteFolder: vi.fn(),
+      }),
+    }) as any,
+);
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
-vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
-  useConfirm: () => ({ confirm: mockConfirm }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useConfirm.ts"),
+  () =>
+    ({
+      useConfirm: () => ({ confirm: mockConfirm }),
+    }) as any,
+);
 
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
 
 function mountTree(activeFolderId: string | null = null) {
   return mount(FolderTree, {
@@ -108,7 +120,9 @@ describe("FolderTree", () => {
     it("calls confirm() when the delete button is clicked", async () => {
       const wrapper = mountTree();
       await wrapper.find("button[title='Delete folder']").trigger("click");
-      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Move Folder to Trash" }));
+      expect(mockConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Move Folder to Trash" }),
+      );
     });
 
     it("does not call store.deleteFolder when confirm returns false", async () => {
@@ -124,7 +138,7 @@ describe("FolderTree", () => {
   describe("select emit", () => {
     it("emits select with the folder id when a folder row is clicked", async () => {
       const wrapper = mountTree();
-      await wrapper.find('#tree-node-f1').trigger("click");
+      await wrapper.find("#tree-node-f1").trigger("click");
       expect(wrapper.emitted("select")?.[0]).toStrictEqual(["f1"]);
     });
   });

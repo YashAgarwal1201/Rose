@@ -1,14 +1,6 @@
 import db from "@/db";
 
-import type {
-  ActivityEntry,
-  AppSettings,
-  Doc,
-  Folder,
-  Note,
-  Todo,
-  TodoList,
-} from "@/db/types";
+import type { ActivityEntry, AppSettings, Doc, Folder, Note, Todo, TodoList } from "@/db/types";
 
 export interface ExportOptions {
   settings: boolean;
@@ -53,7 +45,9 @@ export async function exportData(options: ExportOptions) {
       const activeLists = (await db.todoLists.toArray()).filter((l) => !l.trashedAt);
       const activeListIds = new Set(activeLists.map((l) => l.id));
       exportPayload.data.todoLists = activeLists;
-      exportPayload.data.todos = (await db.todos.toArray()).filter((t) => activeListIds.has(t.listId));
+      exportPayload.data.todos = (await db.todos.toArray()).filter((t) =>
+        activeListIds.has(t.listId),
+      );
     }
     if (options.activity) {
       exportPayload.data.activity = await db.activity.toArray();

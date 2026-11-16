@@ -20,25 +20,37 @@ const mockToggleViewMode = vi.fn(() => {
   mockViewMode.value = mockViewMode.value === "grid" ? "list" : "grid";
 });
 
-vi.mock(import('@/composables/explorer/useExplorerViewMode.ts'), () => ({
-  useExplorerViewMode: () => ({
-    setSortKey: mockSetSortKey,
-    sortDir: mockSortDir,
-    sortKey: mockSortKey,
-    toggleViewMode: mockToggleViewMode,
-    viewMode: mockViewMode,
-  }),
-} as any));
+vi.mock(
+  import("@/composables/explorer/useExplorerViewMode.ts"),
+  () =>
+    ({
+      useExplorerViewMode: () => ({
+        setSortKey: mockSetSortKey,
+        sortDir: mockSortDir,
+        sortKey: mockSortKey,
+        toggleViewMode: mockToggleViewMode,
+        viewMode: mockViewMode,
+      }),
+    }) as any,
+);
 
 const mockConfirm = vi.fn().mockResolvedValue(false);
 
-vi.mock(import('@/composables/ui/useConfirm.ts'), () => ({
-  useConfirm: () => ({ confirm: mockConfirm }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useConfirm.ts"),
+  () =>
+    ({
+      useConfirm: () => ({ confirm: mockConfirm }),
+    }) as any,
+);
 
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: vi.fn() }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: vi.fn() }),
+    }) as any,
+);
 
 const FOLDERS = [
   { id: "f1", name: "Zebra", updatedAt: 300, createdAt: 100 },
@@ -50,7 +62,7 @@ const FILES = [{ id: "l1", name: "Work", updatedAt: 150, createdAt: 150 }];
 function mountGrid(folders = FOLDERS, files = FILES) {
   return mount(ExplorerGrid, {
     props: { fileIcon: ListIcon, fileLabel: "list", files, folders },
-    global: { stubs: { ContextMenu: { template: '<div><slot/></div>' } } }
+    global: { stubs: { ContextMenu: { template: "<div><slot/></div>" } } },
   });
 }
 
@@ -190,15 +202,17 @@ describe("ExplorerGrid", () => {
     it("calls confirm() when the trash button is clicked", async () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
-      await wrapper.find('button.text-red-500').trigger("click");
-      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Move Folder to Trash" }));
+      await wrapper.find("button.text-red-500").trigger("click");
+      expect(mockConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Move Folder to Trash" }),
+      );
     });
 
     it("emits deleteFolder when confirm returns true", async () => {
       mockConfirm.mockResolvedValueOnce(true);
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
-      await wrapper.find('button.text-red-500').trigger("click");
+      await wrapper.find("button.text-red-500").trigger("click");
       await wrapper.vm.$nextTick();
       expect(wrapper.emitted("deleteFolder")).toBeTruthy();
     });
@@ -206,7 +220,7 @@ describe("ExplorerGrid", () => {
     it("does not emit deleteFolder when confirm returns false", async () => {
       const wrapper = mountGrid();
       await wrapper.find('button[aria-label="More options"]').trigger("click");
-      await wrapper.find('button.text-red-500').trigger("click");
+      await wrapper.find("button.text-red-500").trigger("click");
       await wrapper.vm.$nextTick();
       expect(wrapper.emitted("deleteFolder")).toBeFalsy();
     });
@@ -215,14 +229,18 @@ describe("ExplorerGrid", () => {
   describe("create", () => {
     it("shows a new folder input when startCreate('folder') is called", async () => {
       const wrapper = mountGrid();
-      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate("folder");
+      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate(
+        "folder",
+      );
       await wrapper.vm.$nextTick();
       expect(wrapper.find("input[placeholder='Folder name']").exists()).toBe(true);
     });
 
     it("emits createFolder with the typed name on Enter", async () => {
       const wrapper = mountGrid();
-      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate("folder");
+      await (wrapper.vm as unknown as { startCreate: (itemType: string) => void }).startCreate(
+        "folder",
+      );
       await wrapper.vm.$nextTick();
       const input = wrapper.find("input[placeholder='Folder name']");
       await input.setValue("My New Folder");

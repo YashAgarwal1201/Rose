@@ -19,17 +19,25 @@ function retry() {
 </script>
 
 <template>
-  <div v-if="hasError"
-    class="flex flex-col items-center justify-center p-8 text-center h-full w-full min-h-50 bg-rose-bg rounded-xl border border-rose-border">
+  <div
+    v-if="hasError"
+    class="flex flex-col items-center justify-center p-8 text-center h-full w-full min-h-50 bg-rose-bg rounded-xl border border-rose-border"
+  >
     <div class="mb-4 flex items-center justify-center">
-      <img :src="PageEatenIllustration" alt="Error" class="w-48 h-auto select-none pointer-events-none" />
+      <img
+        :src="PageEatenIllustration"
+        alt="Error"
+        class="w-48 h-auto select-none pointer-events-none"
+      />
     </div>
     <h2 class="text-xl font-bold text-rose-text mb-2">Something went wrong</h2>
     <p class="text-rose-text-muted text-sm mb-6 max-w-md">
       {{ errorMessage || "An unexpected error occurred while rendering this component." }}
     </p>
-    <button @click="retry"
-      class="px-4 py-2 bg-rose-primary text-white rounded-lg hover:bg-rose-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-primary font-medium">
+    <button
+      @click="retry"
+      class="px-4 py-2 bg-rose-primary text-white rounded-lg hover:bg-rose-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-primary font-medium"
+    >
       Retry
     </button>
   </div>

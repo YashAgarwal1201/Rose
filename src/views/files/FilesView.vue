@@ -41,7 +41,9 @@ let activeLoadToken = 0;
 
 const filterMode = ref<"all" | "doc" | "note" | "todo">("all");
 
-const segments = computed(() => (Array.isArray(pathMatch) ? pathMatch : (pathMatch ? [pathMatch] : [])));
+const segments = computed(() =>
+  Array.isArray(pathMatch) ? pathMatch : pathMatch ? [pathMatch] : [],
+);
 
 function resolveFolderId(segs: string[]): string | null | undefined {
   let cursor: string | null = null;
@@ -74,13 +76,13 @@ function buildFolderPath(folderId: string | null): string[] {
 const currentFolderId = computed<string | null | undefined>(() => resolveFolderId(segments.value));
 
 const currentFolder = computed(() => {
-  if (!currentFolderId.value) { return null; }
+  if (!currentFolderId.value) {
+    return null;
+  }
   return foldersStore.folders.find((f) => f.id === currentFolderId.value);
 });
 
-const isVaultLocked = computed(() =>
-  currentFolder.value?.isVaulted && !vaultStore.isUnlocked
-);
+const isVaultLocked = computed(() => currentFolder.value?.isVaulted && !vaultStore.isUnlocked);
 
 const subfolders = computed(() => {
   if (currentFolderId.value === undefined) {
@@ -384,7 +386,9 @@ async function handleSelectTarget(targetFolderId: string | null) {
 }
 
 async function handleCollisionConfirm(newName: string) {
-  if (!collisionInfo.value) { return; }
+  if (!collisionInfo.value) {
+    return;
+  }
   const { kind, id, targetFolderId } = collisionInfo.value;
   isCollisionDialogOpen.value = false;
   collisionInfo.value = null;
@@ -485,12 +489,19 @@ useKeyboardShortcuts([
   <div class="flex h-full relative">
     <aside class="hidden md:block w-64 border-r border-rose-border p-4 overflow-y-auto shrink-0">
       <h2 class="text-lg font-semibold text-rose-text mb-3">Folders</h2>
-      <FolderTree :active-folder-id="currentFolderId ?? null" @select="navigateToFolder" @move-item="handleMoveItem" />
+      <FolderTree
+        :active-folder-id="currentFolderId ?? null"
+        @select="navigateToFolder"
+        @move-item="handleMoveItem"
+      />
     </aside>
 
     <FolderTreeDrawer :is-open="isDrawerOpen" @close="isDrawerOpen = false">
-      <FolderTree :active-folder-id="currentFolderId ?? null" @select="handleMobileSelect"
-        @move-item="handleMoveItem" />
+      <FolderTree
+        :active-folder-id="currentFolderId ?? null"
+        @select="handleMobileSelect"
+        @move-item="handleMoveItem"
+      />
     </FolderTreeDrawer>
 
     <main class="flex-1 p-4 md:p-6 overflow-y-auto min-w-0 pb-28 md:pb-6">
@@ -502,88 +513,151 @@ useKeyboardShortcuts([
           <div class="flex items-center gap-2">
             <!-- Filter pills for large screens -->
             <div class="hidden md:flex items-center gap-1 bg-rose-surface-alt p-1 rounded-lg">
-              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'all'
-                  ? 'bg-rose-surface shadow text-rose-text'
-                  : 'text-rose-text-muted hover:text-rose-text'
-                " @click="filterMode = 'all'">
+              <button
+                class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                :class="
+                  filterMode === 'all'
+                    ? 'bg-rose-surface shadow text-rose-text'
+                    : 'text-rose-text-muted hover:text-rose-text'
+                "
+                @click="filterMode = 'all'"
+              >
                 All
               </button>
-              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'doc'
-                  ? 'bg-rose-surface shadow text-rose-text'
-                  : 'text-rose-text-muted hover:text-rose-text'
-                " @click="filterMode = 'doc'">
+              <button
+                class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                :class="
+                  filterMode === 'doc'
+                    ? 'bg-rose-surface shadow text-rose-text'
+                    : 'text-rose-text-muted hover:text-rose-text'
+                "
+                @click="filterMode = 'doc'"
+              >
                 Docs
               </button>
-              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'note'
-                  ? 'bg-rose-surface shadow text-rose-text'
-                  : 'text-rose-text-muted hover:text-rose-text'
-                " @click="filterMode = 'note'">
+              <button
+                class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                :class="
+                  filterMode === 'note'
+                    ? 'bg-rose-surface shadow text-rose-text'
+                    : 'text-rose-text-muted hover:text-rose-text'
+                "
+                @click="filterMode = 'note'"
+              >
                 Notes
               </button>
-              <button class="px-3 py-1 rounded-md text-sm font-medium transition-colors" :class="filterMode === 'todo'
-                  ? 'bg-rose-surface shadow text-rose-text'
-                  : 'text-rose-text-muted hover:text-rose-text'
-                " @click="filterMode = 'todo'">
+              <button
+                class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                :class="
+                  filterMode === 'todo'
+                    ? 'bg-rose-surface shadow text-rose-text'
+                    : 'text-rose-text-muted hover:text-rose-text'
+                "
+                @click="filterMode = 'todo'"
+              >
                 Lists
               </button>
             </div>
 
             <button
               class="md:hidden flex items-center gap-2 px-3 py-2 rounded-md bg-rose-surface-alt text-rose-text text-base shrink-0"
-              @click="isDrawerOpen = true">
+              @click="isDrawerOpen = true"
+            >
               <FoldersIcon class="w-4 h-4" />
             </button>
-            <MixedExplorerActions @create-folder="explorerGridRef?.startCreate('folder')"
-              @create-todo="explorerGridRef?.startCreate('todo')" @create-note="explorerGridRef?.startCreate('note')"
-              @create-doc="explorerGridRef?.startCreate('doc')" />
+            <MixedExplorerActions
+              @create-folder="explorerGridRef?.startCreate('folder')"
+              @create-todo="explorerGridRef?.startCreate('todo')"
+              @create-note="explorerGridRef?.startCreate('note')"
+              @create-doc="explorerGridRef?.startCreate('doc')"
+            />
           </div>
         </div>
         <Breadcrumbs :crumbs="crumbs" @navigate="navigateToFolder" @move-item="handleMoveItem" />
-        <MixedExplorerGrid ref="explorerGridRef" :items="displayItems" @open-item="openItem"
-          @create-item="handleCreateItem" @rename-item="handleRenameItem" @delete-item="handleDeleteItem"
-          @request-move="handleRequestMove" @move-item="handleMoveItem" />
+        <MixedExplorerGrid
+          ref="explorerGridRef"
+          :items="displayItems"
+          @open-item="openItem"
+          @create-item="handleCreateItem"
+          @rename-item="handleRenameItem"
+          @delete-item="handleDeleteItem"
+          @request-move="handleRequestMove"
+          @move-item="handleMoveItem"
+        />
       </template>
     </main>
     <!-- Mobile floating filter pills -->
     <div v-if="!isVaultLocked" class="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
       <div
-        class="flex items-center gap-1 bg-rose-surface/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-border">
-        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'all'
-            ? 'bg-rose-primary text-white shadow'
-            : 'text-rose-text hover:bg-rose-surface-alt'
-          " @click="filterMode = 'all'">
+        class="flex items-center gap-1 bg-rose-surface/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-border"
+      >
+        <button
+          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          :class="
+            filterMode === 'all'
+              ? 'bg-rose-primary text-white shadow'
+              : 'text-rose-text hover:bg-rose-surface-alt'
+          "
+          @click="filterMode = 'all'"
+        >
           All
         </button>
-        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'doc'
-            ? 'bg-rose-primary text-white shadow'
-            : 'text-rose-text hover:bg-rose-surface-alt'
-          " @click="filterMode = 'doc'">
+        <button
+          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          :class="
+            filterMode === 'doc'
+              ? 'bg-rose-primary text-white shadow'
+              : 'text-rose-text hover:bg-rose-surface-alt'
+          "
+          @click="filterMode = 'doc'"
+        >
           Docs
         </button>
-        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'note'
-            ? 'bg-rose-primary text-white shadow'
-            : 'text-rose-text hover:bg-rose-surface-alt'
-          " @click="filterMode = 'note'">
+        <button
+          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          :class="
+            filterMode === 'note'
+              ? 'bg-rose-primary text-white shadow'
+              : 'text-rose-text hover:bg-rose-surface-alt'
+          "
+          @click="filterMode = 'note'"
+        >
           Notes
         </button>
-        <button class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors" :class="filterMode === 'todo'
-            ? 'bg-rose-primary text-white shadow'
-            : 'text-rose-text hover:bg-rose-surface-alt'
-          " @click="filterMode = 'todo'">
+        <button
+          class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          :class="
+            filterMode === 'todo'
+              ? 'bg-rose-primary text-white shadow'
+              : 'text-rose-text hover:bg-rose-surface-alt'
+          "
+          @click="filterMode = 'todo'"
+        >
           Lists
         </button>
       </div>
     </div>
 
     <!-- Move picker modal -->
-    <FolderPickerModal :is-open="isFolderPickerOpen" :items-to-move="itemsToMove" @close="isFolderPickerOpen = false"
-      @select-target="handleSelectTarget" />
+    <FolderPickerModal
+      :is-open="isFolderPickerOpen"
+      :items-to-move="itemsToMove"
+      @close="isFolderPickerOpen = false"
+      @select-target="handleSelectTarget"
+    />
 
     <!-- Collision dialog -->
-    <NameCollisionDialog v-if="collisionInfo" :is-open="isCollisionDialogOpen" :item-name="collisionInfo.itemName"
-      :target-folder-name="collisionInfo.targetFolderName" :suggested-name="collisionInfo.suggestedName" @close="
+    <NameCollisionDialog
+      v-if="collisionInfo"
+      :is-open="isCollisionDialogOpen"
+      :item-name="collisionInfo.itemName"
+      :target-folder-name="collisionInfo.targetFolderName"
+      :suggested-name="collisionInfo.suggestedName"
+      @close="
         isCollisionDialogOpen = false;
-      collisionInfo = null;
-      " @confirm="handleCollisionConfirm" />
+        collisionInfo = null;
+      "
+      @confirm="handleCollisionConfirm"
+    />
   </div>
 </template>

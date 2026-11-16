@@ -9,41 +9,57 @@ import { nextTick, ref } from "vue";
 // Mock router
 const pushMock = vi.fn();
 const replaceMock = vi.fn();
-vi.mock(import('vue-router'), () => ({
-  useRouter: () => ({
-    push: pushMock,
-    replace: replaceMock,
-    currentRoute: ref({
-      name: "notes-note",
-      params: { pathMatch: ["My Note"] },
-    }),
-  }),
-} as any));
+vi.mock(
+  import("vue-router"),
+  () =>
+    ({
+      useRouter: () => ({
+        push: pushMock,
+        replace: replaceMock,
+        currentRoute: ref({
+          name: "notes-note",
+          params: { pathMatch: ["My Note"] },
+        }),
+      }),
+    }) as any,
+);
 
 // Mock toast
 const showToastMock = vi.fn();
-vi.mock(import('@/composables/ui/useToast.ts'), () => ({
-  useToast: () => ({ showToast: showToastMock }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToast.ts"),
+  () =>
+    ({
+      useToast: () => ({ showToast: showToastMock }),
+    }) as any,
+);
 
 // Mock toolbar position
-vi.mock(import('@/composables/ui/useToolbarPosition'), () => ({
-  useToolbarPosition: () => ({
-    effectivePosition: ref("top"),
-    savedPosition: ref("top"),
-    isMobile: ref(false),
-    setPosition: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("@/composables/ui/useToolbarPosition"),
+  () =>
+    ({
+      useToolbarPosition: () => ({
+        effectivePosition: ref("top"),
+        savedPosition: ref("top"),
+        isMobile: ref(false),
+        setPosition: vi.fn(),
+      }),
+    }) as any,
+);
 
 // Mock NoteCanvas to avoid rendering fabric
-vi.mock(import('@/components/notes/NoteCanvas.vue'), () => ({
-  default: {
-    name: "NoteCanvas",
-    template: "<div data-testid='note-canvas'></div>",
-    props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
-  },
-} as any));
+vi.mock(
+  import("@/components/notes/NoteCanvas.vue"),
+  () =>
+    ({
+      default: {
+        name: "NoteCanvas",
+        template: "<div data-testid='note-canvas'></div>",
+        props: ["initialCanvasJson", "initialBackgroundColor", "toolbarPosition"],
+      },
+    }) as any,
+);
 
 describe("NoteView.vue", () => {
   beforeEach(async () => {
@@ -161,7 +177,7 @@ describe("NoteView.vue", () => {
       const input = wrapper.find("input[type='text']");
       await input.setValue("New Title");
       await input.trigger("keyup.enter");
-      
+
       // Wait for DB update and router replace
       await new Promise((resolve) => setTimeout(resolve, 50));
       expect(replaceMock).toHaveBeenCalledWith({
@@ -189,11 +205,11 @@ describe("NoteView.vue", () => {
         iv: null,
       });
       const wrapper = await mountNoteView(["Canvas Note"]);
-      
+
       const canvasComponent = wrapper.findComponent({ name: "NoteCanvas" });
       const newCanvasJSON = { type: "rect" };
       await canvasComponent.vm.$emit("change", newCanvasJSON, "#000", "thumb");
-      
+
       // DB operation
       await new Promise((resolve) => setTimeout(resolve, 50));
       const updatedNote = await db.notes.get("note-4");

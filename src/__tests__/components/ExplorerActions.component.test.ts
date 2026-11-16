@@ -16,9 +16,13 @@ const { mockActivate, mockDeactivate, mockUseFocusTrap } = vi.hoisted(() => {
   };
 });
 
-vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
-  useFocusTrap: mockUseFocusTrap,
-} as any));
+vi.mock(
+  import("@vueuse/integrations/useFocusTrap"),
+  () =>
+    ({
+      useFocusTrap: mockUseFocusTrap,
+    }) as any,
+);
 
 function mountActions(fileLabel = "note") {
   return mount(ExplorerActions, {
@@ -99,9 +103,9 @@ describe("ExplorerActions", () => {
 
       expect(mockUseFocusTrap).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ returnFocusOnDeactivate: false })
+        expect.objectContaining({ returnFocusOnDeactivate: false }),
       );
-      
+
       await wrapper.vm.$nextTick();
       expect(mockActivate).toHaveBeenCalled();
     });

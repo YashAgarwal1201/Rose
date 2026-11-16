@@ -9,8 +9,8 @@ describe("SettingsSwitch.vue", () => {
       props: {
         modelValue: false,
         ariaLabelledby: "label-1",
-        ariaDescribedby: "desc-1"
-      }
+        ariaDescribedby: "desc-1",
+      },
     });
 
     const button = wrapper.find("button");
@@ -27,7 +27,7 @@ describe("SettingsSwitch.vue", () => {
   it("renders active state when true", () => {
     expect.hasAssertions();
     const wrapper = mount(SettingsSwitch, {
-      props: { modelValue: true }
+      props: { modelValue: true },
     });
 
     const button = wrapper.find("button");

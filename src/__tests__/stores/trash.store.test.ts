@@ -90,14 +90,14 @@ describe("trashStore", () => {
       });
 
       await expect(trashStore.moveToTrash("doc", "vaulted-doc")).rejects.toThrow(
-        "Vaulted items cannot be moved to Trash."
+        "Vaulted items cannot be moved to Trash.",
       );
     });
 
     it("throws when attempting to move vault folder to trash", async () => {
       const trashStore = useTrashStore();
       await expect(trashStore.moveToTrash("folder", "vault")).rejects.toThrow(
-        "Vaulted items cannot be moved to Trash."
+        "Vaulted items cannot be moved to Trash.",
       );
     });
   });
@@ -234,7 +234,7 @@ describe("trashStore", () => {
       expect(await db.folders.get(f1)).toBeUndefined();
       expect(await db.docs.get(d1)).toBeUndefined();
       expect(await db.todoLists.get(l1)).toBeUndefined();
-      expect((await db.todos.where("listId").equals(l1).toArray())).toHaveLength(0);
+      expect(await db.todos.where("listId").equals(l1).toArray()).toHaveLength(0);
     });
 
     it("purgeExpired purges only items trashed over 30 days ago", async () => {

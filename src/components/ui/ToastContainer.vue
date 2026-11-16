@@ -18,7 +18,12 @@
             :class="colorFor(toast.type)"
           />
           <p class="text-base text-rose-text flex-1">{{ toast.message }}</p>
-          <button type="button" @click="dismissToast(toast.id)" class="text-rose-text-muted hover:text-rose-text focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded p-0.5" aria-label="Dismiss toast">
+          <button
+            type="button"
+            @click="dismissToast(toast.id)"
+            class="text-rose-text-muted hover:text-rose-text focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary rounded p-0.5"
+            aria-label="Dismiss toast"
+          >
             <XIcon class="w-4 h-4" />
           </button>
         </div>

@@ -6,7 +6,10 @@
       {{ totalCount === 1 ? "contribution" : "contributions" }} in the last year
     </p>
 
-    <div class="mt-4 grid grid-cols-1 gap-6" :class="hasEnoughData ? 'lg:grid-cols-[minmax(0,1fr)_1px_260px]' : ''">
+    <div
+      class="mt-4 grid grid-cols-1 gap-6"
+      :class="hasEnoughData ? 'lg:grid-cols-[minmax(0,1fr)_1px_260px]' : ''"
+    >
       <HomeActivityHeatmap :weeks="weeks" />
 
       <template v-if="hasEnoughData">

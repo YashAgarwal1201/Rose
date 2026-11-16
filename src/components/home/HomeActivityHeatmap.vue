@@ -3,21 +3,35 @@
   <div ref="scrollerRef" class="overflow-x-auto no-scrollbar pb-1">
     <div class="inline-flex flex-col gap-1">
       <div class="flex gap-1 pl-8">
-        <span v-for="(label, index) in monthLabels" :key="index"
-          class="shrink-0 text-xs leading-none text-rose-text-muted" :style="cellStyle">{{ label }}</span>
+        <span
+          v-for="(label, index) in monthLabels"
+          :key="index"
+          class="shrink-0 text-xs leading-none text-rose-text-muted"
+          :style="cellStyle"
+          >{{ label }}</span
+        >
       </div>
 
       <div class="flex flex-row gap-2">
         <div class="flex flex-col gap-1 pr-3 shrink-0 sticky left-0 bg-rose-bg">
-          <span v-for="(label, index) in dayLabels" :key="index"
-            class="w-full flex items-center text-xs leading-none text-rose-text-muted" :style="cellStyle">{{ label
-            }}</span>
+          <span
+            v-for="(label, index) in dayLabels"
+            :key="index"
+            class="w-full flex items-center text-xs leading-none text-rose-text-muted"
+            :style="cellStyle"
+            >{{ label }}</span
+          >
         </div>
 
         <div class="grow flex gap-1">
           <div v-for="(week, weekIndex) in weeks" :key="weekIndex" class="flex flex-col gap-1">
-            <div v-for="day in week" :key="day.dateKey" :class="['rounded-sm', levelClasses[day.level]]"
-              :style="cellStyle" :title="tooltipFor(day)" />
+            <div
+              v-for="day in week"
+              :key="day.dateKey"
+              :class="['rounded-sm', levelClasses[day.level]]"
+              :style="cellStyle"
+              :title="tooltipFor(day)"
+            />
           </div>
         </div>
       </div>

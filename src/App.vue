@@ -11,12 +11,20 @@
       Skip to main content
     </a>
 
-    <div v-if="router.currentRoute.value.name !== 'onboarding'" class="w-full md:w-20 h-16 md:h-full shrink-0">
+    <div
+      v-if="router.currentRoute.value.name !== 'onboarding'"
+      class="w-full md:w-20 h-16 md:h-full shrink-0"
+    >
       <Navbar @toggle-menu="isMenuOpen = true" />
     </div>
 
     <div class="grow h-full relative overflow-hidden">
-      <main id="main-content" tabindex="-1" ref="mainRef" class="h-full w-full overflow-y-auto focus:outline-none">
+      <main
+        id="main-content"
+        tabindex="-1"
+        ref="mainRef"
+        class="h-full w-full overflow-y-auto focus:outline-none"
+      >
         <RouterView v-slot="{ Component }">
           <ErrorBoundary>
             <Transition name="fade" mode="out-in">
@@ -38,8 +46,17 @@
       </Transition>
     </div>
 
-    <SideMenu :is-open="isMenuOpen" :initial-panel="menuInitialPanel" @close="handleMenuClose" @open-feedback="handleOpenFeedback" />
-    <FeedbackSidebar :is-open="isFeedbackOpen" @close="isFeedbackOpen = false" @cancel="handleFeedbackClose" />
+    <SideMenu
+      :is-open="isMenuOpen"
+      :initial-panel="menuInitialPanel"
+      @close="handleMenuClose"
+      @open-feedback="handleOpenFeedback"
+    />
+    <FeedbackSidebar
+      :is-open="isFeedbackOpen"
+      @close="isFeedbackOpen = false"
+      @cancel="handleFeedbackClose"
+    />
     <ToastContainer />
     <ConfirmDialog />
     <InputDialog />
@@ -77,40 +94,34 @@ const mainRef = ref<HTMLElement | null>(null);
 const { y } = useScroll(mainRef);
 
 function scrollToTop() {
-  mainRef.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  mainRef.value?.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 const router = useRouter();
 const themeStore = useThemeStore();
 const uiStore = useUiStore();
 
-useBackButtonClose(
-  isMenuOpen,
-  "menu",
-  handleMenuClose,
-  () => {
-    // Only intercept back button for menu if feedback is not open
-    if (!isFeedbackOpen.value) {
-      isMenuOpen.value = true;
-    }
+useBackButtonClose(isMenuOpen, "menu", handleMenuClose, () => {
+  // Only intercept back button for menu if feedback is not open
+  if (!isFeedbackOpen.value) {
+    isMenuOpen.value = true;
   }
-);
+});
 
-useBackButtonClose(
-  isFeedbackOpen,
-  "feedback",
-  handleFeedbackClose,
-  () => {
-    isFeedbackOpen.value = true;
-  }
-);
+useBackButtonClose(isFeedbackOpen, "feedback", handleFeedbackClose, () => {
+  isFeedbackOpen.value = true;
+});
 
 function cycleTheme() {
   const modes = ["light", "dark", "system"] as const;
   const currentIndex = modes.indexOf(themeStore.mode);
   const nextMode = modes[(currentIndex + 1) % modes.length] ?? "light";
   themeStore.setMode(nextMode);
-  showToast(`Theme: ${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}`, "info", TOAST_AUTO_DISMISS_MS);
+  showToast(
+    `Theme: ${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}`,
+    "info",
+    TOAST_AUTO_DISMISS_MS,
+  );
 }
 
 // Close the menu overlay when route changes
@@ -239,7 +250,6 @@ function handleFeedbackClose() {
     isMenuOpen.value = true;
   }, 100);
 }
-
 
 function onSWUpdate() {
   showToast("App updated — refresh to get the latest version.", "info", TOAST_AUTO_DISMISS_MS);

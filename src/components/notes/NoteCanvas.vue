@@ -27,7 +27,12 @@ const {
 }>();
 
 const emit = defineEmits<{
-  change: [canvasJSON: Record<string, unknown>, backgroundColor: string, backgroundPattern: BackgroundPattern, thumbnail: string];
+  change: [
+    canvasJSON: Record<string, unknown>,
+    backgroundColor: string,
+    backgroundPattern: BackgroundPattern,
+    thumbnail: string,
+  ];
 }>();
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
@@ -76,14 +81,18 @@ function handlePointerDown() {
 }
 
 function shouldHandleCanvasShortcut(): boolean {
-  if (!rootContainerRef.value) { return false; }
+  if (!rootContainerRef.value) {
+    return false;
+  }
   const active = document.activeElement;
   if (active && rootContainerRef.value.contains(active)) {
     return true;
   }
   if (document.body.classList.contains("rose-standalone")) {
     const tag = active?.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+      return false;
+    }
     return true;
   }
   return false;
@@ -95,7 +104,9 @@ useKeyboardShortcuts([
     key: "s",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleCanvasShortcut()) { return false; }
+      if (!shouldHandleCanvasShortcut()) {
+        return false;
+      }
       saveNow();
       showToast("Note saved", "info", TOAST_AUTO_DISMISS_MS);
     },
@@ -105,7 +116,9 @@ useKeyboardShortcuts([
     key: "z",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleCanvasShortcut()) { return false; }
+      if (!shouldHandleCanvasShortcut()) {
+        return false;
+      }
       if (canUndo.value) {
         undo();
       } else {
@@ -120,7 +133,9 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (!shouldHandleCanvasShortcut()) { return false; }
+      if (!shouldHandleCanvasShortcut()) {
+        return false;
+      }
       if (canRedo.value) {
         redo();
       } else {
@@ -134,7 +149,9 @@ useKeyboardShortcuts([
     key: "y",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleCanvasShortcut()) { return false; }
+      if (!shouldHandleCanvasShortcut()) {
+        return false;
+      }
       if (canRedo.value) {
         redo();
       } else {
@@ -149,7 +166,9 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (!shouldHandleCanvasShortcut()) { return false; }
+      if (!shouldHandleCanvasShortcut()) {
+        return false;
+      }
       toolbarRef.value?.toggleExportMenu();
     },
   },
@@ -234,7 +253,7 @@ async function handleImageSelected(event: Event) {
     try {
       await addImage(file);
     } catch (error: unknown) {
-    console.error("Error:", error);
+      console.error("Error:", error);
       showToast(getErrorMessage(error), "error");
     }
   }
@@ -243,33 +262,82 @@ async function handleImageSelected(event: Event) {
 </script>
 
 <template>
-  <div ref="rootContainerRef" class="flex flex-col h-full overflow-hidden" @pointerdown="handlePointerDown">
+  <div
+    ref="rootContainerRef"
+    class="flex flex-col h-full overflow-hidden"
+    @pointerdown="handlePointerDown"
+  >
     <!-- Body: toolbar + editor, direction depends on position -->
-    <div class="flex flex-1 min-h-0"
-      :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'">
+    <div
+      class="flex flex-1 min-h-0"
+      :class="toolbarPosition === 'left' || toolbarPosition === 'right' ? 'flex-row' : 'flex-col'"
+    >
       <!-- Toolbar: left or top -->
-      <NoteToolbar v-if="toolbarPosition === 'top' || toolbarPosition === 'left'" ref="toolbarRef" v-model:tool="tool"
-        v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
-        :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
-        :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
-        :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition"
-        @undo="undo" @redo="redo" @add-text="addText" @triggerImagePick="triggerImagePick" @export-as-png="exportAsPng"
-        @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg" @add-shape="(shape) => addShape(shape, penColor)" />
-      
-      <div ref="scrollContainerRef" tabindex="-1" class="note-canvas__scroll flex-1 relative min-h-0 min-w-0 focus:outline-none" style="overflow: auto;">
+      <NoteToolbar
+        v-if="toolbarPosition === 'top' || toolbarPosition === 'left'"
+        ref="toolbarRef"
+        v-model:tool="tool"
+        v-model:pen-tool="penTool"
+        v-model:shape-tool="shapeTool"
+        v-model:pen-color="penColor"
+        :background-color="backgroundColor"
+        @update:background-color="setBackgroundColor($event, backgroundPattern)"
+        :background-pattern="backgroundPattern"
+        @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :position="toolbarPosition"
+        @undo="undo"
+        @redo="redo"
+        @add-text="addText"
+        @triggerImagePick="triggerImagePick"
+        @export-as-png="exportAsPng"
+        @export-as-jpeg="exportAsJpeg"
+        @export-as-svg="exportAsSvg"
+        @add-shape="(shape) => addShape(shape, penColor)"
+      />
+
+      <div
+        ref="scrollContainerRef"
+        tabindex="-1"
+        class="note-canvas__scroll flex-1 relative min-h-0 min-w-0 focus:outline-none"
+        style="overflow: auto"
+      >
         <canvas ref="canvasEl" />
       </div>
 
       <!-- Toolbar: right or bottom -->
-      <NoteToolbar v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'" ref="toolbarRef"
-        v-model:tool="tool" v-model:pen-tool="penTool" v-model:shape-tool="shapeTool" v-model:pen-color="penColor"
-        :background-color="backgroundColor" @update:background-color="setBackgroundColor($event, backgroundPattern)"
-        :background-pattern="backgroundPattern" @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
-        :can-undo="canUndo" :can-redo="canRedo" :position="toolbarPosition" @undo="undo" @redo="redo" @add-text="addText"
-        @triggerImagePick="triggerImagePick" @export-as-png="exportAsPng" @export-as-jpeg="exportAsJpeg" @export-as-svg="exportAsSvg"
-        @add-shape="(shape) => addShape(shape, penColor)" />
-      
-      <input ref="imageInputRef" type="file" accept="image/*" class="sr-only" @change="handleImageSelected" />
+      <NoteToolbar
+        v-if="toolbarPosition === 'bottom' || toolbarPosition === 'right'"
+        ref="toolbarRef"
+        v-model:tool="tool"
+        v-model:pen-tool="penTool"
+        v-model:shape-tool="shapeTool"
+        v-model:pen-color="penColor"
+        :background-color="backgroundColor"
+        @update:background-color="setBackgroundColor($event, backgroundPattern)"
+        :background-pattern="backgroundPattern"
+        @update:background-pattern="setBackgroundColor(backgroundColor, $event)"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :position="toolbarPosition"
+        @undo="undo"
+        @redo="redo"
+        @add-text="addText"
+        @triggerImagePick="triggerImagePick"
+        @export-as-png="exportAsPng"
+        @export-as-jpeg="exportAsJpeg"
+        @export-as-svg="exportAsSvg"
+        @add-shape="(shape) => addShape(shape, penColor)"
+      />
+
+      <input
+        ref="imageInputRef"
+        type="file"
+        accept="image/*"
+        class="sr-only"
+        @change="handleImageSelected"
+      />
     </div>
   </div>
 </template>

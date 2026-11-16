@@ -5,17 +5,19 @@ import { useConfirm } from "@/composables/ui/useConfirm";
 import { ref } from "vue";
 import { createPinia } from "pinia";
 
-vi.mock(import('@/composables/ui/useConfirm'), () => (
-  {
-    useConfirm: vi.fn()
-  }
-));
-vi.mock(import('@/composables/ui/useBackButtonClose'), () => ({
-  useBackButtonClose: vi.fn()
+vi.mock(import("@/composables/ui/useConfirm"), () => ({
+  useConfirm: vi.fn(),
 }));
-vi.mock(import('@vueuse/integrations/useFocusTrap'), () => ({
-  useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() })
-} as any));
+vi.mock(import("@/composables/ui/useBackButtonClose"), () => ({
+  useBackButtonClose: vi.fn(),
+}));
+vi.mock(
+  import("@vueuse/integrations/useFocusTrap"),
+  () =>
+    ({
+      useFocusTrap: () => ({ activate: vi.fn(), deactivate: vi.fn() }),
+    }) as any,
+);
 
 describe("ConfirmDialog.vue", () => {
   beforeEach(() => {
@@ -26,30 +28,30 @@ describe("ConfirmDialog.vue", () => {
     expect.hasAssertions();
     const handleConfirm = vi.fn();
     const handleCancel = vi.fn();
-    
+
     vi.mocked(useConfirm).mockReturnValue({
       isOpen: ref(true),
       options: ref({
         title: "Test Title",
         message: "Test Message",
         confirmLabel: "Yes",
-        cancelLabel: "No"
+        cancelLabel: "No",
       }),
       handleConfirm,
       handleCancel,
-      confirm: vi.fn()
+      confirm: vi.fn(),
     });
 
     const wrapper = mount(ConfirmDialog, {
       global: {
         plugins: [createPinia()],
-        stubs: { Teleport: true }
-      }
+        stubs: { Teleport: true },
+      },
     });
 
     expect(wrapper.find("h3").text()).toBe("Test Title");
     expect(wrapper.find("p").text()).toBe("Test Message");
-    
+
     const buttons = wrapper.findAll("button");
     expect(buttons[0]?.text()).toBe("No");
     expect(buttons[1]?.text()).toBe("Yes");
@@ -70,14 +72,14 @@ describe("ConfirmDialog.vue", () => {
       options: ref({ title: "Test Title", message: "Test Message" }),
       handleConfirm: vi.fn(),
       handleCancel: vi.fn(),
-      confirm: vi.fn()
+      confirm: vi.fn(),
     });
 
     const wrapper = mount(ConfirmDialog, {
       global: {
         plugins: [createPinia()],
-        stubs: { Teleport: true }
-      }
+        stubs: { Teleport: true },
+      },
     });
 
     expect(wrapper.find("h3").exists()).toBe(false);

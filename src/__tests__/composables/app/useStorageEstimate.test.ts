@@ -45,14 +45,14 @@ describe("useStorageEstimate", () => {
     });
 
     const { refresh, status, usageBytes, quotaBytes } = useStorageEstimate();
-    
+
     expect(status.value).toBe("idle");
-    
+
     const refreshPromise = refresh();
     expect(status.value).toBe("loading");
-    
+
     await refreshPromise;
-    
+
     expect(status.value).toBe("ready");
     expect(usageBytes.value).toBe(100);
     expect(quotaBytes.value).toBe(1000);
@@ -75,14 +75,19 @@ describe("useStorageEstimate", () => {
 
   it("handles race conditions by dropping stale responses", async () => {
     expect.hasAssertions();
-    
+
     let resolveFirst: (v: any) => void;
     let resolveSecond: (v: any) => void;
 
-    const firstPromise = new Promise((r) => { resolveFirst = r; });
-    const secondPromise = new Promise((r) => { resolveSecond = r; });
+    const firstPromise = new Promise((r) => {
+      resolveFirst = r;
+    });
+    const secondPromise = new Promise((r) => {
+      resolveSecond = r;
+    });
 
-    const mockEstimate = vi.fn()
+    const mockEstimate = vi
+      .fn()
       .mockReturnValueOnce(firstPromise)
       .mockReturnValueOnce(secondPromise);
 
@@ -102,7 +107,7 @@ describe("useStorageEstimate", () => {
     // Resolve first (should be ignored)
     resolveFirst!({ usage: 10, quota: 100 });
     await req1;
-    
+
     // Status should still be loading because the second request is pending
     expect(status.value).toBe("loading");
     expect(usageBytes.value).toBeNull();

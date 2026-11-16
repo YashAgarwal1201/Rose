@@ -45,8 +45,8 @@ const { contentJSON = null, title = "Shared Document" } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'change', content: Record<string, unknown>): void;
-  (e: 'notify', message: string, type?: ToastType): void;
+  (e: "change", content: Record<string, unknown>): void;
+  (e: "notify", message: string, type?: ToastType): void;
 }>();
 
 const { showToast } = useToast();
@@ -54,7 +54,7 @@ const { requestInput } = useInput();
 
 function notify(message: string, type: ToastType = "info") {
   showToast(message, type);
-  emit('notify', message, type);
+  emit("notify", message, type);
 }
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -132,7 +132,7 @@ async function fileToDataUrl(file: File): Promise<string> {
 }
 
 const editor = useEditor({
-  content: typeof contentJSON === 'string' ? "" : (contentJSON || ""),
+  content: typeof contentJSON === "string" ? "" : contentJSON || "",
   extensions: [
     StarterKit.configure({ link: false, underline: false }),
     TaskList,
@@ -154,7 +154,7 @@ const editor = useEditor({
     Markdown.configure({ markedOptions: { gfm: true } }),
   ],
   onCreate({ editor: instance }) {
-    if (typeof contentJSON === 'string' && contentJSON) {
+    if (typeof contentJSON === "string" && contentJSON) {
       instance.commands.setContent(contentJSON);
     }
   },
@@ -173,7 +173,9 @@ const editor = useEditor({
       const files = [...(event.dataTransfer?.files ?? [])].filter((f) =>
         f.type.startsWith("image/"),
       );
-      if (files.length === 0) { return false; }
+      if (files.length === 0) {
+        return false;
+      }
       event.preventDefault();
       files.forEach(async (file) => {
         const src = await fileToDataUrl(file);
@@ -185,7 +187,9 @@ const editor = useEditor({
       const files = [...(event.clipboardData?.files ?? [])].filter((f) =>
         f.type.startsWith("image/"),
       );
-      if (files.length === 0) { return false; }
+      if (files.length === 0) {
+        return false;
+      }
       event.preventDefault();
       files.forEach(async (file) => {
         const src = await fileToDataUrl(file);
@@ -195,25 +199,31 @@ const editor = useEditor({
     },
   },
   onUpdate({ editor: instance }) {
-    emit('change', instance.getJSON());
+    emit("change", instance.getJSON());
   },
 });
 
-watch(() => contentJSON, (newContent) => {
-  if (editor.value && newContent) {
-    if (typeof newContent === 'string') {
-      const currentMarkdown = (editor.value as Editor & { getMarkdown: () => string }).getMarkdown();
-      if (currentMarkdown !== newContent) {
-        editor.value.commands.setContent(newContent, { emitUpdate: false });
-      }
-    } else {
-      const isSame = JSON.stringify(editor.value.getJSON()) === JSON.stringify(newContent);
-      if (!isSame) {
-        editor.value.commands.setContent(newContent, { emitUpdate: false });
+watch(
+  () => contentJSON,
+  (newContent) => {
+    if (editor.value && newContent) {
+      if (typeof newContent === "string") {
+        const currentMarkdown = (
+          editor.value as Editor & { getMarkdown: () => string }
+        ).getMarkdown();
+        if (currentMarkdown !== newContent) {
+          editor.value.commands.setContent(newContent, { emitUpdate: false });
+        }
+      } else {
+        const isSame = JSON.stringify(editor.value.getJSON()) === JSON.stringify(newContent);
+        if (!isSame) {
+          editor.value.commands.setContent(newContent, { emitUpdate: false });
+        }
       }
     }
-  }
-}, { deep: true });
+  },
+  { deep: true },
+);
 
 const docTitle = computed(() => title);
 const { exportAsHtml, exportAsMarkdown, exportAsText, exportAsPdf } = useDocExport(
@@ -233,7 +243,9 @@ const CELL_BG_COLORS = [
 ];
 
 function isCurrentTableBordered(): boolean {
-  if (!editor.value) { return true; }
+  if (!editor.value) {
+    return true;
+  }
   const { $from } = editor.value.state.selection;
   for (let { depth } = $from; depth > 0; depth--) {
     const node = $from.node(depth);
@@ -245,7 +257,9 @@ function isCurrentTableBordered(): boolean {
 }
 
 function toggleTableBorders() {
-  if (!editor.value) { return; }
+  if (!editor.value) {
+    return;
+  }
   const { state, view } = editor.value;
   const { $from } = state.selection;
   for (let { depth } = $from; depth > 0; depth--) {
@@ -262,7 +276,9 @@ function toggleTableBorders() {
 }
 
 function applyCellBackground(color: string | null) {
-  if (!editor.value) { return; }
+  if (!editor.value) {
+    return;
+  }
   const { state, view } = editor.value;
   const { $from } = state.selection;
   for (let { depth } = $from; depth > 0; depth--) {
@@ -286,7 +302,9 @@ function triggerImagePick() {
 
 async function handleImageSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) { return; }
+  if (!file) {
+    return;
+  }
   const src = await fileToDataUrl(file);
   editor.value?.chain().focus().setImage({ src }).run();
   (event.target as HTMLInputElement).value = "";
@@ -305,7 +323,9 @@ async function setLink() {
     confirmLabel: "Add Link",
   });
 
-  if (!url) { return; }
+  if (!url) {
+    return;
+  }
   editor.value?.chain().focus().setLink({ href: url }).run();
 }
 
@@ -314,7 +334,9 @@ function insertTable(rows: number, cols: number) {
 }
 
 function getCurrentTableDimensions(): { rows: number; cols: number } | null {
-  if (!editor.value) { return null; }
+  if (!editor.value) {
+    return null;
+  }
   const { $from } = editor.value.state.selection;
   for (let { depth } = $from; depth > 0; depth--) {
     const node = $from.node(depth);
@@ -386,7 +408,9 @@ function buildTableContentFromRows(rows: string[][], firstRowIsHeader: boolean) 
 async function handleCsvSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
   (event.target as HTMLInputElement).value = "";
-  if (!file) { return; }
+  if (!file) {
+    return;
+  }
 
   const text = await file.text();
   const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true });
@@ -435,11 +459,17 @@ const rootContainerRef = ref<HTMLElement | null>(null);
 const toolbarRef = ref<InstanceType<typeof DocToolbar> | null>(null);
 
 function shouldHandleShortcut(): boolean {
-  if (!rootContainerRef.value) { return false; }
+  if (!rootContainerRef.value) {
+    return false;
+  }
   const active = document.activeElement;
-  if (!active || !rootContainerRef.value.contains(active)) { return false; }
+  if (!active || !rootContainerRef.value.contains(active)) {
+    return false;
+  }
   const tag = active.tagName;
-  if (tag === "INPUT" || tag === "TEXTAREA") { return false; }
+  if (tag === "INPUT" || tag === "TEXTAREA") {
+    return false;
+  }
   return true;
 }
 
@@ -448,7 +478,9 @@ useKeyboardShortcuts([
     key: "b",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleShortcut()) { return false; }
+      if (!shouldHandleShortcut()) {
+        return false;
+      }
       editor.value?.chain().focus().toggleBold().run();
     },
   },
@@ -456,7 +488,9 @@ useKeyboardShortcuts([
     key: "i",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleShortcut()) { return false; }
+      if (!shouldHandleShortcut()) {
+        return false;
+      }
       editor.value?.chain().focus().toggleItalic().run();
     },
   },
@@ -464,7 +498,9 @@ useKeyboardShortcuts([
     key: "u",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleShortcut()) { return false; }
+      if (!shouldHandleShortcut()) {
+        return false;
+      }
       editor.value?.chain().focus().toggleUnderline().run();
     },
   },
@@ -473,7 +509,9 @@ useKeyboardShortcuts([
     ctrl: true,
     alt: true,
     handler: () => {
-      if (!shouldHandleShortcut()) { return false; }
+      if (!shouldHandleShortcut()) {
+        return false;
+      }
       editor.value?.chain().focus().toggleStrike().run();
     },
   },
@@ -481,7 +519,9 @@ useKeyboardShortcuts([
     key: "k",
     ctrl: true,
     handler: () => {
-      if (!shouldHandleShortcut()) { return false; }
+      if (!shouldHandleShortcut()) {
+        return false;
+      }
       setLink();
     },
   },
@@ -490,7 +530,9 @@ useKeyboardShortcuts([
     ctrl: true,
     shift: true,
     handler: () => {
-      if (!rootContainerRef.value?.contains(document.activeElement)) { return false; }
+      if (!rootContainerRef.value?.contains(document.activeElement)) {
+        return false;
+      }
       toolbarRef.value?.toggleExportMenu();
     },
   },
@@ -509,38 +551,72 @@ onBeforeUnmount(() => {
         <div class="flex flex-col flex-1 min-h-0">
           <div class="flex flex-1 min-h-0" :class="isVertical ? 'flex-row' : 'flex-col'">
             <!-- Toolbar: left or top -->
-            <DocToolbar ref="toolbarRef" v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
-              :editor="editor" :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS"
-              :position="effectivePosition" @trigger-image-pick="triggerImagePick" @set-link="setLink"
-              @insert-table="insertTable" @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml"
-              @export-as-markdown="exportAsMarkdown" @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+            <DocToolbar
+              ref="toolbarRef"
+              v-if="editor && (effectivePosition === 'top' || effectivePosition === 'left')"
+              :editor="editor"
+              :max-table-rows="MAX_TABLE_ROWS"
+              :max-table-cols="MAX_TABLE_COLS"
+              :position="effectivePosition"
+              @trigger-image-pick="triggerImagePick"
+              @set-link="setLink"
+              @insert-table="insertTable"
+              @trigger-csv-pick="triggerCsvPick"
+              @export-as-html="exportAsHtml"
+              @export-as-markdown="exportAsMarkdown"
+              @export-as-text="exportAsText"
+              @export-as-pdf="exportAsPdf"
+            />
 
             <!-- Editor + table context bar -->
-            <div class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
-              :class="effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'">
+            <div
+              class="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto px-4 md:px-6 pt-4"
+              :class="effectivePosition === 'bottom' ? 'pb-12 md:pb-8' : 'pb-8'"
+            >
               <!-- Table context toolbar -->
-              <div v-if="editor?.isActive('table')" ref="cellBgRootRef"
+              <div
+                v-if="editor?.isActive('table')"
+                ref="cellBgRootRef"
                 class="relative mb-3 mt-2 rounded-lg bg-rose-surface border border-rose-border shrink-0"
-                :style="{ maxWidth: 'clamp(320px, 72ch, 860px)', marginLeft: 'auto', marginRight: 'auto', width: '100%' }">
-                <div v-if="isCellBgPickerOpen" class="fixed inset-0 z-10" @click="
-                  isCellBgPickerOpen = false;
-                cellBgAnchor.close();
-                "></div>
+                :style="{
+                  maxWidth: 'clamp(320px, 72ch, 860px)',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  width: '100%',
+                }"
+              >
+                <div
+                  v-if="isCellBgPickerOpen"
+                  class="fixed inset-0 z-10"
+                  @click="
+                    isCellBgPickerOpen = false;
+                    cellBgAnchor.close();
+                  "
+                ></div>
 
-                <div class="flex items-center gap-1 p-1.5 overflow-x-auto" style="scrollbar-width: none">
+                <div
+                  class="flex items-center gap-1 p-1.5 overflow-x-auto"
+                  style="scrollbar-width: none"
+                >
                   <span class="text-xs text-rose-text-muted px-1 shrink-0">Table:</span>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxRows()" @click="addRowBeforeGuarded">
+                    :disabled="isTableAtMaxRows()"
+                    @click="addRowBeforeGuarded"
+                  >
                     ↑ Row
                   </button>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxRows()" @click="addRowAfterGuarded">
+                    :disabled="isTableAtMaxRows()"
+                    @click="addRowAfterGuarded"
+                  >
                     ↓ Row
                   </button>
-                  <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-                    @click="editor.chain().focus().deleteRow().run()">
+                  <button
+                    class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    @click="editor.chain().focus().deleteRow().run()"
+                  >
                     Del row
                   </button>
 
@@ -548,72 +624,128 @@ onBeforeUnmount(() => {
 
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxCols()" @click="addColumnBeforeGuarded">
+                    :disabled="isTableAtMaxCols()"
+                    @click="addColumnBeforeGuarded"
+                  >
                     ← Col
                   </button>
                   <button
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0 disabled:opacity-40"
-                    :disabled="isTableAtMaxCols()" @click="addColumnAfterGuarded">
+                    :disabled="isTableAtMaxCols()"
+                    @click="addColumnAfterGuarded"
+                  >
                     → Col
                   </button>
-                  <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-                    @click="editor.chain().focus().deleteColumn().run()">
+                  <button
+                    class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    @click="editor.chain().focus().deleteColumn().run()"
+                  >
                     Del col
                   </button>
 
                   <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
 
-                  <button ref="cellBgTriggerRef"
+                  <button
+                    ref="cellBgTriggerRef"
                     class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt"
-                    :aria-expanded="isCellBgPickerOpen" @click="toggleCellBgPicker">
+                    :aria-expanded="isCellBgPickerOpen"
+                    @click="toggleCellBgPicker"
+                  >
                     Cell color
                   </button>
 
-                  <button class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
-                    @click="toggleTableBorders">
-                    {{ isCurrentTableBordered() ? 'Hide borders' : 'Show borders' }}
+                  <button
+                    class="px-2 py-1 rounded text-xs text-rose-text-muted hover:bg-rose-surface-alt shrink-0"
+                    @click="toggleTableBorders"
+                  >
+                    {{ isCurrentTableBordered() ? "Hide borders" : "Show borders" }}
                   </button>
 
                   <div class="w-px h-4 bg-rose-border mx-0.5 shrink-0"></div>
 
-                  <button class="px-2 py-1 rounded text-xs text-red-400 hover:bg-rose-surface-alt shrink-0"
-                    @click="editor.chain().focus().deleteTable().run()">
+                  <button
+                    class="px-2 py-1 rounded text-xs text-red-400 hover:bg-rose-surface-alt shrink-0"
+                    @click="editor.chain().focus().deleteTable().run()"
+                  >
                     Delete table
                   </button>
                 </div>
 
-                <div v-if="isCellBgPickerOpen" ref="cellBgPopoverRef"
+                <div
+                  v-if="isCellBgPickerOpen"
+                  ref="cellBgPopoverRef"
                   class="absolute z-20 grid grid-cols-4 gap-1.5 p-2 w-40 rounded-lg bg-rose-surface border border-rose-border shadow-lg"
-                  :style="cellBgAnchor.style">
-                  <button v-for="color in CELL_BG_COLORS" :key="color.label"
+                  :style="cellBgAnchor.style"
+                >
+                  <button
+                    v-for="color in CELL_BG_COLORS"
+                    :key="color.label"
                     class="w-6 h-6 rounded-full border border-rose-border flex items-center justify-center text-xs"
-                    :style="color.value ? { backgroundColor: color.value } : {}" :title="color.label"
-                    @click="applyCellBackground(color.value)">
+                    :style="color.value ? { backgroundColor: color.value } : {}"
+                    :title="color.label"
+                    @click="applyCellBackground(color.value)"
+                  >
                     <span v-if="!color.value" class="text-rose-text-muted">×</span>
                   </button>
                 </div>
               </div>
 
-              <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="handleImageSelect" />
-              <input ref="csvFileInputRef" type="file" accept=".csv,text/csv" class="hidden"
-                @change="handleCsvSelect" />
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleImageSelect"
+              />
+              <input
+                ref="csvFileInputRef"
+                type="file"
+                accept=".csv,text/csv"
+                class="hidden"
+                @change="handleCsvSelect"
+              />
 
-              <EditorContent :editor="editor" class="prose prose-invert max-w-none rose-editor-content flex-1" />
+              <EditorContent
+                :editor="editor"
+                class="prose prose-invert max-w-none rose-editor-content flex-1"
+              />
             </div>
 
             <!-- Toolbar: right position -->
-            <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'right'" :editor="editor"
-              :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
-              @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
-              @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
-              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+            <DocToolbar
+              ref="toolbarRef"
+              v-if="editor && effectivePosition === 'right'"
+              :editor="editor"
+              :max-table-rows="MAX_TABLE_ROWS"
+              :max-table-cols="MAX_TABLE_COLS"
+              :position="effectivePosition"
+              @trigger-image-pick="triggerImagePick"
+              @set-link="setLink"
+              @insert-table="insertTable"
+              @trigger-csv-pick="triggerCsvPick"
+              @export-as-html="exportAsHtml"
+              @export-as-markdown="exportAsMarkdown"
+              @export-as-text="exportAsText"
+              @export-as-pdf="exportAsPdf"
+            />
 
             <!-- Toolbar: bottom position (fixed, rendered outside flow but still here for v-if) -->
-            <DocToolbar ref="toolbarRef" v-if="editor && effectivePosition === 'bottom'" :editor="editor"
-              :max-table-rows="MAX_TABLE_ROWS" :max-table-cols="MAX_TABLE_COLS" :position="effectivePosition"
-              @trigger-image-pick="triggerImagePick" @set-link="setLink" @insert-table="insertTable"
-              @trigger-csv-pick="triggerCsvPick" @export-as-html="exportAsHtml" @export-as-markdown="exportAsMarkdown"
-              @export-as-text="exportAsText" @export-as-pdf="exportAsPdf" />
+            <DocToolbar
+              ref="toolbarRef"
+              v-if="editor && effectivePosition === 'bottom'"
+              :editor="editor"
+              :max-table-rows="MAX_TABLE_ROWS"
+              :max-table-cols="MAX_TABLE_COLS"
+              :position="effectivePosition"
+              @trigger-image-pick="triggerImagePick"
+              @set-link="setLink"
+              @insert-table="insertTable"
+              @trigger-csv-pick="triggerCsvPick"
+              @export-as-html="exportAsHtml"
+              @export-as-markdown="exportAsMarkdown"
+              @export-as-text="exportAsText"
+              @export-as-pdf="exportAsPdf"
+            />
           </div>
         </div>
       </ErrorBoundary>
@@ -693,7 +825,7 @@ onBeforeUnmount(() => {
   margin: 0.2rem 0;
 }
 
-.rose-editor-content li>p {
+.rose-editor-content li > p {
   margin: 0;
 }
 
@@ -708,7 +840,7 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
 }
 
-.rose-editor-content ul[data-type="taskList"] li>label {
+.rose-editor-content ul[data-type="taskList"] li > label {
   margin-top: 0.2rem;
 }
 

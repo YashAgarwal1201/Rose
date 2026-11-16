@@ -160,7 +160,7 @@ describe("docsStore", () => {
       await freshDb();
       setActivePinia(createPinia());
       const store = useDocsStore();
-      await expect(store.createDoc("A/B", null)).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.createDoc("A/B", null)).rejects.toThrow('cannot contain "/"');
     });
 
     it("throws on duplicate title within the same folder", async () => {
@@ -313,7 +313,7 @@ describe("docsStore", () => {
       setActivePinia(createPinia());
       const store = useDocsStore();
       const id = await store.createDoc("DocA", null);
-      await expect(store.updateDoc(id, { title: "Doc/A" })).rejects.toThrow("cannot contain \"/\"");
+      await expect(store.updateDoc(id, { title: "Doc/A" })).rejects.toThrow('cannot contain "/"');
     });
   });
 
@@ -414,4 +414,3 @@ describe("docsStore", () => {
     });
   });
 });
-

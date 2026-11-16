@@ -15,9 +15,9 @@ describe("db/index.ts", () => {
   it("should initialize the database with correct tables", () => {
     expect.hasAssertions();
     expect(db.name).toBe("RoseDatabase");
-    
+
     // Verify that all expected tables are present
-    const tableNames = db.tables.map(t => t.name);
+    const tableNames = db.tables.map((t) => t.name);
     expect(tableNames).toContain("folders");
     expect(tableNames).toContain("todoLists");
     expect(tableNames).toContain("todos");
@@ -29,14 +29,16 @@ describe("db/index.ts", () => {
 
   it("should support basic CRUD operations on a store", async () => {
     expect.hasAssertions();
-    
+
     const newFolder: Folder = {
       id: "folder-1",
       parentId: "root",
       name: "Test Folder",
       type: "mixed",
       createdAt: Date.now(),
-      updatedAt: Date.now(), isVaulted: false, iv: null,
+      updatedAt: Date.now(),
+      isVaulted: false,
+      iv: null,
     };
 
     // Create

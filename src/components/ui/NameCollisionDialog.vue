@@ -50,7 +50,9 @@ function handleConfirm() {
         aria-label="Name collision warning"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b border-rose-border shrink-0">
+        <div
+          class="flex items-center justify-between px-5 py-4 border-b border-rose-border shrink-0"
+        >
           <div class="flex items-center gap-2.5 text-amber-500">
             <AlertTriangleIcon class="w-5 h-5 shrink-0" />
             <h2 class="text-lg font-bold text-rose-text truncate">Item Already Exists</h2>
@@ -68,8 +70,8 @@ function handleConfirm() {
         <!-- Body -->
         <div class="px-5 py-4 space-y-3">
           <p class="text-sm text-rose-text">
-            An item named <span class="font-semibold text-rose-text">"{{ itemName }}"</span> already exists in
-            <span class="font-semibold text-rose-text">{{ targetFolderName }}</span>.
+            An item named <span class="font-semibold text-rose-text">"{{ itemName }}"</span> already
+            exists in <span class="font-semibold text-rose-text">{{ targetFolderName }}</span>.
           </p>
           <div class="space-y-1.5">
             <label class="block text-xs font-medium text-rose-text-muted" for="new-item-name-input">
@@ -86,7 +88,9 @@ function handleConfirm() {
         </div>
 
         <!-- Footer Actions -->
-        <div class="flex items-center justify-end gap-3 px-5 py-4 border-t border-rose-border shrink-0">
+        <div
+          class="flex items-center justify-end gap-3 px-5 py-4 border-t border-rose-border shrink-0"
+        >
           <button
             type="button"
             class="px-4 py-2 text-sm font-medium text-rose-text-muted hover:text-rose-text rounded-lg hover:bg-rose-surface-alt transition-colors"

@@ -10,7 +10,11 @@
     <div v-else class="flex-1 overflow-y-auto flex items-center justify-center p-6">
       <h1 class="sr-only">Rose Setup</h1>
       <div class="w-full max-w-sm">
-        <ImportStep v-if="currentStep === 'import'" @ready="onImportReady" @not-ready="pendingImport = null" />
+        <ImportStep
+          v-if="currentStep === 'import'"
+          @ready="onImportReady"
+          @not-ready="pendingImport = null"
+        />
         <PrivacyStep v-else-if="currentStep === 1" @restore="goToImport" @skip="skipSetup" />
         <ThemeStep v-else-if="currentStep === 2" />
         <UsernameStep v-else-if="currentStep === 3" v-model="draftUsername" />
@@ -19,31 +23,47 @@
     </div>
 
     <!-- Bottom Controls: Only visible during setup wizard steps (not on landing screen) -->
-    <div v-if="currentStep !== 0" class="border-t border-rose-border p-4 flex items-center justify-between shrink-0">
+    <div
+      v-if="currentStep !== 0"
+      class="border-t border-rose-border p-4 flex items-center justify-between shrink-0"
+    >
       <!-- Dot indicators (hide the 'import' pseudo-step from the dots) -->
       <div class="flex gap-1.5" role="presentation">
-        <span v-for="(step, index) in steps" :key="step" class="h-1.5 rounded-full transition-all duration-200"
-          :class="index === numericCurrentStep ? 'w-6 bg-rose-green-muted' : 'w-1.5 bg-rose-border'" />
+        <span
+          v-for="(step, index) in steps"
+          :key="step"
+          class="h-1.5 rounded-full transition-all duration-200"
+          :class="index === numericCurrentStep ? 'w-6 bg-rose-green-muted' : 'w-1.5 bg-rose-border'"
+        />
       </div>
 
       <div class="flex gap-2">
-        <button type="button"
+        <button
+          type="button"
           class="px-4 py-2 rounded-lg text-sm font-medium text-rose-text-muted hover:bg-rose-surface-alt transition-colors"
-          @click="goBack">
+          @click="goBack"
+        >
           Back
         </button>
 
         <!-- Import step: show an "Import & continue" action -->
-        <button v-if="currentStep === 'import'" type="button" :disabled="!pendingImport || isImporting"
+        <button
+          v-if="currentStep === 'import'"
+          type="button"
+          :disabled="!pendingImport || isImporting"
           class="px-4 py-2 rounded-lg bg-rose-primary text-white text-sm font-medium hover:bg-rose-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          @click="confirmImport">
+          @click="confirmImport"
+        >
           {{ isImporting ? "Importing…" : "Import & continue" }}
         </button>
 
         <!-- Normal steps -->
-        <button v-else type="button"
+        <button
+          v-else
+          type="button"
           class="px-4 py-2 rounded-lg bg-rose-primary text-white text-sm font-medium hover:bg-rose-primary-hover transition-colors"
-          @click="goNext">
+          @click="goNext"
+        >
           {{ isLastStep ? "Enter Rose" : "Continue" }}
         </button>
       </div>
@@ -74,9 +94,7 @@ const steps = ["welcome", "privacy", "theme", "username", "finish"] as const;
 // which is a pseudo-step branching off from step 0 (Welcome).
 type Step = number | "import";
 
-const currentStep = ref<Step>(
-  Math.min(settingsStore.onboardingStep, steps.length - 1),
-);
+const currentStep = ref<Step>(Math.min(settingsStore.onboardingStep, steps.length - 1));
 const draftUsername = ref(settingsStore.username ?? "");
 
 // Reflects the dot-indicator index (the import pseudo-step stays at 0)
@@ -85,9 +103,7 @@ const numericCurrentStep = computed(() =>
 );
 
 const isLastStep = computed(
-  () =>
-    typeof currentStep.value === "number" &&
-    currentStep.value === steps.length - 1,
+  () => typeof currentStep.value === "number" && currentStep.value === steps.length - 1,
 );
 
 // ── Import pseudo-step state ──────────────────────────────────────────────────
@@ -106,7 +122,9 @@ function onImportReady(payload: ExportPayload, options: ImportOptions) {
 }
 
 async function confirmImport() {
-  if (!pendingImport.value) { return; }
+  if (!pendingImport.value) {
+    return;
+  }
   isImporting.value = true;
 
   try {
@@ -130,7 +148,9 @@ async function confirmImport() {
 
 // ── Normal navigation ─────────────────────────────────────────────────────────
 async function goNext() {
-  if (currentStep.value === "import") { return; } // handled by confirmImport
+  if (currentStep.value === "import") {
+    return;
+  } // handled by confirmImport
 
   const step = currentStep.value as number;
 
@@ -159,7 +179,9 @@ async function goBack() {
   }
 
   const step = currentStep.value as number;
-  if (step === 0) { return; }
+  if (step === 0) {
+    return;
+  }
 
   currentStep.value = step - 1;
   await settingsStore.setOnboardingStep(currentStep.value as number);

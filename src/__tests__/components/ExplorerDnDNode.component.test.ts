@@ -8,10 +8,10 @@ const state = vi.hoisted(() => ({
   isDropTarget: false,
 }));
 
-vi.mock(import('@dnd-kit/vue'), async (importOriginal) => {
+vi.mock(import("@dnd-kit/vue"), async (importOriginal) => {
   const actual = await importOriginal();
-  const vue = await import('vue');
-  
+  const vue = await import("vue");
+
   return {
     ...actual,
     useDraggable: vi.fn(() => ({ isDragging: vue.ref(state.isDragging) })),
@@ -24,11 +24,11 @@ function mountNode(props = {}) {
     props: {
       id: "test-node",
       data: { kind: "folder" },
-      ...props
+      ...props,
     },
     slots: {
-      default: '<div class="slotted-content">Slot</div>'
-    }
+      default: '<div class="slotted-content">Slot</div>',
+    },
   });
 }
 

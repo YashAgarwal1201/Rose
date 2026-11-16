@@ -110,7 +110,6 @@ describe("settingsStore", () => {
     });
   });
 
-
   // ─────────────────────────────────────────────
   // toggleActivityChart
   // ─────────────────────────────────────────────
@@ -120,10 +119,10 @@ describe("settingsStore", () => {
       const store = useSettingsStore();
       await store.loadSettings();
       expect(store.showActivityChart).toBe(true);
-      
+
       await store.toggleActivityChart();
       expect(store.showActivityChart).toBe(false);
-      
+
       await store.toggleActivityChart();
       expect(store.showActivityChart).toBe(true);
     });

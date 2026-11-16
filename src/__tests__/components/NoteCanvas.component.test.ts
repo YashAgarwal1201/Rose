@@ -4,18 +4,26 @@ import NoteCanvas from "@/components/notes/NoteCanvas.vue";
 import { ref } from "vue";
 
 // Mock the debounce utility to run immediately or expose flush
-vi.mock(import('../../utils/debounce'), () => ({
-  debounce: (fn: (...args: unknown[]) => unknown) => {
-    const debounced = (...args: unknown[]) => fn(...args);
-    debounced.flush = vi.fn(() => fn());
-    return debounced;
-  },
-} as any));
+vi.mock(
+  import("../../utils/debounce"),
+  () =>
+    ({
+      debounce: (fn: (...args: unknown[]) => unknown) => {
+        const debounced = (...args: unknown[]) => fn(...args);
+        debounced.flush = vi.fn(() => fn());
+        return debounced;
+      },
+    }) as any,
+);
 
 // Mock the toolbar
-vi.mock(import('@/components/notes/NoteToolbar.vue'), () => ({
-  default: { template: "<div data-testid='note-toolbar'></div>" },
-} as any));
+vi.mock(
+  import("@/components/notes/NoteToolbar.vue"),
+  () =>
+    ({
+      default: { template: "<div data-testid='note-toolbar'></div>" },
+    }) as any,
+);
 
 // We need a stable mock for useHandwritingCanvas
 const mockInit = vi.fn();
@@ -35,31 +43,33 @@ const mockFabricCanvas = {
   off: vi.fn(),
 };
 
-vi.mock(import('@/composables/notes/useHandwritingCanvas.ts'), () => ({
-  useHandwritingCanvas: () => (
-    {
-      init: mockInit,
-      loadFromJSON: mockLoadFromJSON,
-      toJSON: mockToJSON,
-      generateThumbnail: mockGenerateThumbnail,
-      tool: ref("pen"),
-      penTool: ref("pen"),
-      shapeTool: ref("rectangle"),
-      penColor: ref("#000000"),
-      backgroundColor: ref("#ffffff"),
-      backgroundPattern: ref("solid"),
-      canUndo: ref(false),
-      canRedo: ref(false),
-      undo: mockUndo,
-      redo: mockRedo,
-      addShape: mockAddShape,
-      addText: mockAddText,
-      addImage: mockAddImage,
-      fabricCanvas: ref(mockFabricCanvas),
-      destroy: mockDestroy,
-    }
-  ),
-} as any));
+vi.mock(
+  import("@/composables/notes/useHandwritingCanvas.ts"),
+  () =>
+    ({
+      useHandwritingCanvas: () => ({
+        init: mockInit,
+        loadFromJSON: mockLoadFromJSON,
+        toJSON: mockToJSON,
+        generateThumbnail: mockGenerateThumbnail,
+        tool: ref("pen"),
+        penTool: ref("pen"),
+        shapeTool: ref("rectangle"),
+        penColor: ref("#000000"),
+        backgroundColor: ref("#ffffff"),
+        backgroundPattern: ref("solid"),
+        canUndo: ref(false),
+        canRedo: ref(false),
+        undo: mockUndo,
+        redo: mockRedo,
+        addShape: mockAddShape,
+        addText: mockAddText,
+        addImage: mockAddImage,
+        fabricCanvas: ref(mockFabricCanvas),
+        destroy: mockDestroy,
+      }),
+    }) as any,
+);
 
 describe("NoteCanvas.vue", () => {
   const defaultProps = {

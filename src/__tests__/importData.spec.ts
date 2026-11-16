@@ -9,7 +9,19 @@ import db from "@/db";
 function makeValidPayload(overrides: Partial<ExportPayload> = {}): ExportPayload {
   return {
     data: {
-      docs: [{ id: "doc1", folderId: null, title: "Test Doc", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null }],
+      docs: [
+        {
+          id: "doc1",
+          folderId: null,
+          title: "Test Doc",
+          contentJSON: null,
+          createdAt: 1,
+          updatedAt: 1,
+          isVaulted: false,
+          iv: null,
+          lastOpenedAt: null,
+        },
+      ],
       folders: [],
       notes: [],
       settings: [],
@@ -89,21 +101,92 @@ describe("summarisePayload", () => {
     const payload = makeValidPayload({
       data: {
         docs: [
-          { id: "d1", folderId: null, title: "D1", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
-          { id: "d2", folderId: null, title: "D2", contentJSON: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
+          {
+            id: "d1",
+            folderId: null,
+            title: "D1",
+            contentJSON: null,
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+            lastOpenedAt: null,
+          },
+          {
+            id: "d2",
+            folderId: null,
+            title: "D2",
+            contentJSON: null,
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+            lastOpenedAt: null,
+          },
         ],
         notes: [
-          { id: "n1", folderId: null, title: "N1", canvasJSON: null, backgroundColor: "#fff", backgroundPattern: "solid", thumbnail: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
+          {
+            id: "n1",
+            folderId: null,
+            title: "N1",
+            canvasJSON: null,
+            backgroundColor: "#fff",
+            backgroundPattern: "solid",
+            thumbnail: null,
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+            lastOpenedAt: null,
+          },
         ],
         todos: [
-          { id: "t1", listId: "l1", title: "Buy milk", done: false, priority: null, dueDate: null, createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
+          {
+            id: "t1",
+            listId: "l1",
+            title: "Buy milk",
+            done: false,
+            priority: null,
+            dueDate: null,
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+          },
         ],
         todoLists: [
-          { id: "l1", folderId: null, name: "Groceries", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null, lastOpenedAt: null },
+          {
+            id: "l1",
+            folderId: null,
+            name: "Groceries",
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+            lastOpenedAt: null,
+          },
         ],
         folders: [
-          { id: "f1", name: "Personal", parentId: null, type: "doc", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
-          { id: "f2", name: "Work", parentId: null, type: "doc", createdAt: 1, updatedAt: 1, isVaulted: false, iv: null },
+          {
+            id: "f1",
+            name: "Personal",
+            parentId: null,
+            type: "doc",
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+          },
+          {
+            id: "f2",
+            name: "Work",
+            parentId: null,
+            type: "doc",
+            createdAt: 1,
+            updatedAt: 1,
+            isVaulted: false,
+            iv: null,
+          },
         ],
         activity: [],
         settings: [],
@@ -154,11 +237,61 @@ describe("importData migration", () => {
       version: 7,
       exportDate: "2025-01-01T00:00:00.000Z",
       data: {
-        folders: [{ id: "f1", name: "Folder 1", parentId: null, type: "mixed", createdAt: 1, updatedAt: 1 } as any],
-        notes: [{ id: "n1", folderId: "f1", title: "Note 1", canvasJSON: null, backgroundColor: "#fff", thumbnail: null, createdAt: 1, updatedAt: 1 } as any],
-        docs: [{ id: "d1", folderId: "f1", title: "Doc 1", contentJSON: null, createdAt: 1, updatedAt: 1, lastOpenedAt: null } as any],
-        todoLists: [{ id: "l1", folderId: "f1", name: "List 1", createdAt: 1, updatedAt: 1, lastOpenedAt: null } as any],
-        todos: [{ id: "t1", listId: "l1", title: "Todo 1", done: false, priority: null, dueDate: null, createdAt: 1, updatedAt: 1 } as any],
+        folders: [
+          {
+            id: "f1",
+            name: "Folder 1",
+            parentId: null,
+            type: "mixed",
+            createdAt: 1,
+            updatedAt: 1,
+          } as any,
+        ],
+        notes: [
+          {
+            id: "n1",
+            folderId: "f1",
+            title: "Note 1",
+            canvasJSON: null,
+            backgroundColor: "#fff",
+            thumbnail: null,
+            createdAt: 1,
+            updatedAt: 1,
+          } as any,
+        ],
+        docs: [
+          {
+            id: "d1",
+            folderId: "f1",
+            title: "Doc 1",
+            contentJSON: null,
+            createdAt: 1,
+            updatedAt: 1,
+            lastOpenedAt: null,
+          } as any,
+        ],
+        todoLists: [
+          {
+            id: "l1",
+            folderId: "f1",
+            name: "List 1",
+            createdAt: 1,
+            updatedAt: 1,
+            lastOpenedAt: null,
+          } as any,
+        ],
+        todos: [
+          {
+            id: "t1",
+            listId: "l1",
+            title: "Todo 1",
+            done: false,
+            priority: null,
+            dueDate: null,
+            createdAt: 1,
+            updatedAt: 1,
+          } as any,
+        ],
       },
     };
 
@@ -195,4 +328,3 @@ describe("importData migration", () => {
     expect(todo?.isVaulted).toBe(false);
   });
 });
-

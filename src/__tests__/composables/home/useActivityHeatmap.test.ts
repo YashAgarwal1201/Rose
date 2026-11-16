@@ -20,7 +20,7 @@ describe("useActivityHeatmap", () => {
   it("fetches and groups activity correctly", async () => {
     expect.hasAssertions();
     const activityStore = useActivityStore();
-    
+
     // Mock today
     const now = new Date("2023-12-25T12:00:00Z").getTime();
     vi.useFakeTimers();
@@ -34,30 +34,30 @@ describe("useActivityHeatmap", () => {
     ]);
 
     const { refresh, isLoaded, totalCount, hasAnyActivity, weeks } = useActivityHeatmap();
-    
+
     await refresh();
-    
+
     expect(isLoaded.value).toBe(true);
     expect(totalCount.value).toBe(3);
     expect(hasAnyActivity.value).toBe(true);
-    
+
     // 53 weeks
     expect(weeks.value).toHaveLength(53);
-    
+
     // Get last week (where today is)
     const lastWeek = weeks.value[52]!;
     expect(lastWeek).toHaveLength(7);
-    
+
     const sunday = lastWeek[0]!;
     const monday = lastWeek[1]!; // Today is Monday 2023-12-25
     const yesterday = sunday; // Sunday 2023-12-24
-    
+
     expect(yesterday.count).toBe(2);
     expect(yesterday.level).toBeGreaterThan(0);
-    
+
     expect(monday.count).toBe(0);
     expect(monday.level).toBe(0);
-    
+
     vi.useRealTimers();
   });
 });

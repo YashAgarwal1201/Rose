@@ -8,15 +8,8 @@
     "perf": "warn"
   },
   "rules": {
-    "eslint/func-style": [
-      "warn",
-      "declaration",
-      { "allowArrowFunctions": true }
-    ],
-    "eslint/sort-imports": [
-      "warn",
-      { "ignoreDeclarationSort": true, "ignoreCase": true }
-    ],
+    "eslint/func-style": ["warn", "declaration", { "allowArrowFunctions": true }],
+    "eslint/sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }],
     "eslint/id-length": [
       "warn",
       { "min": 2, "exceptions": ["i", "e", "f", "id", "x", "y", "a", "b"] }

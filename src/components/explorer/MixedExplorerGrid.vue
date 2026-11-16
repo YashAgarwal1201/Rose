@@ -15,7 +15,7 @@ import {
   PencilIcon,
   PenLineIcon,
   TrashIcon,
-  UnlockIcon
+  UnlockIcon,
 } from "@lucide/vue";
 import { useConfirm } from "@/composables/ui/useConfirm.ts";
 import ContextMenu from "@/components/ui/ContextMenu.vue";
@@ -23,11 +23,11 @@ import { useContextMenu, vLongPress } from "@/composables/ui/useContextMenu.ts";
 import { useExplorerViewMode } from "@/composables/explorer/useExplorerViewMode.ts";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import EmptyIllustration from "@/assets/illustrations/not-found2.svg";
-import { useMediaQuery } from '@vueuse/core';
-import { DragDropProvider } from '@dnd-kit/vue';
-import type { DragEndEvent } from '@dnd-kit/dom';
-import ExplorerDnDNode from './ExplorerDnDNode.vue';
-import ExplorerDragOverlay from './ExplorerDragOverlay.vue';
+import { useMediaQuery } from "@vueuse/core";
+import { DragDropProvider } from "@dnd-kit/vue";
+import type { DragEndEvent } from "@dnd-kit/dom";
+import ExplorerDnDNode from "./ExplorerDnDNode.vue";
+import ExplorerDragOverlay from "./ExplorerDragOverlay.vue";
 
 export type ItemKind = "folder" | "doc" | "note" | "todo";
 
@@ -64,16 +64,15 @@ const emit = defineEmits<{
   moveItem: [kind: ItemKind, id: string, targetFolderId: string | null];
 }>();
 
-
 const { confirm } = useConfirm();
 const { viewMode, sortKey, sortDir, toggleViewMode, setSortKey } = useExplorerViewMode();
-const isMobile = useMediaQuery('(hover: none) and (pointer: coarse)');
+const isMobile = useMediaQuery("(hover: none) and (pointer: coarse)");
 
 const creatingType = ref<ItemKind | null>(null);
 const newName = ref("");
 
 const vFocus = {
-  mounted: (el: HTMLElement) => el.focus()
+  mounted: (el: HTMLElement) => el.focus(),
 };
 
 const renamingId = ref<string | null>(null);
@@ -84,8 +83,12 @@ const newItemInputRef = ref<HTMLInputElement | HTMLInputElement[] | null>(null);
 function sortItems(itemsList: DisplayItem[]): DisplayItem[] {
   const sorted = [...itemsList].toSorted((itemA, itemB) => {
     // Folders always first
-    if (itemA.kind === 'folder' && itemB.kind !== 'folder') { return -1; }
-    if (itemA.kind !== 'folder' && itemB.kind === 'folder') { return 1; }
+    if (itemA.kind === "folder" && itemB.kind !== "folder") {
+      return -1;
+    }
+    if (itemA.kind !== "folder" && itemB.kind === "folder") {
+      return 1;
+    }
 
     if (sortKey.value === "name") {
       return itemA.name.localeCompare(itemB.name);
@@ -96,7 +99,7 @@ function sortItems(itemsList: DisplayItem[]): DisplayItem[] {
 }
 
 const displayItems = computed<DisplayItem[]>(() => {
-  const sorted = sortItems(items.filter(i => !i.isNew));
+  const sorted = sortItems(items.filter((i) => !i.isNew));
 
   const placeholder: DisplayItem | null = creatingType.value
     ? { id: "__new__", isNew: true, kind: creatingType.value, name: "" }
@@ -107,15 +110,11 @@ const displayItems = computed<DisplayItem[]>(() => {
       return [placeholder, ...sorted];
     } else {
       // Put file placeholder after folders
-      const firstFileIndex = sorted.findIndex(i => i.kind !== 'folder');
+      const firstFileIndex = sorted.findIndex((i) => i.kind !== "folder");
       if (firstFileIndex === -1) {
         return [...sorted, placeholder];
       }
-      return [
-        ...sorted.slice(0, firstFileIndex),
-        placeholder,
-        ...sorted.slice(firstFileIndex)
-      ];
+      return [...sorted.slice(0, firstFileIndex), placeholder, ...sorted.slice(firstFileIndex)];
     }
   }
 
@@ -232,10 +231,11 @@ async function handleDelete(item: DisplayItem, event: Event) {
   event.stopPropagation();
   const confirmed = await confirm({
     confirmLabel: "Move to Trash",
-    message: item.kind === 'folder'
-      ? `Move "${item.name}" and everything inside it to Trash? You can restore it anytime within 30 days.`
-      : `Move "${item.name}" to Trash? You can restore it anytime within 30 days.`,
-    title: item.kind === 'folder' ? "Move Folder to Trash" : "Move to Trash",
+    message:
+      item.kind === "folder"
+        ? `Move "${item.name}" and everything inside it to Trash? You can restore it anytime within 30 days.`
+        : `Move "${item.name}" to Trash? You can restore it anytime within 30 days.`,
+    title: item.kind === "folder" ? "Move Folder to Trash" : "Move to Trash",
   });
   if (!confirmed) {
     return;
@@ -247,7 +247,6 @@ function handleOpen(item: DisplayItem) {
   emit("openItem", item.kind, item.id);
 }
 
-
 function isRenaming(item: DisplayItem) {
   return renamingId.value === item.id && renamingKind.value === item.kind;
 }
@@ -255,7 +254,9 @@ function isRenaming(item: DisplayItem) {
 const contextMenu = useContextMenu<DisplayItem>();
 
 function handleContextMenu(item: DisplayItem, event: MouseEvent | PointerEvent | HTMLElement) {
-  if (item.isNew || isRenaming(item) || item.id === 'vault') { return; }
+  if (item.isNew || isRenaming(item) || item.id === "vault") {
+    return;
+  }
   contextMenu.open(item, event);
 }
 
@@ -263,54 +264,76 @@ const mockEvent = { stopPropagation: () => {} } as Event;
 
 function handleMenuRename() {
   const item = contextMenu.activeItem.value;
-  if (!item) { return; }
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   startRename({ currentName: item.name, event: mockEvent, id: item.id, kind: item.kind });
 }
 
 function handleMenuMove() {
   const item = contextMenu.activeItem.value;
-  if (!item) { return; }
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   emit("requestMove", item);
 }
 
 function handleMenuDelete() {
   const item = contextMenu.activeItem.value;
-  if (!item) { return; }
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   handleDelete(item, mockEvent);
 }
 
 function handleMenuMoveToVault() {
   const item = contextMenu.activeItem.value;
-  if (!item) { return; }
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   emit("moveItem", item.kind, item.id, "vault");
 }
 
 function handleMenuRemoveFromVault() {
   const item = contextMenu.activeItem.value;
-  if (!item) { return; }
+  if (!item) {
+    return;
+  }
   contextMenu.close();
   emit("moveItem", item.kind, item.id, null);
 }
 
 function handleDragEnd(event: DragEndEvent) {
-  if (event.canceled) {return;}
+  if (event.canceled) {
+    return;
+  }
   const source = event.operation?.source;
   const target = event.operation?.target;
-  
-  if (!source || !target) {return;}
-  
+
+  if (!source || !target) {
+    return;
+  }
+
   const sourceData = source.data;
   const targetData = target.data;
-  
-  if (!sourceData || !targetData) {return;}
-  if (sourceData.id === 'vault' || targetData.id === 'vault') {return;}
-  if (sourceData.id === targetData.id && sourceData.kind === "folder") {return;}
-  if (targetData.kind !== "folder") {return;}
-  
+
+  if (!sourceData || !targetData) {
+    return;
+  }
+  if (sourceData.id === "vault" || targetData.id === "vault") {
+    return;
+  }
+  if (sourceData.id === targetData.id && sourceData.kind === "folder") {
+    return;
+  }
+  if (targetData.kind !== "folder") {
+    return;
+  }
+
   emit("moveItem", sourceData.kind, sourceData.id, targetData.id);
 }
 
@@ -320,207 +343,358 @@ defineExpose({ startCreate });
   <DragDropProvider @drag-end="handleDragEnd">
     <div>
       <!-- Toolbar -->
-    <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
-      <div class="flex items-center gap-1">
-        <button
-          class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
-          @click="setSortKey('name')">
-          Name
-          <ChevronUpIcon v-if="sortKey === 'name' && sortDir === 'asc'" class="w-3.5 h-3.5" />
-          <ChevronDownIcon v-else-if="sortKey === 'name'" class="w-3.5 h-3.5" />
-        </button>
-        <button
-          class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
-          @click="setSortKey('updatedAt')">
-          Modified
-          <ChevronUpIcon v-if="sortKey === 'updatedAt' && sortDir === 'asc'" class="w-3.5 h-3.5" />
-          <ChevronDownIcon v-else-if="sortKey === 'updatedAt'" class="w-3.5 h-3.5" />
-        </button>
+      <div class="flex flex-wrap items-center justify-end gap-2 mb-3">
+        <div class="flex items-center gap-1">
+          <button
+            class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
+            @click="setSortKey('name')"
+          >
+            Name
+            <ChevronUpIcon v-if="sortKey === 'name' && sortDir === 'asc'" class="w-3.5 h-3.5" />
+            <ChevronDownIcon v-else-if="sortKey === 'name'" class="w-3.5 h-3.5" />
+          </button>
+          <button
+            class="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text transition-colors"
+            @click="setSortKey('updatedAt')"
+          >
+            Modified
+            <ChevronUpIcon
+              v-if="sortKey === 'updatedAt' && sortDir === 'asc'"
+              class="w-3.5 h-3.5"
+            />
+            <ChevronDownIcon v-else-if="sortKey === 'updatedAt'" class="w-3.5 h-3.5" />
+          </button>
 
-        <div class="w-px h-5 bg-rose-border mx-1"></div>
+          <div class="w-px h-5 bg-rose-border mx-1"></div>
 
-        <button class="p-1.5 rounded-md transition-colors" :class="viewMode === 'grid'
-          ? 'bg-rose-surface-alt text-rose-primary'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
-          " title="Grid view" @click="viewMode = 'grid'">
-          <LayoutGridIcon class="w-4 h-4" />
-        </button>
-        <button class="p-1.5 rounded-md transition-colors" :class="viewMode === 'list'
-          ? 'bg-rose-surface-alt text-rose-primary'
-          : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
-          " title="List view" @click="
-            toggleViewMode();
-          viewMode = 'list';
-          ">
-          <ListIcon class="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-
-    <div v-if="isEmpty" class="flex flex-col items-center justify-center min-h-[50vh] text-center">
-      <img :src="EmptyIllustration" alt="Empty folder"
-        class="w-52 md:w-64 h-auto mb-6 opacity-70 select-none pointer-events-none" />
-      <p class="text-base text-rose-text-muted italic">This folder is empty.</p>
-    </div>
-
-    <!-- Grid view -->
-    <div v-else-if="viewMode === 'grid'" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
-      role="list">
-      <ExplorerDnDNode v-for="item in displayItems" :key="item.kind + '-' + item.id"
-        :id="item.id"
-        :data="{ id: item.id, kind: item.kind, name: item.name, parentId: item.parentId ?? null }"
-        :is-draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault' && !isMobile"
-        :is-droppable="item.kind === 'folder' && !item.isNew && item.id !== 'vault'"
-        drop-target-class="ring-2 ring-rose-primary bg-rose-primary/10!"
-        class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
-        :class="[
-          !isMobile ? 'touch-none' : '',
-          item.id === 'vault' ? 'bg-rose-primary/5 justify-center' : 'border border-transparent'
-        ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
-        <div v-if="!item.isNew && !isRenaming(item)" tabindex="0"
-          class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
-          :aria-label="'Open ' + item.name" @click="handleOpen(item)" @keyup.enter="handleOpen(item)"></div>
-
-        <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
-          :src="item.thumbnail"
-          class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
-          alt="" />
-        <component v-else :is="itemIcon(item.kind, item.id)"
-          class="w-12 h-12 shrink-0 relative z-10 pointer-events-none" :class="itemIconClass(item.kind)" />
-
-        <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus aria-label="New item name"
-          :placeholder="typeLabel(item.kind) + ' name'"
-          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-          @click.stop @keyup.enter="confirmCreate" @keyup.escape="cancelCreate" @blur="confirmCreate" />
-        <input v-else-if="isRenaming(item)" v-model="renamingName" type="text" v-focus aria-label="Rename item"
-          class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-          @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
-        <span v-else class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none">{{
-          item.name
-          }}</span>
-
-        <div v-if="!item.isNew && item.id !== 'vault'" class="flex items-center gap-1 shrink-0 relative z-10">
-          <button type="button" aria-label="More options"
-            class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)">
-            <MoreVerticalIcon class="w-4 h-4" />
+          <button
+            class="p-1.5 rounded-md transition-colors"
+            :class="
+              viewMode === 'grid'
+                ? 'bg-rose-surface-alt text-rose-primary'
+                : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
+            "
+            title="Grid view"
+            @click="viewMode = 'grid'"
+          >
+            <LayoutGridIcon class="w-4 h-4" />
+          </button>
+          <button
+            class="p-1.5 rounded-md transition-colors"
+            :class="
+              viewMode === 'list'
+                ? 'bg-rose-surface-alt text-rose-primary'
+                : 'text-rose-text-muted hover:bg-rose-surface-alt hover:text-rose-text'
+            "
+            title="List view"
+            @click="
+              toggleViewMode();
+              viewMode = 'list';
+            "
+          >
+            <ListIcon class="w-4 h-4" />
           </button>
         </div>
-      </ExplorerDnDNode>
-    </div>
-
-    <!-- List view -->
-    <div v-else class="flex flex-col">
-      <div
-        class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border">
-        <span class="flex-1">Name</span>
-        <span class="w-16 text-right shrink-0 hidden lg:block">Type</span>
-        <span class="w-20 text-right shrink-0 hidden lg:block">Items</span>
-        <span class="w-28 text-right shrink-0 hidden lg:block">Created</span>
-        <span class="w-32 text-right shrink-0 hidden lg:block">Modified</span>
-        <span class="w-14 shrink-0"></span>
       </div>
 
-      <div role="list" class="flex flex-col">
-        <ExplorerDnDNode v-for="item in displayItems" :key="item.kind + '-' + item.id"
+      <div
+        v-if="isEmpty"
+        class="flex flex-col items-center justify-center min-h-[50vh] text-center"
+      >
+        <img
+          :src="EmptyIllustration"
+          alt="Empty folder"
+          class="w-52 md:w-64 h-auto mb-6 opacity-70 select-none pointer-events-none"
+        />
+        <p class="text-base text-rose-text-muted italic">This folder is empty.</p>
+      </div>
+
+      <!-- Grid view -->
+      <div
+        v-else-if="viewMode === 'grid'"
+        class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1"
+        role="list"
+      >
+        <ExplorerDnDNode
+          v-for="item in displayItems"
+          :key="item.kind + '-' + item.id"
           :id="item.id"
           :data="{ id: item.id, kind: item.kind, name: item.name, parentId: item.parentId ?? null }"
           :is-draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault' && !isMobile"
           :is-droppable="item.kind === 'folder' && !item.isNew && item.id !== 'vault'"
           drop-target-class="ring-2 ring-rose-primary bg-rose-primary/10!"
-          class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
+          class="group relative flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-rose-surface-alt transition-colors focus-within:bg-rose-surface-alt"
           :class="[
             !isMobile ? 'touch-none' : '',
-            item.id === 'vault' ? 'bg-rose-primary/5' : 'border border-transparent'
-          ]" role="listitem" v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)">
-          <div v-if="!item.isNew && !isRenaming(item)" tabindex="0"
-            class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
-            :aria-label="'Open ' + item.name" @click="handleOpen(item)" @keyup.enter="handleOpen(item)"></div>
+            item.id === 'vault' ? 'bg-rose-primary/5 justify-center' : 'border border-transparent',
+          ]"
+          role="listitem"
+          v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)"
+        >
+          <div
+            v-if="!item.isNew && !isRenaming(item)"
+            tabindex="0"
+            class="absolute inset-0 w-full h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
+            :aria-label="'Open ' + item.name"
+            @click="handleOpen(item)"
+            @keyup.enter="handleOpen(item)"
+          ></div>
 
-          <img v-if="item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')"
-            :src="item.thumbnail" class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
-            alt="" />
-          <component v-else :is="itemIcon(item.kind, item.id)"
-            class="w-5 h-5 shrink-0 relative z-10 pointer-events-none" :class="itemIconClass(item.kind)" />
+          <img
+            v-if="
+              item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')
+            "
+            :src="item.thumbnail"
+            class="w-12 h-12 shrink-0 object-cover rounded border border-rose-border relative z-10 pointer-events-none"
+            alt=""
+          />
+          <component
+            v-else
+            :is="itemIcon(item.kind, item.id)"
+            class="w-12 h-12 shrink-0 relative z-10 pointer-events-none"
+            :class="itemIconClass(item.kind)"
+          />
 
-          <input v-if="item.isNew" v-model="newName" ref="newItemInputRef" type="text" v-focus
-            aria-label="New item name" :placeholder="typeLabel(item.kind) + ' name'"
-            class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-            @click.stop @keyup.enter="confirmCreate" @keyup.escape="cancelCreate" @blur="confirmCreate" />
-          <input v-else-if="isRenaming(item)" v-model="renamingName" type="text" v-focus aria-label="Rename item"
-            class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
-            @click.stop @keyup.enter="confirmRename" @keyup.escape="cancelRename" @blur="confirmRename" />
-          <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
-            <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
-            <span class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 flex items-center gap-1">
-              <span>{{ typeLabel(item.kind) }}</span>
-              <template v-if="item.itemCount !== undefined"> &bull; <span>{{ item.itemCount }} item{{ item.itemCount ===
-                1 ? '' : 's' }}</span></template>
-              <template v-if="item.createdAt"> &bull; <span>{{ formatRelativeTime(item.createdAt) }}</span></template>
-            </span>
+          <input
+            v-if="item.isNew"
+            v-model="newName"
+            ref="newItemInputRef"
+            type="text"
+            v-focus
+            aria-label="New item name"
+            :placeholder="typeLabel(item.kind) + ' name'"
+            class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+            @click.stop
+            @keyup.enter="confirmCreate"
+            @keyup.escape="cancelCreate"
+            @blur="confirmCreate"
+          />
+          <input
+            v-else-if="isRenaming(item)"
+            v-model="renamingName"
+            type="text"
+            v-focus
+            aria-label="Rename item"
+            class="text-sm w-full text-center px-1 py-0.5 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+            @click.stop
+            @keyup.enter="confirmRename"
+            @keyup.escape="cancelRename"
+            @blur="confirmRename"
+          />
+          <span
+            v-else
+            class="text-sm text-rose-text text-center truncate w-full relative z-10 pointer-events-none"
+            >{{ item.name }}</span
+          >
+
+          <div
+            v-if="!item.isNew && item.id !== 'vault'"
+            class="flex items-center gap-1 shrink-0 relative z-10"
+          >
+            <button
+              type="button"
+              aria-label="More options"
+              class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+              @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
+            >
+              <MoreVerticalIcon class="w-4 h-4" />
+            </button>
           </div>
-
-          <template v-if="!item.isNew">
-            <span class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-              {{ typeLabel(item.kind) }}
-            </span>
-            <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden lg:block">
-              {{ item.itemCount ?? "—" }}
-            </span>
-            <span class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-              {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
-            </span>
-            <span class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block">
-              {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
-            </span>
-            <div class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10">
-              <button v-if="item.id !== 'vault'" type="button" aria-label="More options"
-                class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-                @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)">
-                <MoreVerticalIcon class="w-4 h-4" />
-              </button>
-            </div>
-          </template>
-          <template v-else>
-            <span class="w-16 shrink-0 hidden lg:block"></span>
-            <span class="w-20 shrink-0 hidden lg:block"></span>
-            <span class="w-28 shrink-0 hidden lg:block"></span>
-            <span class="w-32 shrink-0 hidden lg:block"></span>
-            <div class="w-14 shrink-0"></div>
-          </template>
         </ExplorerDnDNode>
       </div>
-    </div>
-  </div>
 
-  <ContextMenu :is-open="contextMenu.isOpen.value" :x="contextMenu.x.value" :y="contextMenu.y.value"
-    @close="contextMenu.close()">
-    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
-      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
-      @click="handleMenuMove()">
-      <FolderInputIcon class="w-4 h-4 text-rose-text-muted" /> Move to...
-    </button>
-    <button v-if="!contextMenu.activeItem.value?.isVaulted && contextMenu.activeItem.value?.id !== 'vault'"
-      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
-      @click="handleMenuMoveToVault()">
-      <LockIcon class="w-4 h-4 text-rose-text-muted" /> Move to Secure Vault
-    </button>
-    <button v-else-if="contextMenu.activeItem.value?.id !== 'vault'"
-      class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
-      @click="handleMenuRemoveFromVault()">
-      <UnlockIcon class="w-4 h-4 text-rose-text-muted" /> Remove from Secure Vault
-    </button>
-    <button v-if="contextMenu.activeItem.value?.id !== 'vault'"
-      class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
-      @click="handleMenuRename">
-      <PencilIcon class="w-4 h-4" /> Rename
-    </button>
-    <button v-if="contextMenu.activeItem.value?.id !== 'vault' && !contextMenu.activeItem.value?.isVaulted"
-      class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
-      @click="handleMenuDelete">
-      <TrashIcon class="w-4 h-4" /> Delete
-    </button>
-  </ContextMenu>
-  <ExplorerDragOverlay />
+      <!-- List view -->
+      <div v-else class="flex flex-col">
+        <div
+          class="flex items-center gap-3 px-3 py-1.5 text-xs font-medium text-rose-text-muted border-b border-rose-border"
+        >
+          <span class="flex-1">Name</span>
+          <span class="w-16 text-right shrink-0 hidden lg:block">Type</span>
+          <span class="w-20 text-right shrink-0 hidden lg:block">Items</span>
+          <span class="w-28 text-right shrink-0 hidden lg:block">Created</span>
+          <span class="w-32 text-right shrink-0 hidden lg:block">Modified</span>
+          <span class="w-14 shrink-0"></span>
+        </div>
+
+        <div role="list" class="flex flex-col">
+          <ExplorerDnDNode
+            v-for="item in displayItems"
+            :key="item.kind + '-' + item.id"
+            :id="item.id"
+            :data="{
+              id: item.id,
+              kind: item.kind,
+              name: item.name,
+              parentId: item.parentId ?? null,
+            }"
+            :is-draggable="!item.isNew && !isRenaming(item) && item.id !== 'vault' && !isMobile"
+            :is-droppable="item.kind === 'folder' && !item.isNew && item.id !== 'vault'"
+            drop-target-class="ring-2 ring-rose-primary bg-rose-primary/10!"
+            class="group relative flex items-center gap-3 px-3 py-2 rounded-md hover:bg-rose-surface-alt transition-colors"
+            :class="[
+              !isMobile ? 'touch-none' : '',
+              item.id === 'vault' ? 'bg-rose-primary/5' : 'border border-transparent',
+            ]"
+            role="listitem"
+            v-long-press="(e: PointerEvent | MouseEvent) => handleContextMenu(item, e)"
+          >
+            <div
+              v-if="!item.isNew && !isRenaming(item)"
+              tabindex="0"
+              class="absolute inset-0 w-full h-full rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary z-0 cursor-pointer"
+              :aria-label="'Open ' + item.name"
+              @click="handleOpen(item)"
+              @keyup.enter="handleOpen(item)"
+            ></div>
+
+            <img
+              v-if="
+                item.kind === 'note' && item.thumbnail && item.thumbnail.startsWith('data:image/')
+              "
+              :src="item.thumbnail"
+              class="w-5 h-5 shrink-0 object-cover rounded relative z-10 pointer-events-none"
+              alt=""
+            />
+            <component
+              v-else
+              :is="itemIcon(item.kind, item.id)"
+              class="w-5 h-5 shrink-0 relative z-10 pointer-events-none"
+              :class="itemIconClass(item.kind)"
+            />
+
+            <input
+              v-if="item.isNew"
+              v-model="newName"
+              ref="newItemInputRef"
+              type="text"
+              v-focus
+              aria-label="New item name"
+              :placeholder="typeLabel(item.kind) + ' name'"
+              class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+              @click.stop
+              @keyup.enter="confirmCreate"
+              @keyup.escape="cancelCreate"
+              @blur="confirmCreate"
+            />
+            <input
+              v-else-if="isRenaming(item)"
+              v-model="renamingName"
+              type="text"
+              v-focus
+              aria-label="Rename item"
+              class="flex-1 text-sm px-2 py-1 rounded border border-rose-primary bg-rose-surface text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary/50 relative z-10"
+              @click.stop
+              @keyup.enter="confirmRename"
+              @keyup.escape="cancelRename"
+              @blur="confirmRename"
+            />
+            <div v-else class="flex-1 min-w-0 flex flex-col relative z-10 pointer-events-none">
+              <span class="text-sm text-rose-text truncate">{{ item.name }}</span>
+              <span
+                class="text-xs text-rose-text-muted truncate lg:hidden mt-0.5 flex items-center gap-1"
+              >
+                <span>{{ typeLabel(item.kind) }}</span>
+                <template v-if="item.itemCount !== undefined">
+                  &bull;
+                  <span
+                    >{{ item.itemCount }} item{{ item.itemCount === 1 ? "" : "s" }}</span
+                  ></template
+                >
+                <template v-if="item.createdAt">
+                  &bull; <span>{{ formatRelativeTime(item.createdAt) }}</span></template
+                >
+              </span>
+            </div>
+
+            <template v-if="!item.isNew">
+              <span
+                class="w-16 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+              >
+                {{ typeLabel(item.kind) }}
+              </span>
+              <span class="w-20 text-right text-sm text-rose-text-muted shrink-0 hidden lg:block">
+                {{ item.itemCount ?? "—" }}
+              </span>
+              <span
+                class="w-28 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+              >
+                {{ item.createdAt ? formatRelativeTime(item.createdAt) : "—" }}
+              </span>
+              <span
+                class="w-32 text-right text-sm text-rose-text-muted shrink-0 truncate hidden lg:block"
+              >
+                {{ item.updatedAt ? formatRelativeTime(item.updatedAt) : "—" }}
+              </span>
+              <div class="w-14 flex justify-end gap-0.5 shrink-0 relative z-10">
+                <button
+                  v-if="item.id !== 'vault'"
+                  type="button"
+                  aria-label="More options"
+                  class="p-1.5 rounded text-rose-text-muted hover:text-rose-text hover:bg-rose-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
+                  @click.stop="handleContextMenu(item, $event.currentTarget as HTMLElement)"
+                >
+                  <MoreVerticalIcon class="w-4 h-4" />
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <span class="w-16 shrink-0 hidden lg:block"></span>
+              <span class="w-20 shrink-0 hidden lg:block"></span>
+              <span class="w-28 shrink-0 hidden lg:block"></span>
+              <span class="w-32 shrink-0 hidden lg:block"></span>
+              <div class="w-14 shrink-0"></div>
+            </template>
+          </ExplorerDnDNode>
+        </div>
+      </div>
+    </div>
+
+    <ContextMenu
+      :is-open="contextMenu.isOpen.value"
+      :x="contextMenu.x.value"
+      :y="contextMenu.y.value"
+      @close="contextMenu.close()"
+    >
+      <button
+        v-if="contextMenu.activeItem.value?.id !== 'vault'"
+        class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+        @click="handleMenuMove()"
+      >
+        <FolderInputIcon class="w-4 h-4 text-rose-text-muted" /> Move to...
+      </button>
+      <button
+        v-if="
+          !contextMenu.activeItem.value?.isVaulted && contextMenu.activeItem.value?.id !== 'vault'
+        "
+        class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+        @click="handleMenuMoveToVault()"
+      >
+        <LockIcon class="w-4 h-4 text-rose-text-muted" /> Move to Secure Vault
+      </button>
+      <button
+        v-else-if="contextMenu.activeItem.value?.id !== 'vault'"
+        class="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-rose-text hover:bg-rose-surface-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-primary"
+        @click="handleMenuRemoveFromVault()"
+      >
+        <UnlockIcon class="w-4 h-4 text-rose-text-muted" /> Remove from Secure Vault
+      </button>
+      <button
+        v-if="contextMenu.activeItem.value?.id !== 'vault'"
+        class="flex items-center gap-2 px-3 py-2 text-sm text-rose-text hover:bg-rose-surface-alt w-full text-left focus:outline-none focus:bg-rose-surface-alt transition-colors"
+        @click="handleMenuRename"
+      >
+        <PencilIcon class="w-4 h-4" /> Rename
+      </button>
+      <button
+        v-if="
+          contextMenu.activeItem.value?.id !== 'vault' && !contextMenu.activeItem.value?.isVaulted
+        "
+        class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full text-left focus:outline-none focus:bg-red-500/10 transition-colors"
+        @click="handleMenuDelete"
+      >
+        <TrashIcon class="w-4 h-4" /> Delete
+      </button>
+    </ContextMenu>
+    <ExplorerDragOverlay />
   </DragDropProvider>
 </template>

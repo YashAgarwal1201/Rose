@@ -8,11 +8,11 @@ describe("FolderTreeDrawer.vue", () => {
     const wrapper = mount(FolderTreeDrawer, {
       props: { isOpen: true },
       slots: {
-        default: "<div class='slotted'>test content</div>"
+        default: "<div class='slotted'>test content</div>",
       },
       global: {
-        stubs: { XIcon: true }
-      }
+        stubs: { XIcon: true },
+      },
     });
 
     const title = wrapper.find("h3");
@@ -29,7 +29,7 @@ describe("FolderTreeDrawer.vue", () => {
     expect.hasAssertions();
     const wrapper = mount(FolderTreeDrawer, {
       props: { isOpen: false },
-      global: { stubs: { XIcon: true } }
+      global: { stubs: { XIcon: true } },
     });
 
     expect(wrapper.find("h3").exists()).toBe(false);

@@ -11,7 +11,7 @@ describe("useKeyboardShortcuts", () => {
   it("registers and triggers the handler on matching keydown", () => {
     expect.hasAssertions();
     const handler = vi.fn();
-    
+
     // We use a dummy component to mount the composable so onMounted/onUnmounted fire
     const TestComponent = defineComponent({
       setup() {
@@ -37,12 +37,10 @@ describe("useKeyboardShortcuts", () => {
   it("does not trigger if modifiers do not match", () => {
     expect.hasAssertions();
     const handler = vi.fn();
-    
+
     const TestComponent = defineComponent({
       setup() {
-        useKeyboardShortcuts([
-          { key: "a", shift: true, handler },
-        ]);
+        useKeyboardShortcuts([{ key: "a", shift: true, handler }]);
         return () => null;
       },
     });
@@ -61,7 +59,7 @@ describe("useKeyboardShortcuts", () => {
   it("skips input elements when skipInInput is true", () => {
     expect.hasAssertions();
     const handler = vi.fn();
-    
+
     const TestComponent = defineComponent({
       setup() {
         useKeyboardShortcuts([{ key: "b", handler, skipInInput: true }]);
@@ -77,7 +75,7 @@ describe("useKeyboardShortcuts", () => {
     input.focus();
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "b" }));
-    
+
     // Handler should NOT have been called because input is focused
     expect(handler).not.toHaveBeenCalled();
 
@@ -93,7 +91,7 @@ describe("useKeyboardShortcuts", () => {
   it("prevents default if handler does not return false", () => {
     expect.hasAssertions();
     const handler = vi.fn(); // Returns undefined
-    
+
     const TestComponent = defineComponent({
       setup() {
         useKeyboardShortcuts([{ key: "x", handler }]);
@@ -116,7 +114,7 @@ describe("useKeyboardShortcuts", () => {
   it("does not prevent default if handler returns false", () => {
     expect.hasAssertions();
     const handler = vi.fn().mockReturnValue(false);
-    
+
     const TestComponent = defineComponent({
       setup() {
         useKeyboardShortcuts([{ key: "y", handler }]);

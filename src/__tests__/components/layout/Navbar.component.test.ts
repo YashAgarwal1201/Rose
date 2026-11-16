@@ -11,8 +11,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: "/", name: "home", component: { template: "<div></div>" } },
-    { path: "/files/folder", name: "files", component: { template: "<div></div>" } }
-  ]
+    { path: "/files/folder", name: "files", component: { template: "<div></div>" } },
+  ],
 });
 
 describe("Navbar.vue", () => {
@@ -36,8 +36,8 @@ describe("Navbar.vue", () => {
     const wrapper = mount(Navbar, {
       global: {
         plugins: [router, pinia],
-        stubs: { MenuIcon: true, HomeIcon: true, FolderIcon: true, LockIcon: true }
-      }
+        stubs: { MenuIcon: true, HomeIcon: true, FolderIcon: true, LockIcon: true },
+      },
     });
 
     const links = wrapper.findAll("a");
@@ -73,8 +73,8 @@ describe("Navbar.vue", () => {
     const wrapper = mount(Navbar, {
       global: {
         plugins: [router, pinia],
-        stubs: { MenuIcon: true, HomeIcon: true, FolderIcon: true, LockIcon: true }
-      }
+        stubs: { MenuIcon: true, HomeIcon: true, FolderIcon: true, LockIcon: true },
+      },
     });
 
     const links = wrapper.findAll("a");

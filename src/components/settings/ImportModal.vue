@@ -1,14 +1,27 @@
 <!-- src/components/settings/ImportModal.vue -->
 <template>
   <Teleport to="body">
-    <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-      enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
-      leave-to-class="opacity-0">
-      <div v-if="modelValue" ref="dialogRef"
-        class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog"
-        aria-modal="true" aria-labelledby="import-dialog-title" @click.self="cancel" @keydown.escape="cancel">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="modelValue"
+        ref="dialogRef"
+        class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-dialog-title"
+        @click.self="cancel"
+        @keydown.escape="cancel"
+      >
         <div
-          class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border max-h-[90vh] overflow-y-auto">
+          class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border max-h-[90vh] overflow-y-auto"
+        >
           <h3 id="import-dialog-title" class="text-xl font-semibold text-rose-text mb-1">
             Import data
           </h3>
@@ -19,23 +32,36 @@
 
           <!-- ── File drop zone ── -->
           <template v-if="!parsedPayload">
-            <div class="rounded-xl border-2 border-dashed transition-colors duration-150 p-6 text-center cursor-pointer"
-              :class="isDragging
+            <div
+              class="rounded-xl border-2 border-dashed transition-colors duration-150 p-6 text-center cursor-pointer"
+              :class="
+                isDragging
                   ? 'border-rose-primary bg-rose-primary/5'
                   : 'border-rose-border hover:border-rose-text-muted'
-                " @click="openFilePicker" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
-              @drop.prevent="handleDrop">
+              "
+              @click="openFilePicker"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handleDrop"
+            >
               <FileIcon :size="22" class="mx-auto mb-2 text-rose-text-muted" />
               <p class="text-sm text-rose-text-muted">
                 Drop your backup file here, or
                 <span class="text-rose-primary underline underline-offset-2">browse</span>
               </p>
-              <input ref="fileInputRef" type="file" accept=".json,application/json" class="hidden"
-                @change="handleFileInput" />
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept=".json,application/json"
+                class="hidden"
+                @change="handleFileInput"
+              />
             </div>
 
-            <div v-if="parseError"
-              class="mt-4 rounded-lg bg-red-400/10 border border-red-400/30 px-4 py-3 flex items-start gap-2">
+            <div
+              v-if="parseError"
+              class="mt-4 rounded-lg bg-red-400/10 border border-red-400/30 px-4 py-3 flex items-start gap-2"
+            >
               <AlertCircleIcon :size="16" class="text-red-400 mt-0.5 shrink-0" />
               <p class="text-xs text-red-400 leading-relaxed">{{ parseError }}</p>
             </div>
@@ -48,10 +74,16 @@
                 Backup contents
               </p>
               <ul class="space-y-1.5">
-                <li v-for="row in summaryRows" :key="row.label" class="flex items-center justify-between text-sm">
+                <li
+                  v-for="row in summaryRows"
+                  :key="row.label"
+                  class="flex items-center justify-between text-sm"
+                >
                   <span class="text-rose-text-muted">{{ row.label }}</span>
-                  <span class="font-medium tabular-nums"
-                    :class="row.count > 0 ? 'text-rose-text' : 'text-rose-text-muted/50'">
+                  <span
+                    class="font-medium tabular-nums"
+                    :class="row.count > 0 ? 'text-rose-text' : 'text-rose-text-muted/50'"
+                  >
                     {{ row.count }}
                   </span>
                 </li>
@@ -63,10 +95,18 @@
               Import
             </p>
             <div class="space-y-2 mb-5">
-              <label v-for="opt in categoryOptions" :key="opt.key" class="flex items-center gap-3 cursor-pointer"
-                :class="{ 'opacity-40 pointer-events-none': !opt.available }">
-                <input type="checkbox" v-model="selectedCategories[opt.key]" :disabled="!opt.available"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+              <label
+                v-for="opt in categoryOptions"
+                :key="opt.key"
+                class="flex items-center gap-3 cursor-pointer"
+                :class="{ 'opacity-40 pointer-events-none': !opt.available }"
+              >
+                <input
+                  type="checkbox"
+                  v-model="selectedCategories[opt.key]"
+                  :disabled="!opt.available"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">{{ opt.label }}</span>
                 <span class="text-xs text-rose-text-muted ml-auto">
                   {{ opt.count > 0 ? opt.count : "—" }}
@@ -100,8 +140,10 @@
             </div>
 
             <!-- Replace warning -->
-            <div v-if="importMode === 'replace'"
-              class="mb-4 rounded-lg bg-yellow-400/10 border border-yellow-400/30 px-4 py-3 flex items-start gap-2">
+            <div
+              v-if="importMode === 'replace'"
+              class="mb-4 rounded-lg bg-yellow-400/10 border border-yellow-400/30 px-4 py-3 flex items-start gap-2"
+            >
               <AlertTriangleIcon :size="14" class="text-yellow-400 mt-0.5 shrink-0" />
               <p class="text-xs text-yellow-400 leading-relaxed">
                 This will permanently delete your current data in the selected categories before
@@ -110,22 +152,31 @@
             </div>
 
             <!-- Change file link -->
-            <button type="button" class="text-xs text-rose-text-muted hover:text-rose-text underline underline-offset-2"
-              @click="resetFile">
+            <button
+              type="button"
+              class="text-xs text-rose-text-muted hover:text-rose-text underline underline-offset-2"
+              @click="resetFile"
+            >
               Choose a different file
             </button>
           </template>
 
           <!-- ── Action buttons ── -->
           <div class="flex justify-end gap-2 mt-6">
-            <button type="button"
+            <button
+              type="button"
               class="px-4 py-2 text-sm rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-              @click="cancel">
+              @click="cancel"
+            >
               Cancel
             </button>
-            <button v-if="parsedPayload" type="button" :disabled="!hasSelection || isImporting"
+            <button
+              v-if="parsedPayload"
+              type="button"
+              :disabled="!hasSelection || isImporting"
               class="px-4 py-2 text-sm rounded-md bg-rose-primary text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-              @click="confirm">
+              @click="confirm"
+            >
               {{ isImporting ? "Importing…" : "Import" }}
             </button>
           </div>
@@ -137,11 +188,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from "vue";
-import {
-  AlertCircleIcon,
-  AlertTriangleIcon,
-  FileIcon,
-} from "@lucide/vue";
+import { AlertCircleIcon, AlertTriangleIcon, FileIcon } from "@lucide/vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
 import {
   importData,
@@ -187,7 +234,9 @@ const selectedCategories = reactive({
 
 // ── Computed ──────────────────────────────────────────────────────────────────
 const summaryRows = computed(() => {
-  if (!summary.value) { return []; }
+  if (!summary.value) {
+    return [];
+  }
   return [
     { count: summary.value.notes, label: "Notes" },
     { count: summary.value.docs, label: "Documents" },
@@ -200,7 +249,9 @@ const summaryRows = computed(() => {
 });
 
 const categoryOptions = computed(() => {
-  if (!summary.value) { return []; }
+  if (!summary.value) {
+    return [];
+  }
   return [
     {
       available: summary.value.settings > 0,
@@ -235,9 +286,7 @@ const categoryOptions = computed(() => {
   ];
 });
 
-const hasSelection = computed(() =>
-  Object.values(selectedCategories).some(Boolean),
-);
+const hasSelection = computed(() => Object.values(selectedCategories).some(Boolean));
 
 // ── File handling ─────────────────────────────────────────────────────────────
 function openFilePicker() {
@@ -257,42 +306,50 @@ async function processFile(file: File) {
     selectedCategories.settings = (summary.value.settings ?? 0) > 0;
     selectedCategories.notes = (summary.value.notes ?? 0) > 0;
     selectedCategories.docs = (summary.value.docs ?? 0) > 0;
-    selectedCategories.todos =
-      (summary.value.todos ?? 0) > 0 || (summary.value.todoLists ?? 0) > 0;
+    selectedCategories.todos = (summary.value.todos ?? 0) > 0 || (summary.value.todoLists ?? 0) > 0;
     selectedCategories.activity = (summary.value.activity ?? 0) > 0;
   } catch (error: unknown) {
-    parseError.value =
-      error instanceof Error ? error.message : "Could not read the backup file.";
+    parseError.value = error instanceof Error ? error.message : "Could not read the backup file.";
   }
 }
 
 function handleFileInput(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
-  if (file) { processFile(file); }
+  if (file) {
+    processFile(file);
+  }
 }
 
 function handleDrop(event: DragEvent) {
   isDragging.value = false;
   const file = event.dataTransfer?.files[0];
-  if (file) { processFile(file); }
+  if (file) {
+    processFile(file);
+  }
 }
 
 function resetFile() {
   parsedPayload.value = null;
   summary.value = null;
   parseError.value = null;
-  if (fileInputRef.value) { fileInputRef.value.value = ""; }
+  if (fileInputRef.value) {
+    fileInputRef.value.value = "";
+  }
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 function cancel() {
-  if (isImporting.value) { return; }
+  if (isImporting.value) {
+    return;
+  }
   resetFile();
   emit("update:modelValue", false);
 }
 
 async function confirm() {
-  if (!parsedPayload.value || !hasSelection.value) { return; }
+  if (!parsedPayload.value || !hasSelection.value) {
+    return;
+  }
   isImporting.value = true;
 
   try {

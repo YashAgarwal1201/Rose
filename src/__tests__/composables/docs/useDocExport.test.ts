@@ -12,11 +12,11 @@ describe("useDocExport", () => {
     mockCreateObjectURL = vi.fn().mockReturnValue("blob:fake-url");
     mockRevokeObjectURL = vi.fn();
     mockWindowOpen = vi.fn().mockReturnValue({});
-    
+
     global.URL.createObjectURL = mockCreateObjectURL as any;
     global.URL.revokeObjectURL = mockRevokeObjectURL as any;
     window.open = mockWindowOpen as any;
-    
+
     vi.useFakeTimers();
   });
 
@@ -30,7 +30,7 @@ describe("useDocExport", () => {
     const editor = ref<Editor | undefined>({ getHTML: () => "<p>Hello</p>" } as unknown as Editor);
     const title = ref("My Doc");
     const isOpen = ref(true);
-    
+
     // Mock anchor click
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
@@ -51,16 +51,18 @@ describe("useDocExport", () => {
 
   it("exports as PDF and triggers window open", () => {
     expect.hasAssertions();
-    const editor = ref<Editor | undefined>({ getHTML: () => "<p>PDF Content</p>" } as unknown as Editor);
+    const editor = ref<Editor | undefined>({
+      getHTML: () => "<p>PDF Content</p>",
+    } as unknown as Editor);
     const title = ref("My PDF");
     const isOpen = ref(true);
-    
+
     const { exportAsPdf } = useDocExport(editor as any, title, isOpen);
     exportAsPdf();
 
     expect(mockCreateObjectURL).toHaveBeenCalled();
     expect(mockWindowOpen).toHaveBeenCalledWith("blob:fake-url", "_blank");
-    
+
     // Revoke happens on timeout
     vi.advanceTimersByTime(11_000);
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
@@ -72,10 +74,10 @@ describe("useDocExport", () => {
     const editor = ref<Editor | undefined>(undefined);
     const title = ref("Title");
     const isOpen = ref(true);
-    
+
     const { exportAsText } = useDocExport(editor as any, title, isOpen);
     exportAsText();
-    
+
     expect(mockCreateObjectURL).not.toHaveBeenCalled();
     expect(isOpen.value).toBe(true);
   });

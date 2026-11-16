@@ -27,9 +27,7 @@ export function buildTableContentFromRows(rows: string[][], firstRowIsHeader: bo
   return { type: "table", content: tableRows };
 }
 
-export function useDocFileImport(params: {
-  editor: ShallowRef<Editor | undefined>;
-}) {
+export function useDocFileImport(params: { editor: ShallowRef<Editor | undefined> }) {
   const { editor } = params;
   const { showToast } = useToast();
 

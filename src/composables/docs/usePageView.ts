@@ -138,9 +138,7 @@ export function usePageView() {
   }
 
   const totalSheetHeight = computed<number>(() => {
-    return (
-      Math.max(1, pageCount.value) * (A4_SHEET_HEIGHT_PX + A4_SHEET_GAP_PX) - A4_SHEET_GAP_PX
-    );
+    return Math.max(1, pageCount.value) * (A4_SHEET_HEIGHT_PX + A4_SHEET_GAP_PX) - A4_SHEET_GAP_PX;
   });
 
   return {

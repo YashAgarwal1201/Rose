@@ -15,14 +15,14 @@ describe("useContributionDistribution", () => {
     expect(isLoaded.value).toBe(false);
     expect(hasEnoughData.value).toBe(false);
     expect(total.value).toBe(0);
-    
+
     expect(segments.value[0]?.percentage).toBe(0);
   });
 
   it("aggregates entries and calculates percentages correctly", async () => {
     expect.hasAssertions();
     const store = useActivityStore();
-    
+
     // total of 4 valid entries: 1 doc, 1 note, 2 todo
     // 1 invalid entry (folder_created)
     vi.spyOn(store, "getEntriesSince").mockResolvedValue([
@@ -41,16 +41,16 @@ describe("useContributionDistribution", () => {
     expect(dist.hasEnoughData.value).toBe(true);
 
     const segments = dist.segments.value;
-    
-    const todoSegment = segments.find(s => s.type === "todo")!;
+
+    const todoSegment = segments.find((s) => s.type === "todo")!;
     expect(todoSegment.count).toBe(2);
     expect(todoSegment.percentage).toBe(50); // 2/4 = 50%
-    
-    const docSegment = segments.find(s => s.type === "doc")!;
+
+    const docSegment = segments.find((s) => s.type === "doc")!;
     expect(docSegment.count).toBe(1);
     expect(docSegment.percentage).toBe(25); // 1/4 = 25%
 
-    const noteSegment = segments.find(s => s.type === "note")!;
+    const noteSegment = segments.find((s) => s.type === "note")!;
     expect(noteSegment.count).toBe(1);
     expect(noteSegment.percentage).toBe(25); // 1/4 = 25%
   });

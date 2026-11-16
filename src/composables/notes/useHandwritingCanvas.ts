@@ -1,10 +1,36 @@
 // src/composables/useHandwritingCanvas.ts
 import { ref, type Ref, shallowRef, watch } from "vue";
-import { Canvas, Ellipse, FabricImage, type FabricObject, Line, Path, Pattern, Polygon, Rect, Textbox, Triangle } from "fabric";
+import {
+  Canvas,
+  Ellipse,
+  FabricImage,
+  type FabricObject,
+  Line,
+  Path,
+  Pattern,
+  Polygon,
+  Rect,
+  Textbox,
+  Triangle,
+} from "fabric";
 import getStroke from "perfect-freehand";
 
 export type PenTool = "pencil" | "pen" | "marker";
-export type ShapeTool = "rectangle" | "ellipse" | "line" | "arrow" | "triangle" | "diamond" | "star" | "hexagon" | "cloud" | "cylinder" | "parallelogram" | "rhombus" | "square" | "double-arrow";
+export type ShapeTool =
+  | "rectangle"
+  | "ellipse"
+  | "line"
+  | "arrow"
+  | "triangle"
+  | "diamond"
+  | "star"
+  | "hexagon"
+  | "cloud"
+  | "cylinder"
+  | "parallelogram"
+  | "rhombus"
+  | "square"
+  | "double-arrow";
 export type CanvasTool = "select" | "pen" | "eraser" | "text" | "shape" | "image";
 
 // Stored as tuples directly — avoids a .map() allocation on every hot pointer event.
@@ -58,7 +84,13 @@ const CANVAS_GROW_THRESHOLD = 200; // grow when content comes within this many p
 
 type HistoryEntry =
   | { type: "add" | "remove"; object: FabricObject }
-  | { type: "bg-color"; old: string; new: string; oldPattern: "solid" | "dots" | "grid" | "ruled"; newPattern: "solid" | "dots" | "grid" | "ruled" };
+  | {
+      type: "bg-color";
+      old: string;
+      new: string;
+      oldPattern: "solid" | "dots" | "grid" | "ruled";
+      newPattern: "solid" | "dots" | "grid" | "ruled";
+    };
 
 export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
   const fabricCanvas = shallowRef<Canvas | null>(null);
@@ -155,7 +187,9 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
 
   function applyBackground() {
     const canvas = fabricCanvas.value;
-    if (!canvas) {return;}
+    if (!canvas) {
+      return;
+    }
 
     if (backgroundPattern.value === "solid") {
       canvas.backgroundColor = backgroundColor.value;
@@ -165,15 +199,15 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       pCanvas.width = backgroundPattern.value === "ruled" ? 10 : size;
       pCanvas.height = size;
       const ctx = pCanvas.getContext("2d");
-      
+
       if (ctx) {
         ctx.fillStyle = backgroundColor.value;
         ctx.fillRect(0, 0, pCanvas.width, pCanvas.height);
 
         ctx.fillStyle = "rgba(156, 163, 175, 0.4)";
         if (backgroundPattern.value === "dots") {
-          ctx.beginPath(); 
-          ctx.arc(size/2, size/2, 1.5, 0, Math.PI*2); 
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, 1.5, 0, Math.PI * 2);
           ctx.fill();
         } else if (backgroundPattern.value === "grid") {
           ctx.fillRect(0, 0, size, 1);
@@ -189,7 +223,10 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     canvas.requestRenderAll();
   }
 
-  function setBackgroundColor(newColor: string, newPattern: "solid" | "dots" | "grid" | "ruled" = backgroundPattern.value) {
+  function setBackgroundColor(
+    newColor: string,
+    newPattern: "solid" | "dots" | "grid" | "ruled" = backgroundPattern.value,
+  ) {
     const oldColor = backgroundColor.value;
     const oldPattern = backgroundPattern.value;
     if (oldColor !== newColor || oldPattern !== newPattern) {
@@ -223,7 +260,10 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       return "";
     } // narrows `first` from `number[] | undefined` to `number[]`
 
-    const pathData = rest.reduce((acc, [xCoord, yCoord]) => `${acc} L ${xCoord} ${yCoord}`, `M ${first[0]} ${first[1]}`);
+    const pathData = rest.reduce(
+      (acc, [xCoord, yCoord]) => `${acc} L ${xCoord} ${yCoord}`,
+      `M ${first[0]} ${first[1]}`,
+    );
     return `${pathData} Z`;
   }
 
@@ -581,60 +621,77 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
           return new Triangle({ ...common, width: 100, height: 100 });
         }
         case "diamond": {
-          return new Polygon([
-            { x: 50, y: 0 },
-            { x: 100, y: 50 },
-            { x: 50, y: 100 },
-            { x: 0, y: 50 }
-          ], { ...common });
+          return new Polygon(
+            [
+              { x: 50, y: 0 },
+              { x: 100, y: 50 },
+              { x: 50, y: 100 },
+              { x: 0, y: 50 },
+            ],
+            { ...common },
+          );
         }
         case "star": {
-          return new Polygon([
-            { x: 50, y: 0 },
-            { x: 61, y: 35 },
-            { x: 98, y: 35 },
-            { x: 68, y: 57 },
-            { x: 79, y: 91 },
-            { x: 50, y: 70 },
-            { x: 21, y: 91 },
-            { x: 32, y: 57 },
-            { x: 2, y: 35 },
-            { x: 39, y: 35 }
-          ], { ...common });
+          return new Polygon(
+            [
+              { x: 50, y: 0 },
+              { x: 61, y: 35 },
+              { x: 98, y: 35 },
+              { x: 68, y: 57 },
+              { x: 79, y: 91 },
+              { x: 50, y: 70 },
+              { x: 21, y: 91 },
+              { x: 32, y: 57 },
+              { x: 2, y: 35 },
+              { x: 39, y: 35 },
+            ],
+            { ...common },
+          );
         }
         case "hexagon": {
-          return new Polygon([
-            { x: 25, y: 0 },
-            { x: 75, y: 0 },
-            { x: 100, y: 50 },
-            { x: 75, y: 100 },
-            { x: 25, y: 100 },
-            { x: 0, y: 50 }
-          ], { ...common });
+          return new Polygon(
+            [
+              { x: 25, y: 0 },
+              { x: 75, y: 0 },
+              { x: 100, y: 50 },
+              { x: 75, y: 100 },
+              { x: 25, y: 100 },
+              { x: 0, y: 50 },
+            ],
+            { ...common },
+          );
         }
         case "cloud": {
-          const cloudPath = "M 30 40 C 20 40 20 60 40 60 C 40 70 60 70 70 60 C 80 60 80 40 70 40 C 70 20 40 20 30 40 Z";
+          const cloudPath =
+            "M 30 40 C 20 40 20 60 40 60 C 40 70 60 70 70 60 C 80 60 80 40 70 40 C 70 20 40 20 30 40 Z";
           return new Path(cloudPath, { ...common, strokeWidth: 2, fill: "" });
         }
         case "cylinder": {
-          const cylPath = "M 20 20 C 20 5 80 5 80 20 C 80 35 20 35 20 20 L 20 80 C 20 95 80 95 80 80 L 80 20";
+          const cylPath =
+            "M 20 20 C 20 5 80 5 80 20 C 80 35 20 35 20 20 L 20 80 C 20 95 80 95 80 80 L 80 20";
           return new Path(cylPath, { ...common, strokeWidth: 2, fill: "" });
         }
         case "parallelogram": {
-          return new Polygon([
-            { x: 20, y: 0 },
-            { x: 100, y: 0 },
-            { x: 80, y: 60 },
-            { x: 0, y: 60 }
-          ], { ...common });
+          return new Polygon(
+            [
+              { x: 20, y: 0 },
+              { x: 100, y: 0 },
+              { x: 80, y: 60 },
+              { x: 0, y: 60 },
+            ],
+            { ...common },
+          );
         }
         case "rhombus": {
-          return new Polygon([
-            { x: 50, y: 0 },
-            { x: 100, y: 50 },
-            { x: 50, y: 100 },
-            { x: 0, y: 50 }
-          ], { ...common });
+          return new Polygon(
+            [
+              { x: 50, y: 0 },
+              { x: 100, y: 50 },
+              { x: 50, y: 100 },
+              { x: 0, y: 50 },
+            ],
+            { ...common },
+          );
         }
         case "square": {
           return new Rect({ ...common, width: 80, height: 80 });
@@ -787,37 +844,45 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
       }
     }
 
-    interactiveEl.addEventListener("touchstart", (e: TouchEvent) => {
-      if (e.touches.length >= 2) {
-        // Cancel any in-progress stroke and start 2-finger scroll mode
-        cancelActiveStroke();
-        twoFingerScrolling = true;
-        const t1 = e.touches[0]!;
-        const t2 = e.touches[1]!;
-        lastScrollMidY = (t1.clientY + t2.clientY) / 2;
-      } else {
-        twoFingerScrolling = false;
-      }
-      // Always prevent default — we manage everything ourselves
-      e.preventDefault();
-    }, { passive: false });
-
-    interactiveEl.addEventListener("touchmove", (e: TouchEvent) => {
-      e.preventDefault(); // Always block browser scroll (we handle it)
-      if (e.touches.length >= 2 && twoFingerScrolling) {
-        const t1 = e.touches[0]!;
-        const t2 = e.touches[1]!;
-        const midY = (t1.clientY + t2.clientY) / 2;
-        const delta = lastScrollMidY - midY;
-        lastScrollMidY = midY;
-
-        // Scroll the canvas's scrollable parent container directly
-        const scrollEl = canvas.wrapperEl?.parentElement;
-        if (scrollEl) {
-          scrollEl.scrollTop += delta;
+    interactiveEl.addEventListener(
+      "touchstart",
+      (e: TouchEvent) => {
+        if (e.touches.length >= 2) {
+          // Cancel any in-progress stroke and start 2-finger scroll mode
+          cancelActiveStroke();
+          twoFingerScrolling = true;
+          const t1 = e.touches[0]!;
+          const t2 = e.touches[1]!;
+          lastScrollMidY = (t1.clientY + t2.clientY) / 2;
+        } else {
+          twoFingerScrolling = false;
         }
-      }
-    }, { passive: false });
+        // Always prevent default — we manage everything ourselves
+        e.preventDefault();
+      },
+      { passive: false },
+    );
+
+    interactiveEl.addEventListener(
+      "touchmove",
+      (e: TouchEvent) => {
+        e.preventDefault(); // Always block browser scroll (we handle it)
+        if (e.touches.length >= 2 && twoFingerScrolling) {
+          const t1 = e.touches[0]!;
+          const t2 = e.touches[1]!;
+          const midY = (t1.clientY + t2.clientY) / 2;
+          const delta = lastScrollMidY - midY;
+          lastScrollMidY = midY;
+
+          // Scroll the canvas's scrollable parent container directly
+          const scrollEl = canvas.wrapperEl?.parentElement;
+          if (scrollEl) {
+            scrollEl.scrollTop += delta;
+          }
+        }
+      },
+      { passive: false },
+    );
 
     interactiveEl.addEventListener("touchend", (e: TouchEvent) => {
       if (e.touches.length < 2) {
@@ -831,12 +896,16 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
 
     interactiveEl.addEventListener("pointerdown", (e) => {
       // Ignore pointer events while in 2-finger scroll mode
-      if (twoFingerScrolling){ return;}
+      if (twoFingerScrolling) {
+        return;
+      }
       handlePointerDown(e);
       handleEraserPointerDown(e);
     });
     interactiveEl.addEventListener("pointermove", (e) => {
-      if (twoFingerScrolling) {return;}
+      if (twoFingerScrolling) {
+        return;
+      }
       handlePointerMove(e);
       handleEraserPointerMove(e);
     });
@@ -869,7 +938,11 @@ export function useHandwritingCanvas(_canvasEl: Ref<HTMLCanvasElement | null>) {
     }
   }
 
-  function loadFromJSON(json: Record<string, unknown> | null, bgColor: string, bgPattern: "solid" | "dots" | "grid" | "ruled" = "solid"): Promise<void> {
+  function loadFromJSON(
+    json: Record<string, unknown> | null,
+    bgColor: string,
+    bgPattern: "solid" | "dots" | "grid" | "ruled" = "solid",
+  ): Promise<void> {
     const canvas = fabricCanvas.value;
     if (!canvas) {
       return Promise.resolve();

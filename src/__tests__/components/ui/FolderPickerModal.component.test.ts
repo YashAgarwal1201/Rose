@@ -31,7 +31,18 @@ describe("FolderPickerModal.vue", () => {
     const pinia = createPinia();
     setActivePinia(pinia);
     const store = useFoldersStore();
-    store.folders = [{ createdAt: 1, id: "folder-1", name: "Work", parentId: null, type: "mixed", updatedAt: 1, isVaulted: false, iv: null }];
+    store.folders = [
+      {
+        createdAt: 1,
+        id: "folder-1",
+        name: "Work",
+        parentId: null,
+        type: "mixed",
+        updatedAt: 1,
+        isVaulted: false,
+        iv: null,
+      },
+    ];
 
     const wrapper = mount(FolderPickerModal, {
       global: {
@@ -44,12 +55,8 @@ describe("FolderPickerModal.vue", () => {
       },
     });
 
-
-
     const folderRow = wrapper.find('[data-folder-id="folder-1"]');
     await folderRow.trigger("click");
-
-
 
     const moveBtn = wrapper.findAll("button").find((b) => b.text().includes("Move Here"));
     await moveBtn?.trigger("click");

@@ -1,7 +1,11 @@
 <!-- src/components/onboarding/PrivacyStep.vue -->
 <template>
   <div>
-    <img :src="PrivacyIllustration" alt="Privacy" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
+    <img
+      :src="PrivacyIllustration"
+      alt="Privacy"
+      class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none"
+    />
     <h2 class="text-xl font-semibold text-rose-text text-center">Your data stays with you</h2>
     <ul class="mt-5 space-y-3 text-sm text-rose-text-muted">
       <li class="flex gap-2.5">

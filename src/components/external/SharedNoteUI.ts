@@ -1,5 +1,5 @@
-import SharedNoteUI from './SharedNoteUI.vue';
-import { type App, createApp, h, reactive } from 'vue';
+import SharedNoteUI from "./SharedNoteUI.vue";
+import { type App, createApp, h, reactive } from "vue";
 
 export interface MountedComponent {
   app: App;
@@ -14,51 +14,58 @@ interface ComponentInstance {
 
 const instances = new Map<HTMLElement, ComponentInstance>();
 
-export function mount(el: HTMLElement, initialProps: Record<string, unknown> = {}): MountedComponent {
+export function mount(
+  el: HTMLElement,
+  initialProps: Record<string, unknown> = {},
+): MountedComponent {
   if (instances.has(el)) {
     instances.get(el)?.unmount();
   }
 
-  const mediaQuery = typeof globalThis.matchMedia === 'function'
-    ? globalThis.matchMedia('(prefers-color-scheme: dark)')
-    : null;
+  const mediaQuery =
+    typeof globalThis.matchMedia === "function"
+      ? globalThis.matchMedia("(prefers-color-scheme: dark)")
+      : null;
 
   const syncDarkMode = () => {
     const html = document.documentElement;
     const { body } = document;
 
     const isDark =
-      html.classList.contains('dark') ||
-      body.classList.contains('dark') ||
-      html.getAttribute('data-theme') === 'dark' ||
-      html.getAttribute('data-mode') === 'dark' ||
-      html.getAttribute('theme') === 'dark' ||
-      html.style.colorScheme === 'dark' ||
+      html.classList.contains("dark") ||
+      body.classList.contains("dark") ||
+      html.getAttribute("data-theme") === "dark" ||
+      html.getAttribute("data-mode") === "dark" ||
+      html.getAttribute("theme") === "dark" ||
+      html.style.colorScheme === "dark" ||
       Boolean(mediaQuery?.matches);
 
-    el.classList.toggle('dark', isDark);
+    el.classList.toggle("dark", isDark);
   };
 
   syncDarkMode();
   const observer = new MutationObserver(syncDarkMode);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-mode', 'theme', 'style'] });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "data-mode", "theme", "style"],
+  });
   if (document.body) {
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
-  mediaQuery?.addEventListener?.('change', syncDarkMode);
+  mediaQuery?.addEventListener?.("change", syncDarkMode);
 
   const state = reactive({ ...initialProps });
 
   const app = createApp({
-    render: () => h(SharedNoteUI, state)
+    render: () => h(SharedNoteUI, state),
   });
   app.mount(el);
 
   const unmountInstance = () => {
     observer.disconnect();
-    mediaQuery?.removeEventListener?.('change', syncDarkMode);
+    mediaQuery?.removeEventListener?.("change", syncDarkMode);
     app.unmount();
-    el.classList.remove('dark');
+    el.classList.remove("dark");
     instances.delete(el);
   };
 
@@ -69,7 +76,7 @@ export function mount(el: HTMLElement, initialProps: Record<string, unknown> = {
     update: (newProps: Record<string, unknown>) => {
       Object.assign(state, newProps);
     },
-    unmount: unmountInstance
+    unmount: unmountInstance,
   };
 }
 

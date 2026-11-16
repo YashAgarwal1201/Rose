@@ -10,7 +10,7 @@ describe("useNoteExport", () => {
   beforeEach(() => {
     mockCreateObjectURL = vi.fn().mockReturnValue("blob:fake-url");
     mockRevokeObjectURL = vi.fn();
-    
+
     global.URL.createObjectURL = mockCreateObjectURL as any;
     global.URL.revokeObjectURL = mockRevokeObjectURL as any;
   });
@@ -25,10 +25,12 @@ describe("useNoteExport", () => {
     const canvas = ref<Canvas | null>({ toDataURL: mockToDataURL } as unknown as Canvas);
     const title = ref("My Note");
     const isOpen = ref(true);
-    
+
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") {return { click: mockClick } as any;}
+      if (tagName === "a") {
+        return { click: mockClick } as any;
+      }
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 
@@ -46,10 +48,12 @@ describe("useNoteExport", () => {
     const canvas = ref<Canvas | null>({ toDataURL: mockToDataURL } as unknown as Canvas);
     const title = ref("My Note");
     const isOpen = ref(true);
-    
+
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") {return { click: mockClick } as any;}
+      if (tagName === "a") {
+        return { click: mockClick } as any;
+      }
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 
@@ -67,10 +71,12 @@ describe("useNoteExport", () => {
     const canvas = ref<Canvas | null>({ toSVG: mockToSVG } as unknown as Canvas);
     const title = ref("My Note");
     const isOpen = ref(true);
-    
+
     const mockClick = vi.fn();
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName === "a") {return { click: mockClick } as any;}
+      if (tagName === "a") {
+        return { click: mockClick } as any;
+      }
       return (document.createElement as any).getMockImplementation()?.(tagName);
     });
 

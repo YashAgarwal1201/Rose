@@ -2,9 +2,11 @@
 <template>
   <div class="p-4 md:p-8 lg:p-10">
     <div class="flex items-center gap-3">
-      <button @click="goBack"
+      <button
+        @click="goBack"
         class="p-1.5 -ml-1.5 rounded-lg text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-        aria-label="Go back">
+        aria-label="Go back"
+      >
         <ArrowLeftIcon class="w-6 h-6" />
       </button>
       <h1 class="text-2xl sm:text-3xl font-bold text-rose-text">Settings</h1>
@@ -16,91 +18,152 @@
     <div class="flex flex-col gap-5 mt-6 max-w-2xl">
       <!-- Profile -->
       <SettingsSection :icon="UserIcon" title="Profile">
-        <SettingsRow label="Username" description="Shown in your greeting on Home." v-slot="{ labelId, descriptionId }">
-          <input v-model="usernameDraft" type="text" placeholder="Your name" maxlength="40" :aria-labelledby="labelId"
+        <SettingsRow
+          label="Username"
+          description="Shown in your greeting on Home."
+          v-slot="{ labelId, descriptionId }"
+        >
+          <input
+            v-model="usernameDraft"
+            type="text"
+            placeholder="Your name"
+            maxlength="40"
+            :aria-labelledby="labelId"
             :aria-describedby="descriptionId"
             class="w-full sm:w-56 rounded-lg border border-rose-border bg-rose-bg px-3 py-2 text-sm sm:text-base text-rose-text placeholder:text-rose-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @keyup.enter="saveUsername" @blur="saveUsername" />
+            @keyup.enter="saveUsername"
+            @blur="saveUsername"
+          />
         </SettingsRow>
       </SettingsSection>
 
       <!-- General -->
       <SettingsSection :icon="RotateCcwIcon" title="General">
-        <SettingsRow label="Activity chart" description="Show your contribution graph on the home page."
-          v-slot="{ labelId, descriptionId }">
-          <SettingsSwitch :model-value="settingsStore.showActivityChart" :aria-labelledby="labelId"
-            :aria-describedby="descriptionId" @update:model-value="settingsStore.toggleActivityChart()" />
+        <SettingsRow
+          label="Activity chart"
+          description="Show your contribution graph on the home page."
+          v-slot="{ labelId, descriptionId }"
+        >
+          <SettingsSwitch
+            :model-value="settingsStore.showActivityChart"
+            :aria-labelledby="labelId"
+            :aria-describedby="descriptionId"
+            @update:model-value="settingsStore.toggleActivityChart()"
+          />
         </SettingsRow>
 
-        <SettingsRow label="Replay onboarding" description="Go through the welcome setup again."
-          v-slot="{ descriptionId }">
-          <button type="button" :aria-describedby="descriptionId"
+        <SettingsRow
+          label="Replay onboarding"
+          description="Go through the welcome setup again."
+          v-slot="{ descriptionId }"
+        >
+          <button
+            type="button"
+            :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click="handleReplayOnboarding">
+            @click="handleReplayOnboarding"
+          >
             Replay
           </button>
         </SettingsRow>
       </SettingsSection>
 
       <!-- Data & Storage -->
-      <SettingsSection :icon="DatabaseIcon" title="Data & Storage"
-        description="Everything here is stored only on this device.">
+      <SettingsSection
+        :icon="DatabaseIcon"
+        title="Data & Storage"
+        description="Everything here is stored only on this device."
+      >
         <SettingsRow label="Storage used">
           <span class="inline-flex items-center gap-1.5">
-            <span v-if="storage.status.value === 'ready'" class="text-sm sm:text-base text-rose-text-muted">
+            <span
+              v-if="storage.status.value === 'ready'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
               {{ formatBytes(storage.usageBytes.value ?? 0) }}
               <template v-if="storage.quotaBytes.value">
                 of ~{{ formatBytes(storage.quotaBytes.value) }} available
               </template>
             </span>
-            <span v-else-if="storage.status.value === 'loading'" class="text-sm sm:text-base text-rose-text-muted">
+            <span
+              v-else-if="storage.status.value === 'loading'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
               Calculating…
             </span>
-            <span v-else-if="storage.status.value === 'error'" class="text-sm sm:text-base text-rose-text-muted">
+            <span
+              v-else-if="storage.status.value === 'error'"
+              class="text-sm sm:text-base text-rose-text-muted"
+            >
               Couldn't check storage usage
             </span>
             <span v-else class="text-sm sm:text-base text-rose-text-muted">
               Not available in this browser
             </span>
 
-            <SummaryComp label="About storage numbers"
-              text="Browsers report this approximately, and some (like Brave) deliberately obscure the exact figures for privacy. The numbers here are a rough guide, not an exact measurement — they can look different across browsers on the same device." />
+            <SummaryComp
+              label="About storage numbers"
+              text="Browsers report this approximately, and some (like Brave) deliberately obscure the exact figures for privacy. The numbers here are a rough guide, not an exact measurement — they can look different across browsers on the same device."
+            />
           </span>
         </SettingsRow>
 
-        <SettingsRow label="Export data" description="Download a backup of your app data as a JSON file."
-          v-slot="{ descriptionId }">
-          <button type="button" :aria-describedby="descriptionId"
+        <SettingsRow
+          label="Export data"
+          description="Download a backup of your app data as a JSON file."
+          v-slot="{ descriptionId }"
+        >
+          <button
+            type="button"
+            :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click="openExportDialog">
+            @click="openExportDialog"
+          >
             Export...
           </button>
         </SettingsRow>
 
-        <SettingsRow label="Import data" description="Restore from a previously exported backup file."
-          v-slot="{ descriptionId }">
-          <button type="button" :aria-describedby="descriptionId"
+        <SettingsRow
+          label="Import data"
+          description="Restore from a previously exported backup file."
+          v-slot="{ descriptionId }"
+        >
+          <button
+            type="button"
+            :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-rose-border text-sm sm:text-base text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-            @click="isImportModalOpen = true">
+            @click="isImportModalOpen = true"
+          >
             Import...
           </button>
         </SettingsRow>
 
-        <SettingsRow label="Clear all content"
+        <SettingsRow
+          label="Clear all content"
           description="Deletes folders, todos, and docs. Keeps your profile and preferences."
-          v-slot="{ descriptionId }">
-          <button type="button" :aria-describedby="descriptionId"
+          v-slot="{ descriptionId }"
+        >
+          <button
+            type="button"
+            :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-red-400/40 text-red-400 text-sm sm:text-base font-medium hover:bg-red-400/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-            @click="handleClearContent">
+            @click="handleClearContent"
+          >
             Clear content
           </button>
         </SettingsRow>
 
-        <SettingsRow label="Reset app completely"
-          description="Deletes everything, including your profile. Onboarding starts over." v-slot="{ descriptionId }">
-          <button type="button" :aria-describedby="descriptionId"
+        <SettingsRow
+          label="Reset app completely"
+          description="Deletes everything, including your profile. Onboarding starts over."
+          v-slot="{ descriptionId }"
+        >
+          <button
+            type="button"
+            :aria-describedby="descriptionId"
             class="px-3 py-1.5 rounded-lg border border-red-400/40 text-red-400 text-sm sm:text-base font-medium hover:bg-red-400/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-            @click="openResetDialog">
+            @click="openResetDialog"
+          >
             Reset app
           </button>
         </SettingsRow>
@@ -109,46 +172,74 @@
 
     <!-- Export dialog -->
     <Teleport to="body">
-      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-        enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
-        leave-to-class="opacity-0">
-        <div v-if="isExportDialogOpen" ref="exportDialogRef"
-          class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog"
-          aria-modal="true" aria-labelledby="export-dialog-title" @click.self="cancelExport"
-          @keydown.escape="cancelExport">
-          <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border">
+      <Transition
+        enter-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isExportDialogOpen"
+          ref="exportDialogRef"
+          class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="export-dialog-title"
+          @click.self="cancelExport"
+          @keydown.escape="cancelExport"
+        >
+          <div
+            class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+          >
             <h3 id="export-dialog-title" class="text-xl font-semibold text-rose-text mb-2">
               Export data
             </h3>
             <p class="text-sm text-rose-text-muted mb-4">
-              Select the data you want to include in your backup. Folders will be automatically included if you select
-              Notes, Docs, or Todos.
+              Select the data you want to include in your backup. Folders will be automatically
+              included if you select Notes, Docs, or Todos.
             </p>
 
             <div class="flex flex-col gap-3 mb-6">
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.settings"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input
+                  type="checkbox"
+                  v-model="exportOptions.settings"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">Settings & Profile</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.notes"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input
+                  type="checkbox"
+                  v-model="exportOptions.notes"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">Notes</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.docs"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input
+                  type="checkbox"
+                  v-model="exportOptions.docs"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">Documents</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.todos"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input
+                  type="checkbox"
+                  v-model="exportOptions.todos"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">Todos</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" v-model="exportOptions.activity"
-                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg" />
+                <input
+                  type="checkbox"
+                  v-model="exportOptions.activity"
+                  class="w-4 h-4 rounded border-rose-border text-rose-primary focus:ring-rose-primary bg-rose-bg"
+                />
                 <span class="text-sm text-rose-text">Recent Activity</span>
               </label>
             </div>
@@ -156,13 +247,21 @@
             <div class="flex justify-end gap-2">
               <button
                 class="px-4 py-2 text-sm rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-                @click="cancelExport">
+                @click="cancelExport"
+              >
                 Cancel
               </button>
               <button
                 class="px-4 py-2 text-sm rounded-md bg-rose-primary text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-                :disabled="!exportOptions.settings && !exportOptions.notes && !exportOptions.docs && !exportOptions.todos && !exportOptions.activity"
-                @click="confirmExport">
+                :disabled="
+                  !exportOptions.settings &&
+                  !exportOptions.notes &&
+                  !exportOptions.docs &&
+                  !exportOptions.todos &&
+                  !exportOptions.activity
+                "
+                @click="confirmExport"
+              >
                 Export
               </button>
             </div>
@@ -176,14 +275,27 @@
 
     <!-- Typed-confirmation dialog for the more destructive "Reset app" action -->
     <Teleport to="body">
-      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-        enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200" leave-from-class="opacity-100"
-        leave-to-class="opacity-0">
-        <div v-if="isResetDialogOpen" ref="resetDialogRef"
-          class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog"
-          aria-modal="true" aria-labelledby="reset-dialog-title" @click.self="cancelReset"
-          @keydown.escape="cancelReset">
-          <div class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border">
+      <Transition
+        enter-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isResetDialogOpen"
+          ref="resetDialogRef"
+          class="fixed inset-0 z-110 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-dialog-title"
+          @click.self="cancelReset"
+          @keydown.escape="cancelReset"
+        >
+          <div
+            class="bg-rose-surface rounded-xl shadow-2xl w-full max-w-sm p-6 border border-rose-border"
+          >
             <h3 id="reset-dialog-title" class="text-xl font-semibold text-rose-text mb-2">
               Reset app completely?
             </h3>
@@ -194,18 +306,26 @@
             <label for="reset-confirm-input" class="block text-xs text-rose-text-muted mb-1.5">
               Type <span class="font-mono font-semibold text-rose-text">RESET</span> to confirm
             </label>
-            <input id="reset-confirm-input" v-model="resetConfirmText" type="text" autofocus
+            <input
+              id="reset-confirm-input"
+              v-model="resetConfirmText"
+              type="text"
+              autofocus
               class="w-full rounded-lg border border-rose-border bg-rose-bg px-3 py-2 text-sm text-rose-text focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 mb-5"
-              @keyup.enter="confirmReset" />
+              @keyup.enter="confirmReset"
+            />
             <div class="flex justify-end gap-2">
               <button
                 class="px-4 py-2 text-sm rounded-md text-rose-text hover:bg-rose-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-primary"
-                @click="cancelReset">
+                @click="cancelReset"
+              >
                 Cancel
               </button>
               <button
                 class="px-4 py-2 text-sm rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                :disabled="resetConfirmText.trim().toUpperCase() !== 'RESET'" @click="confirmReset">
+                :disabled="resetConfirmText.trim().toUpperCase() !== 'RESET'"
+                @click="confirmReset"
+              >
                 Reset app
               </button>
             </div>
@@ -246,11 +366,13 @@ function goBack() {
 
 const resetDialogRef = ref<HTMLElement | null>(null);
 const { activate, deactivate } = useFocusTrap(resetDialogRef, { escapeDeactivates: false });
-watch(resetDialogRef, (el) => el ? nextTick().then(() => activate()) : deactivate());
+watch(resetDialogRef, (el) => (el ? nextTick().then(() => activate()) : deactivate()));
 
 const exportDialogRef = ref<HTMLElement | null>(null);
-const { activate: activateExport, deactivate: deactivateExport } = useFocusTrap(exportDialogRef, { escapeDeactivates: false });
-watch(exportDialogRef, (el) => el ? nextTick().then(() => activateExport()) : deactivateExport());
+const { activate: activateExport, deactivate: deactivateExport } = useFocusTrap(exportDialogRef, {
+  escapeDeactivates: false,
+});
+watch(exportDialogRef, (el) => (el ? nextTick().then(() => activateExport()) : deactivateExport()));
 
 const exportOptions = ref<ExportOptions>({
   settings: true,
@@ -306,7 +428,6 @@ async function saveUsername() {
   showToast(trimmed ? `Saved as "${trimmed}"` : "Username cleared", "info");
 }
 
-
 async function handleReplayOnboarding() {
   const confirmed = await confirm({
     confirmLabel: "Replay",
@@ -357,14 +478,18 @@ async function confirmReset() {
   if (resetConfirmText.value.trim().toUpperCase() !== "RESET") {
     return;
   }
-  await db.transaction("rw", [db.folders, db.todoLists, db.todos, db.notes, db.docs, db.settings], async () => {
-    await db.folders.clear();
-    await db.todoLists.clear();
-    await db.todos.clear();
-    await db.notes.clear();
-    await db.docs.clear();
-    await db.settings.clear();
-  });
+  await db.transaction(
+    "rw",
+    [db.folders, db.todoLists, db.todos, db.notes, db.docs, db.settings],
+    async () => {
+      await db.folders.clear();
+      await db.todoLists.clear();
+      await db.todos.clear();
+      await db.notes.clear();
+      await db.docs.clear();
+      await db.settings.clear();
+    },
+  );
   isResetDialogOpen.value = false;
   showToast("App has been reset.", "info");
   globalThis.location.href = "/";

@@ -5,12 +5,16 @@ import TrashView from "@/views/trash/TrashView.vue";
 import { useTrashStore } from "@/stores/trash";
 import * as confirmModule from "@/composables/ui/useConfirm";
 
-vi.mock(import("vue-router"), () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    back: vi.fn(),
-  }),
-} as any));
+vi.mock(
+  import("vue-router"),
+  () =>
+    ({
+      useRouter: () => ({
+        push: vi.fn(),
+        back: vi.fn(),
+      }),
+    }) as any,
+);
 
 describe("TrashView.vue", () => {
   beforeEach(() => {
@@ -111,7 +115,9 @@ describe("TrashView.vue", () => {
     const deleteSpy = vi.spyOn(trashStore, "deleteForever").mockResolvedValue(undefined);
 
     const wrapper = mount(TrashView);
-    const deleteBtn = wrapper.findAll("button").find((b) => b.text().includes("Delete") && !b.text().includes("Empty"));
+    const deleteBtn = wrapper
+      .findAll("button")
+      .find((b) => b.text().includes("Delete") && !b.text().includes("Empty"));
     expect(deleteBtn).toBeDefined();
 
     await deleteBtn!.trigger("click");

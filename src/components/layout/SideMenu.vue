@@ -1,27 +1,57 @@
 <!-- src/components/SideMenu.vue -->
 <template>
-  <Transition enter-active-class="transition-opacity duration-300" enter-from-class="opacity-0"
-    enter-to-class="opacity-100" leave-active-class="transition-opacity duration-300" leave-from-class="opacity-100"
-    leave-to-class="opacity-0">
-    <div v-if="isOpen" class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" @click="close" aria-hidden="true"></div>
+  <Transition
+    enter-active-class="transition-opacity duration-300"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-300"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+      @click="close"
+      aria-hidden="true"
+    ></div>
   </Transition>
 
-  <Transition enter-active-class="transition-transform duration-300 ease-in-out" enter-from-class="translate-x-full"
-    enter-to-class="translate-x-0" leave-active-class="transition-transform duration-300 ease-in-out"
-    leave-from-class="translate-x-0" leave-to-class="translate-x-full">
-    <div v-if="isOpen" ref="menuRef" role="dialog" aria-modal="true" aria-label="More options" @keydown.escape="close"
-      class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl rounded-none md:rounded-l-xl! bg-rose-bg shadow-2xl flex flex-col">
+  <Transition
+    enter-active-class="transition-transform duration-300 ease-in-out"
+    enter-from-class="translate-x-full"
+    enter-to-class="translate-x-0"
+    leave-active-class="transition-transform duration-300 ease-in-out"
+    leave-from-class="translate-x-0"
+    leave-to-class="translate-x-full"
+  >
+    <div
+      v-if="isOpen"
+      ref="menuRef"
+      role="dialog"
+      aria-modal="true"
+      aria-label="More options"
+      @keydown.escape="close"
+      class="fixed top-0 right-0 h-full z-50 w-full max-w-3xl rounded-none md:rounded-l-xl! bg-rose-bg shadow-2xl flex flex-col"
+    >
       <div class="flex items-center justify-between p-5 shrink-0">
         <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-rose-text">More Options</h3>
-        <button class="p-2 hover:bg-rose-surface-alt rounded-full transition-colors" @click="close"
-          aria-label="Close menu">
+        <button
+          class="p-2 hover:bg-rose-surface-alt rounded-full transition-colors"
+          @click="close"
+          aria-label="Close menu"
+        >
           <XIcon class="w-5 h-5 text-rose-text" />
         </button>
       </div>
       <div class="grow overflow-y-auto px-5 pb-5">
         <div class="p-4 rounded-xl bg-rose-surface-alt border border-rose-border overflow-hidden">
           <!-- Appearance -->
-          <PanelSection :icon="PaletteIcon" label="Appearance" :is-open="openPanel === 0" @toggle="togglePanel(0)">
+          <PanelSection
+            :icon="PaletteIcon"
+            label="Appearance"
+            :is-open="openPanel === 0"
+            @toggle="togglePanel(0)"
+          >
             <template #collapsed-preview>
               <MonitorIcon v-if="selectedMode === 'system'" class="w-4 h-4 text-rose-text-muted" />
               <SunIcon v-else-if="selectedMode === 'light'" class="w-4 h-4 text-rose-text-muted" />
@@ -30,8 +60,12 @@
 
             <div class="flex items-center justify-between gap-3 px-1 py-2">
               <label for="theme-select" class="text-sm text-rose-text">Theme</label>
-              <select id="theme-select" name="theme" v-model="selectedMode"
-                class="text-sm bg-rose-surface border border-rose-border rounded-md px-2 py-1.5 text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer">
+              <select
+                id="theme-select"
+                name="theme"
+                v-model="selectedMode"
+                class="text-sm bg-rose-surface border border-rose-border rounded-md px-2 py-1.5 text-rose-text focus:outline-none focus:ring-2 focus:ring-rose-primary cursor-pointer"
+              >
                 <option value="system">System</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -42,18 +76,29 @@
           <div class="divider" />
 
           <!-- Keyboard Shortcuts -->
-          <PanelSection :icon="KeyboardIcon" label="Keyboard Shortcuts" :is-open="openPanel === 1"
-            @toggle="togglePanel(1)">
+          <PanelSection
+            :icon="KeyboardIcon"
+            label="Keyboard Shortcuts"
+            :is-open="openPanel === 1"
+            @toggle="togglePanel(1)"
+          >
             <div class="flex flex-col gap-y-4 px-1 py-2 text-sm">
               <div v-for="cat in shortcutCategories" :key="cat.label">
-                <h4 class="text-xs font-semibold text-rose-text-muted uppercase tracking-wider mb-2">
+                <h4
+                  class="text-xs font-semibold text-rose-text-muted uppercase tracking-wider mb-2"
+                >
                   {{ cat.label }}
                 </h4>
                 <ul class="flex flex-col gap-y-1.5">
-                  <li v-for="s in cat.items" :key="s.action" class="flex items-center justify-between py-0.5">
+                  <li
+                    v-for="s in cat.items"
+                    :key="s.action"
+                    class="flex items-center justify-between py-0.5"
+                  >
                     <span class="text-rose-text-muted">{{ s.action }}</span>
                     <kbd
-                      class="px-2 py-0.5 rounded bg-rose-surface border border-rose-border text-rose-text text-xs font-mono">
+                      class="px-2 py-0.5 rounded bg-rose-surface border border-rose-border text-rose-text text-xs font-mono"
+                    >
                       {{ s.keys }}
                     </kbd>
                   </li>
@@ -64,9 +109,11 @@
 
           <div class="divider" />
 
-          <button type="button"
+          <button
+            type="button"
             class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
-            @click="goToSettings">
+            @click="goToSettings"
+          >
             <SettingsIcon class="w-4 h-4 text-rose-primary" />
             <span class="font-medium text-rose-text">Settings</span>
           </button>
@@ -74,14 +121,24 @@
           <div class="divider" />
 
           <!-- Export & Sharing -->
-          <PanelSection :icon="Share2Icon" label="Share" :is-open="openPanel === 2" @toggle="togglePanel(2)">
+          <PanelSection
+            :icon="Share2Icon"
+            label="Share"
+            :is-open="openPanel === 2"
+            @toggle="togglePanel(2)"
+          >
             <div class="flex flex-col items-center gap-y-4 px-1 py-4">
               <p class="text-sm text-rose-text-muted text-center w-full">Share Rose with others.</p>
 
               <div class="flex flex-wrap items-center justify-center gap-3 w-full">
-                <button v-for="option in shareOptions" :key="option.name"
+                <button
+                  v-for="option in shareOptions"
+                  :key="option.name"
                   class="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-md hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-primary"
-                  :class="option.colorClass" :title="`Share on ${option.name}`" @click="option.action">
+                  :class="option.colorClass"
+                  :title="`Share on ${option.name}`"
+                  @click="option.action"
+                >
                   <component :is="option.icon" class="w-5 h-5" />
                 </button>
               </div>
@@ -89,7 +146,8 @@
               <div class="flex items-center gap-2 w-full mt-2">
                 <button
                   class="flex-1 px-3 py-2 rounded-lg bg-rose-surface border border-rose-border text-rose-text text-sm font-medium hover:bg-rose-surface-alt transition-colors"
-                  @click="handleShare">
+                  @click="handleShare"
+                >
                   {{ copied ? "Copied!" : "Copy link" }}
                 </button>
               </div>
@@ -98,24 +156,30 @@
 
           <div class="divider" />
 
-          <button type="button"
+          <button
+            type="button"
             class="w-full flex items-center gap-3 px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors"
-            @click="emit('open-feedback')">
+            @click="emit('open-feedback')"
+          >
             <MessageSquareIcon class="w-4 h-4 text-rose-primary" />
             <span class="font-medium text-rose-text">Give Feedback</span>
           </button>
 
           <div class="divider" />
 
-          <a href="/trash"
+          <a
+            href="/trash"
             class="w-full flex items-center justify-between px-2 py-4 rounded-xl bg-rose-surface-alt hover:bg-rose-surface/40 transition-colors cursor-pointer"
-            @click.prevent="goToTrash">
+            @click.prevent="goToTrash"
+          >
             <div class="flex items-center gap-3">
               <Trash2Icon class="w-4 h-4 text-rose-primary" />
               <span class="font-medium text-rose-text">Trash</span>
             </div>
-            <span v-if="trashStore.trashedCount > 0"
-              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-primary/15 text-rose-primary">
+            <span
+              v-if="trashStore.trashedCount > 0"
+              class="px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-primary/15 text-rose-primary"
+            >
               {{ trashStore.trashedCount }}
             </span>
           </a>
@@ -123,11 +187,18 @@
           <div class="divider" />
 
           <!-- About This App -->
-          <PanelSection :icon="InfoIcon" label="About This App" :is-open="openPanel === 3" @toggle="togglePanel(3)">
+          <PanelSection
+            :icon="InfoIcon"
+            label="About This App"
+            :is-open="openPanel === 3"
+            @toggle="togglePanel(3)"
+          >
             <div class="flex flex-col gap-y-4 px-1 py-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-rose-text-muted">Version</span>
-                <span class="px-3 py-1 rounded-full bg-rose-surface text-rose-cream text-xs font-mono">
+                <span
+                  class="px-3 py-1 rounded-full bg-rose-surface text-rose-cream text-xs font-mono"
+                >
                   {{ appVersion }}
                 </span>
               </div>
@@ -137,16 +208,21 @@
               <div class="flex flex-col gap-y-2">
                 <span class="text-sm text-rose-text-muted">Built with</span>
                 <div class="flex flex-wrap gap-2">
-                  <span v-for="tech in techStack" :key="tech.label"
-                    class="flex items-center gap-x-1.5 px-2.5 py-1 rounded-full bg-rose-surface text-rose-text text-xs border border-rose-border">
-                    <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: tech.color }"></span>
+                  <span
+                    v-for="tech in techStack"
+                    :key="tech.label"
+                    class="flex items-center gap-x-1.5 px-2.5 py-1 rounded-full bg-rose-surface text-rose-text text-xs border border-rose-border"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full shrink-0"
+                      :style="{ backgroundColor: tech.color }"
+                    ></span>
                     {{ tech.label }}
                   </span>
                 </div>
               </div>
             </div>
           </PanelSection>
-
         </div>
       </div>
     </div>
@@ -181,7 +257,7 @@ import PanelSection from "@/components/ui/PanelSection.vue";
 import { useRouter } from "vue-router";
 
 const { isOpen, initialPanel } = defineProps<{ isOpen: boolean; initialPanel?: number }>();
-const emit = defineEmits<{ close: []; 'open-feedback': [] }>();
+const emit = defineEmits<{ close: []; "open-feedback": [] }>();
 
 const themeStore = useThemeStore();
 const trashStore = useTrashStore();
@@ -189,14 +265,17 @@ const router = useRouter();
 
 const menuRef = ref<HTMLElement | null>(null);
 const { activate, deactivate } = useFocusTrap(menuRef, { escapeDeactivates: false });
-watch(() => isOpen, (val) => {
-  if (val) {
-    trashStore.loadTrash();
-    nextTick().then(() => activate());
-  } else {
-    deactivate();
-  }
-});
+watch(
+  () => isOpen,
+  (val) => {
+    if (val) {
+      trashStore.loadTrash();
+      nextTick().then(() => activate());
+    } else {
+      deactivate();
+    }
+  },
+);
 
 const selectedMode = computed({
   get: () => themeStore.mode,
@@ -242,24 +321,33 @@ const shareOptions = [
     icon: WhatsappIcon,
     colorClass: "bg-[#25D366]",
     action: () => {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(globalThis.location.href)}`, '_blank');
-    }
+      window.open(
+        `https://api.whatsapp.com/send?text=${encodeURIComponent(globalThis.location.href)}`,
+        "_blank",
+      );
+    },
   },
   {
     name: "Telegram",
     icon: TelegramIcon,
     colorClass: "bg-[#26A5E4]",
     action: () => {
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(globalThis.location.href)}`, '_blank');
-    }
+      window.open(
+        `https://t.me/share/url?url=${encodeURIComponent(globalThis.location.href)}`,
+        "_blank",
+      );
+    },
   },
   {
     name: "Reddit",
     icon: RedditIcon,
     colorClass: "bg-[#FF4500]",
     action: () => {
-      window.open(`https://reddit.com/submit?url=${encodeURIComponent(globalThis.location.href)}`, '_blank');
-    }
+      window.open(
+        `https://reddit.com/submit?url=${encodeURIComponent(globalThis.location.href)}`,
+        "_blank",
+      );
+    },
   },
   {
     name: "Signal",
@@ -267,7 +355,7 @@ const shareOptions = [
     colorClass: "bg-[#3A76F0]",
     action: () => {
       globalThis.location.href = `sgnl://share?text=${encodeURIComponent(globalThis.location.href)}`;
-    }
+    },
   },
   {
     name: "Messages",
@@ -275,7 +363,7 @@ const shareOptions = [
     colorClass: "bg-[#0B84FF]",
     action: () => {
       globalThis.location.href = `sms:?&body=${encodeURIComponent(globalThis.location.href)}`;
-    }
+    },
   },
   {
     name: "Email",
@@ -283,7 +371,7 @@ const shareOptions = [
     colorClass: "bg-[#EA4335]",
     action: () => {
       globalThis.location.href = `mailto:?body=${encodeURIComponent(globalThis.location.href)}`;
-    }
+    },
   },
 ];
 
@@ -329,9 +417,7 @@ const shortcutCategories = [
   },
   {
     label: "Note Canvas",
-    items: [
-      { action: "Save", keys: "Ctrl+S" },
-    ],
+    items: [{ action: "Save", keys: "Ctrl+S" }],
   },
 ];
 

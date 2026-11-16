@@ -115,5 +115,7 @@ const polygonPoints = computed(() =>
   axisPoints.value.map((point) => `${point.valueX},${point.valueY}`).join(" "),
 );
 
-const ariaLabel = computed(() => segments?.map((segment) => `${segment.label} ${segment.percentage}%`).join(", "));
+const ariaLabel = computed(() =>
+  segments?.map((segment) => `${segment.label} ${segment.percentage}%`).join(", "),
+);
 </script>

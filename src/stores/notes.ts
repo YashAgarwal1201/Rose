@@ -21,7 +21,7 @@ export const useNotesStore = defineStore("notes", () => {
   async function createNote(title: string, folderId: string | null) {
     const trimmed = title.trim() || "Untitled";
     if (trimmed.includes("/")) {
-      throw new Error("Note title cannot contain \"/\".");
+      throw new Error('Note title cannot contain "/".');
     }
     const duplicate = notes.value.find(
       (note) => note.folderId === folderId && note.title.toLowerCase() === trimmed.toLowerCase(),
@@ -63,12 +63,20 @@ export const useNotesStore = defineStore("notes", () => {
 
   async function getNote(id: string): Promise<Note | undefined> {
     const note = await db.notes.get(id);
-    if (!note) {return;}
+    if (!note) {
+      return;
+    }
     if (note.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
-      if (note.canvasJSON) {await decryptJSONField(vault.derivedKey, note, "canvasJSON");}
-      if (note.thumbnail) {await decryptField(vault.derivedKey, note, "thumbnail");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
+      if (note.canvasJSON) {
+        await decryptJSONField(vault.derivedKey, note, "canvasJSON");
+      }
+      if (note.thumbnail) {
+        await decryptField(vault.derivedKey, note, "thumbnail");
+      }
     }
     return note;
   }
@@ -80,7 +88,9 @@ export const useNotesStore = defineStore("notes", () => {
 
   async function updateNote(
     id: string,
-    changes: Partial<Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "backgroundPattern" | "thumbnail">>,
+    changes: Partial<
+      Pick<Note, "title" | "canvasJSON" | "backgroundColor" | "backgroundPattern" | "thumbnail">
+    >,
   ) {
     const note = await db.notes.get(id);
     if (!note || note.trashedAt) {
@@ -90,7 +100,7 @@ export const useNotesStore = defineStore("notes", () => {
     if (changes.title !== undefined) {
       const trimmed = changes.title.trim() || "Untitled";
       if (trimmed.includes("/")) {
-        throw new Error("Note title cannot contain \"/\".");
+        throw new Error('Note title cannot contain "/".');
       }
       const duplicate = notes.value.find(
         (n) =>
@@ -111,12 +121,22 @@ export const useNotesStore = defineStore("notes", () => {
 
     if (note?.isVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
       if ("canvasJSON" in sanitized && sanitized.canvasJSON) {
-        await encryptJSONField(vault.derivedKey, sanitized as Partial<Note> & { iv: string | null }, "canvasJSON");
+        await encryptJSONField(
+          vault.derivedKey,
+          sanitized as Partial<Note> & { iv: string | null },
+          "canvasJSON",
+        );
       }
       if ("thumbnail" in sanitized && sanitized.thumbnail) {
-        await encryptField(vault.derivedKey, sanitized as Partial<Note> & { iv: string | null }, "thumbnail");
+        await encryptField(
+          vault.derivedKey,
+          sanitized as Partial<Note> & { iv: string | null },
+          "thumbnail",
+        );
       }
     }
 
@@ -167,13 +187,15 @@ export const useNotesStore = defineStore("notes", () => {
       folderId: newFolderId,
       title: titleToUse,
       updatedAt: Date.now(),
-      isVaulted: newIsVaulted
+      isVaulted: newIsVaulted,
     };
 
     const dbNote = await db.notes.get(id);
     if (dbNote && dbNote.isVaulted !== newIsVaulted) {
       const vault = useVaultStore();
-      if (!vault.derivedKey) {throw new Error("Vault is locked");}
+      if (!vault.derivedKey) {
+        throw new Error("Vault is locked");
+      }
 
       if (newIsVaulted) {
         if (dbNote.canvasJSON) {
@@ -217,4 +239,3 @@ export const useNotesStore = defineStore("notes", () => {
     updateNote,
   };
 });
-

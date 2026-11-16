@@ -13,7 +13,11 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
 }
 
-export interface EventContext<Environment, ParamKey extends string = string, Data = Record<string, unknown>> {
+export interface EventContext<
+  Environment,
+  ParamKey extends string = string,
+  Data = Record<string, unknown>,
+> {
   request: Request;
   functionPath: string;
   waitUntil: (promise: Promise<unknown>) => void;
@@ -32,7 +36,11 @@ export type PagesFunction<
 /**
  * Checks whether an origin is allowed to access Rose's federated assets.
  */
-export function isAllowedOrigin(origin: string, requestUrl: string, allowedOriginsEnv?: string): boolean {
+export function isAllowedOrigin(
+  origin: string,
+  requestUrl: string,
+  allowedOriginsEnv?: string,
+): boolean {
   if (!origin) {
     return false;
   }
@@ -111,7 +119,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
           "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization, Range, X-Requested-With",
           "Access-Control-Max-Age": "86400",
-          "Vary": "Origin",
+          Vary: "Origin",
         },
       });
     }

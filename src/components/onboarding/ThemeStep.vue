@@ -1,7 +1,11 @@
 <!-- src/components/onboarding/ThemeStep.vue -->
 <template>
   <div>
-    <img :src="ThemeIllustration" alt="Theme" class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none" />
+    <img
+      :src="ThemeIllustration"
+      alt="Theme"
+      class="w-48 h-auto mx-auto mb-6 select-none pointer-events-none"
+    />
     <h2 class="text-xl font-semibold text-rose-text text-center">Pick a look</h2>
     <p class="text-sm text-rose-text-muted text-center mt-2">
       You can change this anytime in Settings.
